@@ -157,8 +157,8 @@ Dynamics
 
    Step the integrator forward to time t2 .  This advances the time
    and solves the DEL equation.  The current state will become the
-   previous state (ie, :math:`t_2 \Rightarrow \t_1`, :math:`q_2
-   \Rightarrow \q_1`, :math:`p_2 \Rightarrow \p_1`).  The solution
+   previous state (ie, :math:`t_2 \Rightarrow t_1`, :math:`q_2
+   \Rightarrow q_1`, :math:`p_2 \Rightarrow p_1`).  The solution
    will be saved as the new state, available through :attr:`t2`,
    :attr:`q2`, and :attr:`p2`.  :attr:`lambda` will be updated with
    the new constraint force, and :attr:`u1` will be updated with the
