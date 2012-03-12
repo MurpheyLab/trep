@@ -1,0 +1,6 @@
+# Ignore profiler output
+callgrind.out.*
+# Ignore emacs back ups
+\#*\#
+*.pyprof
+build/
