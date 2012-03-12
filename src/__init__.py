@@ -26,4 +26,4 @@ import potentials
 import constraints
 import forces
         
-__version__ = '0.1'
+__version__ = '0.91'

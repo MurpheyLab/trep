@@ -63,7 +63,7 @@ _trep = Extension('trep._trep',
 ##                     sources = ['src/newvisual/_polyobject.c'])
 
 setup (name = 'trep',
-       version = '0.9',
+       version = '0.91',
        description = 'trep is used to simulate mechanical systems.',
        author = ['Elliot Johnson'],
        author_email = 'elliot.r.johnson@gmail.com',
