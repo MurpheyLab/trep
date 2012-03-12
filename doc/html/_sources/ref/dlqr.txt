@@ -1,3 +1,0 @@
-dlqr
-====
-Discrete LQR Solutions

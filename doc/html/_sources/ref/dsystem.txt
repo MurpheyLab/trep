@@ -1,4 +1,0 @@
-DSystem
-=======
-Discrete Dynamic System
-

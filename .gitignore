@@ -4,3 +4,4 @@ callgrind.out.*
 \#*\#
 *.pyprof
 build/
+export.sh

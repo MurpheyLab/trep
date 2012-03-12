@@ -1,3 +1,0 @@
-DOptimizer
-==========
-Discrete Trajectory Optimization
