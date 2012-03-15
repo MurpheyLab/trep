@@ -165,8 +165,8 @@ Dynamics
    value of *u1*.
 
    *lambda1* and *q2* can be specified to seed the root solving
-    algorthm.  If they are :data:`None`, the previous values will be
-    used.
+   algorthm.  If they are :data:`None`, the previous values will be
+   used.
 
    The method returns the number of root solver iterations needed to
    find the solution.
