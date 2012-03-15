@@ -171,7 +171,8 @@ class MidpointVI(_MidpointVI):
             lambda1 = np.zeros((self.system.nc,))
         self.lambda1 = lambda1
 
-    def step(self, t2, u1=tuple(), k2=tuple(), max_iterations=200):
+    def step(self, t2, u1=tuple(), k2=tuple(), max_iterations=200,
+             lambda1=None, q2=None):
         """
         Step the integrator forward to time t2 .  This solves the DEL
         equation.  The result will be available in gmvi.t2, gmvi.q2,
@@ -189,6 +190,10 @@ class MidpointVI(_MidpointVI):
         self._q2[self.nd:] = k2
         self.t1 = self.t2
         self.t2 = t2
+        if q2 is not None:
+            self._q2[:self.nd] = q2[:self.nd]
+        if lambda1 is not None:
+            self.lambda1 = lambda1        
         return self._solve_DEL(max_iterations)
     
     def calc_f(self):
