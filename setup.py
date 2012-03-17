@@ -62,6 +62,20 @@ _trep = Extension('trep._trep',
 ##                     include_dirs = ['/usr/local/include'],
 ##                     sources = ['src/newvisual/_polyobject.c'])
 
+cmd_class = {}
+cmd_options = {}
+
+
+# Try to add support to build the documentation is Sphinx is
+# installed.
+try:
+    from sphinx.setup_command import BuildDoc
+    cmd_class['build_sphinx'] = BuildDoc
+    # See docstring for BuildDoc on how to set default options here.
+except ImportError:
+    pass
+
+
 setup (name = 'trep',
        version = '0.91',
        description = 'trep is used to simulate mechanical systems.',
@@ -78,4 +92,6 @@ setup (name = 'trep',
                  ],
        ext_modules = [_trep,
                       #_polyobject
-                      ])
+                      ],
+       cmdclass=cmd_class,
+       command_options=cmd_options)
