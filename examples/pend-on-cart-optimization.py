@@ -4,6 +4,7 @@ from itertools import product
 import sys
 import trep
 from trep import tx, ty, tz, rx, ry, rz
+import trep.discopt as discopt
 
 import math
 from math import sin, cos
@@ -247,7 +248,7 @@ def make_input_cost(base, x, theta=None):
 system = build_system(True)
 mvi = trep.MidpointVI(system)
 t = np.arange(0.0, 10.0, 0.01)
-dsys = trep.DSystem(mvi, t)
+dsys = discopt.DSystem(mvi, t)
 
 # Generate an initial trajectory
 (X,U) = dsys.build_trajectory()
@@ -273,10 +274,10 @@ qd = generate_desired_trajectory(system, t, 130*mpi/180)
 
 Qcost = make_state_cost(0.01, 0.01, 100.0)
 Rcost = make_input_cost(0.01, 0.01, 0.01)
-cost = trep.DCost(Xd, Ud, Qcost, Rcost)
+cost = discopt.DCost(Xd, Ud, Qcost, Rcost)
 
 #monitor = Monitor()
-optimizer = trep.DOptimizer(dsys, cost)#, monitor)
+optimizer = discopt.DOptimizer(dsys, cost)#, monitor)
 
 xi = [(X, U)]
 
@@ -403,7 +404,7 @@ print optimizer.check_ddcost(*xi[-1], method='newton', delta=1e-7)
 ## # Build a new system without the extra input
 ## system = build_system(False)
 ## mvi = trep.MidpointVI(system)
-## dsys = trep.DSystem(mvi, t)
+## dsys = discopt.DSystem(mvi, t)
 
 ## # Build the trajectory for this new system
 ## mu0 = [ui[:len(system.inputs)] for ui in mu0]  # Take the inputs we still have

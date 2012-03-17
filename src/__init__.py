@@ -10,9 +10,6 @@ from constraint import Constraint
 from potential import Potential
 from midpointvi import MidpointVI
 from frame import tx, ty, tz, rx, ry, rz, const_se3, const_txyz
-from dcost import DCost
-from dsystem import DSystem
-from doptimizer import DOptimizer
 from framesequence import FrameSequence
 from spline import Spline
 try:
