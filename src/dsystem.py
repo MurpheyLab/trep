@@ -332,43 +332,6 @@ class DSystem(object):
         return fdudu
     
 
-    def validate_derivatives(self, xk, uk, k, delta=1e-5, tolerance=1e-5, verbose=False):
-
-        self.set(xk, uk, k)
-        f0 = self.f()
-        fdx_exact = self.fdx()
-        fdu_exact = self.fdu()
-
-        # Build approximation for fdx and fdu
-        fdx_approx = np.zeros((self.nX, self.nX))
-        for i1 in range(self.nX):
-            dxk = xk.copy()
-            dxk[i1] += delta
-            self.set(dxk, uk, k)
-            dfp = self.f()
-            dxk = xk.copy()
-            dxk[i1] -= delta
-            self.set(dxk, uk, k)
-            dfm = self.f()
-            fdx_approx[:, i1] = (dfp-dfm)/(2*delta)
-
-        fdu_approx = np.zeros((self.nX, self.nU))
-        for i1 in range(self.nU):
-            duk = uk.copy()
-            duk[i1] += delta
-            self.set(xk, duk, k)
-            dfp = self.f()
-            duk = uk.copy()
-            duk[i1] -= delta
-            self.set(xk, duk, k)
-            dfm = self.f()
-            fdu_approx[:, i1] = (dfp-dfm)/(2*delta)
-            
-        fdx_error = np.linalg.norm(fdx_exact - fdx_approx)/np.linalg.norm(fdx_exact)
-        fdu_error = np.linalg.norm(fdu_exact - fdu_approx)/np.linalg.norm(fdu_exact)
-        return fdx_error, fdu_error
-
-
     def save_state_trajectory(self, filename, X, U):
         """
         Save a trajectory to a file.
@@ -402,4 +365,149 @@ class DSystem(object):
             A[k] = self.fdx()
             B[k] = self.fdu()
         return A,B
+
         
+    def check_fdx(self, xk, uk, k, delta=1e-5, tolerance=1e-5, verbose=False):
+
+        self.set(xk, uk, k)
+        f0 = self.f()
+        fdx_exact = self.fdx()
+
+        # Build approximation for fdx 
+        fdx_approx = np.zeros((self.nX, self.nX))
+        for i1 in range(self.nX):
+            dxk = xk.copy()
+            dxk[i1] += delta
+            self.set(dxk, uk, k)
+            dfp = self.f()
+            dxk = xk.copy()
+            dxk[i1] -= delta
+            self.set(dxk, uk, k)
+            dfm = self.f()
+            fdx_approx[:, i1] = (dfp-dfm)/(2*delta)
+
+        error = np.linalg.norm(fdx_exact - fdx_approx) #/np.linalg.norm(fdx_exact)
+        exact_norm = np.linalg.norm(fdx_exact)
+        approx_norm = np.linalg.norm(fdx_approx)        
+        return error, exact_norm, approx_norm
+
+
+    def check_fdu(self, xk, uk, k, delta=1e-5, tolerance=1e-5, verbose=False):
+
+        self.set(xk, uk, k)
+        f0 = self.f()
+        fdu_exact = self.fdu()
+
+        # Build approximation for fdu
+        fdu_approx = np.zeros((self.nX, self.nU))
+        for i1 in range(self.nU):
+            duk = uk.copy()
+            duk[i1] += delta
+            self.set(xk, duk, k)
+            dfp = self.f()
+            duk = uk.copy()
+            duk[i1] -= delta
+            self.set(xk, duk, k)
+            dfm = self.f()
+            fdu_approx[:, i1] = (dfp-dfm)/(2*delta)
+            
+        error = np.linalg.norm(fdu_exact - fdu_approx) #/np.linalg.norm(fdu_exact)
+        exact_norm = np.linalg.norm(fdu_exact)
+        approx_norm = np.linalg.norm(fdu_approx)        
+        return error, exact_norm, approx_norm
+
+
+    def check_fdxdx(self, xk, uk, k, delta=1e-5, tolerance=1e-5, verbose=False):
+
+        # Build fdxdx_exact
+        self.set(xk, uk, k)
+        fdxdx_exact = np.zeros((self.nX, self.nX, self.nX))
+        for i in range(self.nX):
+            z = np.zeros(self.nX)
+            z[i] = 1.0
+            fdxdx_exact[i,:,:] = self.fdxdx(z)
+
+        # Build fdxdx_approx
+        dx0 = np.zeros((self.nX, self.nX, self.nX))
+        dx1 = np.zeros((self.nX, self.nX, self.nX))        
+        for i in range(self.nX):
+            dxk = xk.copy()
+            dxk[i] -= delta        
+            self.set(dxk, uk, k)            
+            dx0[:,:,i] = self.fdx()
+
+            dxk = xk.copy()
+            dxk[i] += delta        
+            self.set(dxk, uk, k)            
+            dx1[:,:,i] = self.fdx()
+            
+        fdxdx_approx = (dx1 - dx0)/(2*delta)
+            
+        error = np.linalg.norm(fdxdx_exact - fdxdx_approx)
+        exact_norm = np.linalg.norm(fdxdx_exact)
+        approx_norm = np.linalg.norm(fdxdx_approx)
+        return error, exact_norm, approx_norm
+
+        
+    def check_fdxdu(self, xk, uk, k, delta=1e-5, tolerance=1e-5, verbose=False):
+
+        # Build fdxdu_exact
+        self.set(xk, uk, k)
+        fdxdu_exact = np.zeros((self.nX, self.nX, self.nU))
+        for i in range(self.nX):
+            z = np.zeros(self.nX)
+            z[i] = 1.0
+            fdxdu_exact[i,:,:] = self.fdxdu(z)
+
+        # Build fdxdu_approx
+        dx0 = np.zeros((self.nX, self.nX, self.nU))
+        dx1 = np.zeros((self.nX, self.nX, self.nU))        
+        for i in range(self.nU):
+            duk = uk.copy()
+            duk[i] -= delta        
+            self.set(xk, duk, k)            
+            dx0[:,:,i] = self.fdx()
+
+            duk = uk.copy()
+            duk[i] += delta        
+            self.set(xk, duk, k)            
+            dx1[:,:,i] = self.fdx()
+            
+        fdxdu_approx = (dx1 - dx0)/(2*delta)
+        
+        error = np.linalg.norm(fdxdu_exact - fdxdu_approx)
+        exact_norm = np.linalg.norm(fdxdu_exact)
+        approx_norm = np.linalg.norm(fdxdu_approx)
+        return error, exact_norm, approx_norm
+        
+        
+    def check_fdudu(self, xk, uk, k, delta=1e-5, tolerance=1e-5, verbose=False):
+
+        # Build fdudu_exact
+        self.set(xk, uk, k)
+        fdudu_exact = np.zeros((self.nX, self.nU, self.nU))
+        for i in range(self.nX):
+            z = np.zeros(self.nX)
+            z[i] = 1.0
+            fdudu_exact[i,:,:] = self.fdudu(z)
+
+        # Build fdudu_approx
+        dx0 = np.zeros((self.nX, self.nU, self.nU))
+        dx1 = np.zeros((self.nX, self.nU, self.nU))        
+        for i in range(self.nU):
+            duk = uk.copy()
+            duk[i] -= delta        
+            self.set(xk, duk, k)            
+            dx0[:,:,i] = self.fdu()
+
+            duk = uk.copy()
+            duk[i] += delta        
+            self.set(xk, duk, k)            
+            dx1[:,:,i] = self.fdu()
+            
+        fdudu_approx = (dx1 - dx0)/(2*delta)
+            
+        error = np.linalg.norm(fdudu_exact - fdudu_approx)
+        exact_norm = np.linalg.norm(fdudu_exact)
+        approx_norm = np.linalg.norm(fdudu_approx)
+        return error, exact_norm, approx_norm

@@ -283,7 +283,7 @@ xi = [(X, U)]
 optimizer.first_order_iterations = 6
 
 ## cost.R = make_input_cost(0.001, 0.001, 0.0001)
-xi.append(optimizer.optimize(xi[-1], 7)[1:])
+xi.append(optimizer.optimize(xi[-1], 2)[1:])
 #print "Cost after first round: ", optimizer.cost_n
 
 ## import matplotlib.pyplot as pyplot
@@ -295,32 +295,43 @@ xi.append(optimizer.optimize(xi[-1], 7)[1:])
 ## optimizer.descent_plot(*xi[-1], method='newton', legend=False)
 ## pyplot.show()
 
-print "dcost, steepest"
-print optimizer.check_dcost(*xi[-1], delta=1e-4)
-print optimizer.check_dcost(*xi[-1], delta=1e-5)
-print optimizer.check_dcost(*xi[-1], delta=1e-6)
-print optimizer.check_dcost(*xi[-1], delta=1e-7)
-print 
-print "dcost, newton"
-print optimizer.check_dcost(*xi[-1], method='newton', delta=1e-4)
-print optimizer.check_dcost(*xi[-1], method='newton', delta=1e-5)
-print optimizer.check_dcost(*xi[-1], method='newton', delta=1e-6)
-print optimizer.check_dcost(*xi[-1], method='newton', delta=1e-7)
+## print "dcost, steepest"
+## print optimizer.check_dcost(*xi[-1], delta=1e-4)
+## print optimizer.check_dcost(*xi[-1], delta=1e-5)
+## print optimizer.check_dcost(*xi[-1], delta=1e-6)
+## print optimizer.check_dcost(*xi[-1], delta=1e-7)
+## print 
+## print "dcost, newton"
+## print optimizer.check_dcost(*xi[-1], method='newton', delta=1e-4)
+## print optimizer.check_dcost(*xi[-1], method='newton', delta=1e-5)
+## print optimizer.check_dcost(*xi[-1], method='newton', delta=1e-6)
+## print optimizer.check_dcost(*xi[-1], method='newton', delta=1e-7)
 
-print
-print "ddcost, steepest"
-print optimizer.check_ddcost(*xi[-1], delta=1e-4)
-print optimizer.check_ddcost(*xi[-1], delta=1e-5)
-print optimizer.check_ddcost(*xi[-1], delta=1e-6)
-print optimizer.check_ddcost(*xi[-1], delta=1e-7)
-print
-print "ddcost, newton"
-print optimizer.check_ddcost(*xi[-1], method='newton', delta=1e-4)
-print optimizer.check_ddcost(*xi[-1], method='newton', delta=1e-5)
-print optimizer.check_ddcost(*xi[-1], method='newton', delta=1e-6)
-print optimizer.check_ddcost(*xi[-1], method='newton', delta=1e-7)
+## print
+## print "ddcost, steepest"
+## print optimizer.check_ddcost(*xi[-1], delta=1e-4)
+## print optimizer.check_ddcost(*xi[-1], delta=1e-5)
+## print optimizer.check_ddcost(*xi[-1], delta=1e-6)
+## print optimizer.check_ddcost(*xi[-1], delta=1e-7)
+## print
+## print "ddcost, newton"
+## print optimizer.check_ddcost(*xi[-1], method='newton', delta=1e-4)
+## print optimizer.check_ddcost(*xi[-1], method='newton', delta=1e-5)
+## print optimizer.check_ddcost(*xi[-1], method='newton', delta=1e-6)
+## print optimizer.check_ddcost(*xi[-1], method='newton', delta=1e-7)
 
+X,U = xi[-1]
 
+k = len(X)/2
+xk = X[k]
+uk = U[k]
+
+print 'fdx:   ', dsys.check_fdx(xk, uk, k)
+print 'fdu:   ', dsys.check_fdu(xk, uk, k)
+
+print 'fdxdx: ', dsys.check_fdxdx(xk, uk, k)
+print 'fdxdu: ', dsys.check_fdxdu(xk, uk, k)
+print 'fdudu: ', dsys.check_fdudu(xk, uk, k)
 
 
 ## (Kproj, dX, dU) = optimizer.calc_descent_direction(X, U)
