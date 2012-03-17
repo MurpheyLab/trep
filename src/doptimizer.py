@@ -20,7 +20,6 @@ except ImportError:
 
 
 class DOptimizer(object):
-#class TrajectoryOptimization(object):
     def __init__(self, dsys, cost):
         self.dsys = dsys
         self.cost = cost
@@ -122,11 +121,12 @@ class DOptimizer(object):
         
         return (lambda k: Q[k], lambda k: R[k], lambda k: S[k])
         
-
+    
     def calc_descent_direction(self, X, U, method='steepest'):
         (Kproj, A, B) = self.calc_projection(X, U, True)
 
-        # Generate cost weights for LQ problem
+        # All descent direction methods use the same linear cost
+        # terms.
         q = np.zeros(X.shape)
         r = np.zeros(U.shape)
         for k in xrange(len(X)-1):
@@ -134,7 +134,8 @@ class DOptimizer(object):
             r[k] = self.cost.l_du(X[k], U[k], k)
         q[-1] = self.cost.m_dx(X[-1])
 
-        # First order optimization
+        # Calculate the quadratic model according to the desired
+        # method.
         if method == 'steepest':
             (Q,R,S) = self.calc_steepest_model()
         elif method == 'quasi':
@@ -146,11 +147,16 @@ class DOptimizer(object):
 
         (K,C,P,b) = dlqr.solve_tv_lq(A, B, q, r, Q, S, R)
 
+        # If the optimization includes initial conditions, we need to
+        # find an initial condition that minimizes the LQ solution.
+        # This currently is only valid for unconstrained systems.
         if self.optimize_ic:
             dx0 = -np.linalg.solve(P, b)
         else:
             dx0 = np.zeros((self.dsys.nX,))
 
+        # Calculate the descent direction by simulating the linearized
+        # system using the LQ solution's optimal input.
         dX = np.zeros(X.shape)
         dU = np.zeros(U.shape)
         dX[0] = dx0
@@ -164,7 +170,6 @@ class DOptimizer(object):
     def armijo_search(self, X, U, Kproj, dX, dU):
 
         m0 = 0
-
         cost = self.calc_cost(X, U)
         dcost = self.calc_dcost(X, U, dX, dU)
         
@@ -201,10 +206,6 @@ class DOptimizer(object):
 
 
     def step(self, X, U, method='steepest'):
-        # Perform an optimization step.  Valid methods are 'newton'
-        # and 'steepest'.  Returns true if the current trajectory
-        # satisfies the first-order optimality condition.  Otherwise
-        # improves the trajectory and returns false.
 
         (Kproj, dX, dU, Q, R, S) = self.calc_descent_direction(X, U, method)
 
@@ -213,7 +214,7 @@ class DOptimizer(object):
 
         self.step_method = method
 
-        # Check for sane descent directoin
+        # Check for sane descent direction
         dcost = self.calc_dcost(X, U, dX, dU)
         if dcost > 0:
             if method != 'steepest':
@@ -243,7 +244,7 @@ class DOptimizer(object):
         else:
             return Kproj
 
-
+ 
     def project(self, bX, bU, Kproj):
         nX = np.zeros(bX.shape)
         nU = np.zeros(bU.shape)
@@ -303,7 +304,7 @@ class DOptimizer(object):
     def descent_plot(self, X, U, method='steepest', points=40, legend=True):
 
         if not pyplot_available:
-            raise StandardError("Importing matplot lib failed. Cannot create plot.")
+            raise StandardError("Importing matplotlib failed. Cannot create plot.")
 
         (Kproj, dX, dU, Q, R, S) = self.calc_descent_direction(X, U, method)
 
@@ -319,7 +320,6 @@ class DOptimizer(object):
         cost = self.calc_cost(X, U)
         dcost = self.calc_dcost(X, U, dX, dU)
         ddcost = self.calc_ddcost(X, U, dX, dU, Q, R, S)
-        #ddcost = np.inner(dX,dX).squeeze().sum() + np.inner(dU, dU).squeeze().sum()
 
         true_cost = np.zeros(z.shape)
         model_cost = np.zeros(z.shape)
