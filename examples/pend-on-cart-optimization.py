@@ -258,13 +258,13 @@ for k in range(dsys.kf()):
         dsys.step(U[k])
     X[k+1] = dsys.f()
     
-class Monitor(trep.doptimizer.DOptimizerMonitor):
-    def __init__(self):
-        self.dcosts = []
-        self.methods = []
-    def calculated_descent_direction(self, iterations, optimizer, method, dxi, dcost):
-        self.dcosts.append(dcost)
-        self.methods.append(method)
+## class Monitor(trep.doptimizer.DOptimizerMonitor):
+##     def __init__(self):
+##         self.dcosts = []
+##         self.methods = []
+##     def calculated_descent_direction(self, iterations, optimizer, method, dxi, dcost):
+##         self.dcosts.append(dcost)
+##         self.methods.append(method)
 
 
 # Generate cost function
@@ -275,54 +275,110 @@ Qcost = make_state_cost(0.01, 0.01, 100.0)
 Rcost = make_input_cost(0.01, 0.01, 0.01)
 cost = trep.DCost(Xd, Ud, Qcost, Rcost)
 
-monitor = Monitor()
-optimizer = trep.DOptimizer(dsys, cost, monitor)
+#monitor = Monitor()
+optimizer = trep.DOptimizer(dsys, cost)#, monitor)
 
 xi = [(X, U)]
 
-optimizer.first_order_iterations = 5
+optimizer.first_order_iterations = 6
 
-cost.R = make_input_cost(0.001, 0.001, 0.0001)
-xi.append(optimizer.optimize(xi[-1], 20, True))
-print "Cost after first round: ", optimizer.cost_n
+## cost.R = make_input_cost(0.001, 0.001, 0.0001)
+xi.append(optimizer.optimize(xi[-1], 7)[1:])
+#print "Cost after first round: ", optimizer.cost_n
+
+## import matplotlib.pyplot as pyplot
+## pyplot.subplot(3,1,1)
+## optimizer.descent_plot(*xi[-1], method='steepest', legend=False)
+## pyplot.subplot(3,1,2)
+## optimizer.descent_plot(*xi[-1], method='quasi', legend=False)
+## pyplot.subplot(3,1,3)
+## optimizer.descent_plot(*xi[-1], method='newton', legend=False)
+## pyplot.show()
+
+print "dcost, steepest"
+print optimizer.check_dcost(*xi[-1], delta=1e-4)
+print optimizer.check_dcost(*xi[-1], delta=1e-5)
+print optimizer.check_dcost(*xi[-1], delta=1e-6)
+print optimizer.check_dcost(*xi[-1], delta=1e-7)
+print 
+print "dcost, newton"
+print optimizer.check_dcost(*xi[-1], method='newton', delta=1e-4)
+print optimizer.check_dcost(*xi[-1], method='newton', delta=1e-5)
+print optimizer.check_dcost(*xi[-1], method='newton', delta=1e-6)
+print optimizer.check_dcost(*xi[-1], method='newton', delta=1e-7)
+
+print
+print "ddcost, steepest"
+print optimizer.check_ddcost(*xi[-1], delta=1e-4)
+print optimizer.check_ddcost(*xi[-1], delta=1e-5)
+print optimizer.check_ddcost(*xi[-1], delta=1e-6)
+print optimizer.check_ddcost(*xi[-1], delta=1e-7)
+print
+print "ddcost, newton"
+print optimizer.check_ddcost(*xi[-1], method='newton', delta=1e-4)
+print optimizer.check_ddcost(*xi[-1], method='newton', delta=1e-5)
+print optimizer.check_ddcost(*xi[-1], method='newton', delta=1e-6)
+print optimizer.check_ddcost(*xi[-1], method='newton', delta=1e-7)
 
 
-f = open('converge.csv', 'wt')
-for dcost in monitor.dcosts:
-    f.write('%r\n' % dcost)
-f.close()
+
+
+## (Kproj, dX, dU) = optimizer.calc_descent_direction(X, U)
+
+
+## q_history = []
+## for zi in [1.0, 0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3]:
+##     (nX, nU) = optimizer.project(X + zi*dX,
+##                                U + zi*dU,
+##                                Kproj)
+
+##     q,p,v,u,rho = dsys.split_trajectory(nX, nU)
+##     q_history.append(q)
+    
+## view = Viewer(system, t, q_history, qd)
+## view.main()
+
+
+
+
+
+
+## f = open('converge.csv', 'wt')
+## for dcost in monitor.dcosts:
+##     f.write('%r\n' % dcost)
+## f.close()
 
 
 ## cost.R = matrix(numpy.diag([0.001, 0.01]))
-## xi.append(optimizer.optimize(xi[-1], 100, True))
+## xi.append(optimizer.optimize(xi[-1], 100))
 ## print "Cost after second round: ", optimizer.cost_n
 
 ## cost.R = matrix(numpy.diag([0.001, 0.1]))
-## xi.append(optimizer.optimize(xi[-1], 100, True))
+## xi.append(optimizer.optimize(xi[-1], 100))
 ## print "Cost after third round: ", optimizer.cost_n
 
 ## cost.R = matrix(numpy.diag([0.001, 1]))
-## xi.append(optimizer.optimize(xi[-1], 100, True))
+## xi.append(optimizer.optimize(xi[-1], 100))
 ## print "Cost after fourth round: ", optimizer.cost_n
 
 ## cost.R = matrix(numpy.diag([0.001, 10]))
-## xi.append(optimizer.optimize(xi[-1], 100, True))
+## xi.append(optimizer.optimize(xi[-1], 100))
 ## print "Cost after fifth round: ", optimizer.cost_n
 
 ## cost.R = matrix(numpy.diag([0.001, 100]))
-## xi.append(optimizer.optimize(xi[-1], 100, True))
+## xi.append(optimizer.optimize(xi[-1], 100))
 ## print "Cost after sixth round: ", optimizer.cost_n
 
 ## cost.R = matrix(numpy.diag([0.001, 1000]))
-## xi.append(optimizer.optimize(xi[-1], 100, True))
+## xi.append(optimizer.optimize(xi[-1], 100))
 ## print "Cost after 7th round: ", optimizer.cost_n
 
 ## cost.R = matrix(numpy.diag([0.001, 10000]))
-## xi.append(optimizer.optimize(xi[-1], 100, True))
+## xi.append(optimizer.optimize(xi[-1], 100))
 ## print "Cost after 8th round: ", optimizer.cost_n
 
 ## cost.R = matrix(numpy.diag([0.001, 100000]))
-## xi.append(optimizer.optimize(xi[-1], 200, True))
+## xi.append(optimizer.optimize(xi[-1], 200))
 ## print "Cost after 9th round: ", optimizer.cost_n
 
 ## ## ## dump = open('cart-opt-1.txt', 'wt')
@@ -368,15 +424,15 @@ f.close()
 ## optimizer.shitcock = True
 ## optimizer.first_order_iterations = 20
 
-## xi.append(optimizer.optimize(xi[-1], 100, True))
-## xi.append(optimizer.optimize(xi[-1], 100, True))
+## xi.append(optimizer.optimize(xi[-1], 100))
+## xi.append(optimizer.optimize(xi[-1], 100))
 ## print "Cost for true system (1): ", optimizer.cost_n
 
-## ## xi.append(optimizer.optimize(xi[-1], 200, True))
+## ## xi.append(optimizer.optimize(xi[-1], 200))
 ## ## print "Cost for true system (2): ", optimizer.cost_n
-## ## xi.append(optimizer.optimize(xi[-1], 600, True))
+## ## xi.append(optimizer.optimize(xi[-1], 600))
 ## ## print "Cost for true system (3): ", optimizer.cost_n
-## ## xi.append(optimizer.optimize(xi[-1], 1000, True))
+## ## xi.append(optimizer.optimize(xi[-1], 1000))
 ## ## print "Cost for true system (4): ", optimizer.cost_n
 
 ## out = open('cost-2.0-order.txt', 'wt')

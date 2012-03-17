@@ -386,3 +386,20 @@ class DSystem(object):
         return self.build_trajectory(Q,p,v,u,rho)
 
 
+    def linearize_trajectory(self, X, U):
+        """
+        Calculate the linearization about a trajectory.
+
+        Returns (A, B) 
+        """
+        A = np.zeros((len(X)-1, self.nX, self.nX))
+        B = np.zeros((len(X)-1, self.nX, self.nU))
+        for k in xrange(len(X)-1):
+            if k == 0:
+                self.set(X[0], U[0], 0)
+            else:
+                self.step(U[k])
+            A[k] = self.fdx()
+            B[k] = self.fdu()
+        return A,B
+        

@@ -83,7 +83,6 @@ def solve_tv_lq(A, B, q, r, Q, S, R):
     C = [None]*kf
     P = Q(kf)
     b = q[kf]
-    I = np.matrix(np.eye(P.shape[0]))
 
     for k in reversed(range(kf)):
         #gamma = R(k) + B[k].T*P*B[k]
