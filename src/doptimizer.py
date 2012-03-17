@@ -70,7 +70,6 @@ class DOptimizer(object):
 
 
     def calc_ddcost(self, X, U, dX, dU, Q, R, S):
-
         ddcost = 0.0
         for k in range(len(X) - 1):
             ddcost += (dot(dX[k], dot(Q(k), dX[k])) +
@@ -84,9 +83,7 @@ class DOptimizer(object):
         Q = np.eye(self.dsys.nX)
         R = np.eye(self.dsys.nU)
         S = np.zeros((self.dsys.nX, self.dsys.nU))
-        return (lambda k: Q,
-                lambda k: R,
-                lambda k: S)
+        return (lambda k: Q, lambda k: R, lambda k: S)
 
 
     def calc_quasi_model(self, X, U):
@@ -100,10 +97,8 @@ class DOptimizer(object):
             S[k] = self.cost.l_dxdu(X[k], U[k], k)
             R[k] = self.cost.l_dudu(X[k], U[k], k)
             
-        return (lambda k: Q[k],
-                lambda k: R[k],
-                lambda k: S[k])
-
+        return (lambda k: Q[k], lambda k: R[k], lambda k: S[k])
+    
 
     def calc_newton_model(self, X, U, A, B, K):
         Q = [None]*len(X)
@@ -124,9 +119,8 @@ class DOptimizer(object):
             z = (self.cost.l_dx(X[k], U[k], k) -
                  dot(self.cost.l_du(X[k], U[k], k), K[k]) +
                  dot(z, (A[k] - dot(B[k], K[k]))))
-        return (lambda k: Q[k],
-                lambda k: R[k],
-                lambda k: S[k])
+        
+        return (lambda k: Q[k], lambda k: R[k], lambda k: S[k])
         
 
     def calc_descent_direction(self, X, U, method='steepest'):
@@ -265,6 +259,16 @@ class DOptimizer(object):
             
         return nX, nU
 
+
+    def dproject(self, A, B, bdX, bdU, K):
+        dX = np.zeros(bdX.shape)
+        dU = np.zeros(bdU.shape)
+        dX[0] = bdX[0]
+        for k in xrange(len(bdX)-1):
+            dU[k] = bdU[k] - dot(K[k], dX[k] - bdX[k])
+            dX[k+1] = dot(A[k],dX[k]) + dot(B[k],dU[k])
+        return dX, dU
+
             
     def optimize(self, xi0, max_steps):
 
@@ -350,20 +354,19 @@ class DOptimizer(object):
     def check_dcost(self, X, U, method='steepest', delta=1e-6, tolerance=1e-5):
 
         (Kproj, dX, dU, Q, R, S) = self.calc_descent_direction(X, U, method)
-
         exact_dcost = self.calc_dcost(X, U, dX, dU)
-        cost0 = self.calc_cost(*self.project(X - delta*dX,
-                                             U - delta*dU,
-                                             Kproj))
-        cost1 = self.calc_cost(*self.project(X + delta*dX,
-                                             U + delta*dU,
-                                             Kproj))
+
+        nX, nU = self.project(X - delta*dX, U - delta*dU, Kproj)
+        cost0 = self.calc_cost(nX, nU)
+
+        nX, nU = self.project(X + delta*dX, U + delta*dU, Kproj)
+        cost1 = self.calc_cost(nX, nU)
+                
         approx_dcost = (cost1 - cost0)/(2*delta)
         error = approx_dcost - exact_dcost
         result = (abs(error) <= tolerance)
-
         return (result, error, cost1, cost0, approx_dcost, exact_dcost)
-        
+    
 
     def check_ddcost(self, X, U, method='steepest', delta=1e-6, tolerance=1e-5):
 
@@ -372,19 +375,26 @@ class DOptimizer(object):
             (Q, R, S) = self.calc_descent_direction(X, U, 'newton')[-3:]
 
         exact_ddcost = self.calc_ddcost(X, U, dX, dU, Q, R, S)
-        
-        nX, nU = self.project(X - delta*dX, U - delta*dU, Kproj)
-        dcost0 = self.calc_dcost(nX, nU, dX, dU)
-        
-        nX, nU = self.project(X + delta*dX, U + delta*dU, Kproj)
-        dcost1 = self.calc_dcost(nX, nU, dX, dU)
+
+        # Calculate cost0
+        bX = X - delta*dX
+        bU = U - delta*dU
+        nX, nU = self.project(bX, bU, Kproj)
+        (A, B) = self.dsys.linearize_trajectory(nX, nU)
+        (ndX, ndU) = self.dproject(A, B, dX, dU, Kproj)
+        dcost0 = self.calc_dcost(nX, nU, ndX, ndU)
+
+        # Calculate cost1
+        bX = X + delta*dX
+        bU = U + delta*dU
+        nX, nU = self.project(bX, bU, Kproj)
+        (A, B) = self.dsys.linearize_trajectory(nX, nU)
+        (ndX, ndU) = self.dproject(A, B, dX, dU, Kproj)
+        dcost1 = self.calc_dcost(nX, nU, ndX, ndU)
         
         approx_ddcost = (dcost1 - dcost0)/(2*delta)
         error = approx_ddcost - exact_ddcost
         result = (abs(error) <= tolerance)
-
-        # This is bizarre.  In all the cases I've check, dcost0 ~=
-        # dcost1 ~= -exact_ddcost.
         
         return (result, error, dcost1, dcost0, approx_ddcost, exact_ddcost)
 
