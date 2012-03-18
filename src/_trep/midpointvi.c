@@ -712,7 +712,7 @@ static int MidpointVI_solve_DEL(MidpointVI *mvi, int max_iterations)
 	    break;
 
 	if(iterations > max_iterations) {
-	    PyErr_Format(PyExc_StandardError, "failed to converge after %d iterations", iterations);
+	    PyErr_Format(ConvergenceError, "failed to converge after %d iterations", iterations);
 	    return -1;
 	}	
 

@@ -2,6 +2,7 @@
 #define IMPORT_ARRAY // need to import numpy array interface.
 #include "trep.h"
 
+PyObject *ConvergenceError; // Exception when MVI step fails to converge.
 char trep_internal_doc[] = "Internal use only - see trep developer documentation for more information.";
 
 // The C types are definted in their respective files.
@@ -124,5 +125,10 @@ PyMODINIT_FUNC __attribute__((visibility("default"))) init_trep(void)
     PyModule_AddIntConstant(m, "SYSTEM_CACHE_DYNAMICS", SYSTEM_CACHE_DYNAMICS);
     PyModule_AddIntConstant(m, "SYSTEM_CACHE_DYNAMICS_DERIV1", SYSTEM_CACHE_DYNAMICS_DERIV1);
     PyModule_AddIntConstant(m, "SYSTEM_CACHE_DYNAMICS_DERIV2", SYSTEM_CACHE_DYNAMICS_DERIV2);
+
+    // Create exceptions
+    ConvergenceError = PyErr_NewException("_trep.ConvergenceError", PyExc_StandardError, NULL);
+    PyModule_AddObject(m, "ConvergenceError", ConvergenceError);
+
 }
 

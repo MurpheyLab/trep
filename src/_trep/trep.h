@@ -375,6 +375,8 @@ struct Potential_s {
 #define MIDPOINTVI_CACHE_SOLUTION_DERIV1 0x02
 #define MIDPOINTVI_CACHE_SOLUTION_DERIV2 0x04 
 
+extern PyObject *ConvergenceError;
+
 struct MidpointVI_s {
     PyObject_HEAD
 
