@@ -125,6 +125,7 @@ class Frame(_Frame):
         self._transform = None
         self._children = tuple()
         self._cache_size = 0
+        self._allocated_cache_size = 0
         self._cache_index = tuple()
 
         self.name = name
@@ -690,25 +691,27 @@ class Frame(_Frame):
         self._cache_index = tuple(configs)
 
         # Update frame cache structures and anything
-        # The np arrays MUST be contiguous C-style arrays of doubles.
-        n = self._cache_size
-        self._g_dq         = np.zeros(      (n,4,4), np.double, 'C')
-        self._g_dqdq       = np.zeros(    (n,n,4,4), np.double, 'C')
-        self._g_dqdqdq     = np.zeros(  (n,n,n,4,4), np.double, 'C')
-        self._g_dqdqdqdq   = np.zeros((n,n,n,n,4,4), np.double, 'C')
-        self._g_inv_dq     = np.zeros(      (n,4,4), np.double, 'C')
-        self._g_inv_dqdq   = np.zeros(    (n,n,4,4), np.double, 'C')
-        self._p_dq         = np.zeros(        (n,4), np.double, 'C')
-        self._p_dqdq       = np.zeros(      (n,n,4), np.double, 'C')
-        self._p_dqdqdq     = np.zeros(    (n,n,n,4), np.double, 'C')
-        self._p_dqdqdqdq   = np.zeros(  (n,n,n,n,4), np.double, 'C')
-        self._vb_dq        = np.zeros(      (n,4,4), np.double, 'C')
-        self._vb_dqdq      = np.zeros(    (n,n,4,4), np.double, 'C')
-        self._vb_dqdqdq    = np.zeros(  (n,n,n,4,4), np.double, 'C')
-        self._vb_ddq       = np.zeros(      (n,4,4), np.double, 'C')
-        self._vb_ddqdq     = np.zeros(    (n,n,4,4), np.double, 'C')
-        self._vb_ddqdqdq   = np.zeros(  (n,n,n,4,4), np.double, 'C')
-        self._vb_ddqdqdqdq = np.zeros((n,n,n,n,4,4), np.double, 'C')        
+        if self._allocated_cache_size != self._cache_size:
+            # The np arrays MUST be contiguous C-style arrays of doubles.
+            n = self._cache_size
+            self._g_dq         = np.zeros(      (n,4,4), np.double, 'C')
+            self._g_dqdq       = np.zeros(    (n,n,4,4), np.double, 'C')
+            self._g_dqdqdq     = np.zeros(  (n,n,n,4,4), np.double, 'C')
+            self._g_dqdqdqdq   = np.zeros((n,n,n,n,4,4), np.double, 'C')
+            self._g_inv_dq     = np.zeros(      (n,4,4), np.double, 'C')
+            self._g_inv_dqdq   = np.zeros(    (n,n,4,4), np.double, 'C')
+            self._p_dq         = np.zeros(        (n,4), np.double, 'C')
+            self._p_dqdq       = np.zeros(      (n,n,4), np.double, 'C')
+            self._p_dqdqdq     = np.zeros(    (n,n,n,4), np.double, 'C')
+            self._p_dqdqdqdq   = np.zeros(  (n,n,n,n,4), np.double, 'C')
+            self._vb_dq        = np.zeros(      (n,4,4), np.double, 'C')
+            self._vb_dqdq      = np.zeros(    (n,n,4,4), np.double, 'C')
+            self._vb_dqdqdq    = np.zeros(  (n,n,n,4,4), np.double, 'C')
+            self._vb_ddq       = np.zeros(      (n,4,4), np.double, 'C')
+            self._vb_ddqdq     = np.zeros(    (n,n,4,4), np.double, 'C')
+            self._vb_ddqdqdq   = np.zeros(  (n,n,n,4,4), np.double, 'C')
+            self._vb_ddqdqdqdq = np.zeros((n,n,n,n,4,4), np.double, 'C')
+            self._allocated_cache_size = n
         
         for child in self.children:
             child._structure_changed()
