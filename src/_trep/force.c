@@ -220,7 +220,7 @@ static PyObject* f(Force *self, PyObject *args)
     
     // Check for cycles (function has not been defined in Python or C layers)
     if(self->f == NULL || self->f == python_f) 
-	return PyErr_Format(PyExc_StandardError, "f() is undefined for this force.");
+	return PyErr_Format(PyExc_NotImplementedError, "f() is undefined for this force.");
     if(!PyArg_ParseTuple(args, "O", &q))
         return NULL; 
     ret = PyFloat_FromDouble(self->f(self, q));
@@ -237,7 +237,7 @@ static PyObject* f_dq(Force *self, PyObject *args)
 
     // Check for cycles (function has not been defined in Python or C layers)
     if(self->f_dq == NULL || self->f_dq == python_f_dq) 
-	return PyErr_Format(PyExc_StandardError, "f_dq() is undefined for this force.");
+	return PyErr_Format(PyExc_NotImplementedError, "f_dq() is undefined for this force.");
     if(!PyArg_ParseTuple(args, "OO", &q, &q1))
         return NULL; 
     ret = PyFloat_FromDouble(self->f_dq(self, q, q1));
@@ -254,7 +254,7 @@ static PyObject* f_ddq(Force *self, PyObject *args)
 
     // Check for cycles (function has not been defined in Python or C layers)
     if(self->f_ddq == NULL || self->f_ddq == python_f_ddq) 
-	return PyErr_Format(PyExc_StandardError, "f_ddq() is undefined for this force.");
+	return PyErr_Format(PyExc_NotImplementedError, "f_ddq() is undefined for this force.");
     if(!PyArg_ParseTuple(args, "OO", &q, &dq1))
         return NULL; 
     ret = PyFloat_FromDouble(self->f_ddq(self, q, dq1));
@@ -271,7 +271,7 @@ static PyObject* f_du(Force *self, PyObject *args)
 
     // Check for cycles (function has not been defined in Python or C layers)
     if(self->f_du == NULL || self->f_du == python_f_du) 
-	return PyErr_Format(PyExc_StandardError, "f_du() is undefined for this force.");
+	return PyErr_Format(PyExc_NotImplementedError, "f_du() is undefined for this force.");
     if(!PyArg_ParseTuple(args, "OO", &q, &u1))
         return NULL; 
     ret = PyFloat_FromDouble(self->f_du(self, q, u1));
@@ -289,7 +289,7 @@ static PyObject* f_dqdq(Force *self, PyObject *args)
 
     // Check for cycles (function has not been defined in Python or C layers)
     if(self->f_dqdq == NULL || self->f_dqdq == python_f_dqdq) 
-	return PyErr_Format(PyExc_StandardError, "f_dqdq() is undefined for this force.");
+	return PyErr_Format(PyExc_NotImplementedError, "f_dqdq() is undefined for this force.");
     if(!PyArg_ParseTuple(args, "OOO", &q, &q1, &q2))
         return NULL; 
     ret = PyFloat_FromDouble(self->f_dqdq(self, q, q1, q2));
@@ -307,7 +307,7 @@ static PyObject* f_ddqdq(Force *self, PyObject *args)
 
     // Check for cycles (function has not been defined in Python or C layers)
     if(self->f_ddqdq == NULL || self->f_ddqdq == python_f_ddqdq) 
-	return PyErr_Format(PyExc_StandardError, "f_ddqdq() is undefined for this force.");
+	return PyErr_Format(PyExc_NotImplementedError, "f_ddqdq() is undefined for this force.");
     if(!PyArg_ParseTuple(args, "OOO", &q, &dq1, &q2))
         return NULL; 
     ret = PyFloat_FromDouble(self->f_ddqdq(self, q, dq1, q2));
@@ -325,7 +325,7 @@ static PyObject* f_ddqddq(Force *self, PyObject *args)
 
     // Check for cycles (function has not been defined in Python or C layers)
     if(self->f_ddqddq == NULL || self->f_ddqddq == python_f_ddqdq) 
-	return PyErr_Format(PyExc_StandardError, "f_ddqddq() is undefined for this force.");
+	return PyErr_Format(PyExc_NotImplementedError, "f_ddqddq() is undefined for this force.");
     if(!PyArg_ParseTuple(args, "OOO", &q, &dq1, &dq2))
         return NULL; 
     ret = PyFloat_FromDouble(self->f_ddqddq(self, q, dq1, dq2));
@@ -343,7 +343,7 @@ static PyObject* f_dudq(Force *self, PyObject *args)
     
     // Check for cycles (function has not been defined in Python or C layers)
     if(self->f_dudq == NULL || self->f_dudq == python_f_dudq) 
-	return PyErr_Format(PyExc_StandardError, "f_dudq() is undefined for this force.");
+	return PyErr_Format(PyExc_NotImplementedError, "f_dudq() is undefined for this force.");
     if(!PyArg_ParseTuple(args, "OOO", &q, &u1, &q2))
         return NULL; 
     ret = PyFloat_FromDouble(self->f_dudq(self, q, u1, q2));
@@ -359,11 +359,9 @@ static PyObject* f_duddq(Force *self, PyObject *args)
     Input *u1 = NULL;
     Config *dq2 = NULL;
     
-    if(self->system == NULL) 
-	return PyErr_Format(PyExc_StandardError, "%s is not associated with a system.", self->ob_type->tp_name);
     // Check for cycles (function has not been defined in Python or C layers)
     if(self->f_duddq == NULL || self->f_duddq == python_f_duddq) 
-	return PyErr_Format(PyExc_StandardError, "f_duddq() is undefined for this force.");
+	return PyErr_Format(PyExc_NotImplementedError, "f_duddq() is undefined for this force.");
     if(!PyArg_ParseTuple(args, "OOO", &q, &u1, &dq2))
         return NULL; 
     ret = PyFloat_FromDouble(self->f_duddq(self, q, u1, dq2));
@@ -381,7 +379,7 @@ static PyObject* f_dudu(Force *self, PyObject *args)
     
     // Check for cycles (function has not been defined in Python or C layers)
     if(self->f_dudu == NULL || self->f_dudu == python_f_dudu) 
-	return PyErr_Format(PyExc_StandardError, "f_dudu() is undefined for this force.");
+	return PyErr_Format(PyExc_NotImplementedError, "f_dudu() is undefined for this force.");
     if(!PyArg_ParseTuple(args, "OOO", &q, &u1, &u2))
         return NULL; 
     ret = PyFloat_FromDouble(self->f_dudu(self, q, u1, u2));

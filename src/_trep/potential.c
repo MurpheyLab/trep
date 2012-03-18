@@ -99,7 +99,7 @@ static PyObject* V(Potential *self)
     
     // Check for cycles (function has not been defined in Python or C layers)
     if(self->V == NULL || self->V == python_V)
-	return PyErr_Format(PyExc_StandardError, "V() is undefined for this potential.");
+	return PyErr_Format(PyExc_NotImplementedError, "V() is undefined for this potential.");
     ret = PyFloat_FromDouble(self->V(self));
     if(PyErr_Occurred()) 
 	return NULL;
@@ -113,7 +113,7 @@ static PyObject* V_dq(Potential *self, PyObject *args)
 
     // Check for cycles (function has not been defined in Python or C layers)
     if(self->V == NULL || self->V_dq == python_V_dq)
-	return PyErr_Format(PyExc_StandardError, "V_dq() is undefined for this potential.");
+	return PyErr_Format(PyExc_NotImplementedError, "V_dq() is undefined for this potential.");
     if(!PyArg_ParseTuple(args, "O", &config))
         return NULL; 
     ret = PyFloat_FromDouble(self->V_dq(self, config));
@@ -130,7 +130,7 @@ static PyObject* V_dqdq(Potential *self, PyObject *args)
 
     // Check for cycles (function has not been defined in Python or C layers)
     if(self->V_dqdq == NULL || self->V_dqdq == python_V_dqdq)
-	return PyErr_Format(PyExc_StandardError, "V_dqdq() is undefined for this potential.");
+	return PyErr_Format(PyExc_NotImplementedError, "V_dqdq() is undefined for this potential.");
     if(!PyArg_ParseTuple(args, "OO", &config1, &config2))
         return NULL; 
     ret = PyFloat_FromDouble(self->V_dqdq(self, config1, config2));
@@ -148,7 +148,7 @@ static PyObject* V_dqdqdq(Potential *self, PyObject *args)
 
     // Check for cycles (function has not been defined in Python or C layers)
     if(self->V_dqdqdq == python_V_dqdqdq)
-	return PyErr_Format(PyExc_StandardError, "V_dqdqdq() is undefined for this potential.");
+	return PyErr_Format(PyExc_NotImplementedError, "V_dqdqdq() is undefined for this potential.");
     if(!PyArg_ParseTuple(args, "OOO", &q1, &q2, &q3))
         return NULL; 
     ret = PyFloat_FromDouble(self->V_dqdqdq(self, q1, q2, q3));

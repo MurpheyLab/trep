@@ -129,7 +129,7 @@ static PyObject* h(Constraint *self)
     
     // Check for cycles (function has not been defined in Python or C layers)
     if(self->h == NULL || self->h == python_h) 
-	return PyErr_Format(PyExc_StandardError, "h() is undefined for this constraint.");
+	return PyErr_Format(PyExc_NotImplementedError, "h() is undefined for this constraint.");
     ret = PyFloat_FromDouble(self->h(self));
     if(PyErr_Occurred())
 	return NULL;
@@ -143,7 +143,7 @@ static PyObject* h_dq(Constraint *self, PyObject *args)
 
     // Check for cycles (function has not been defined in Python or C layers)
     if(self->h_dq == NULL || self->h_dq == python_h_dq) 
-	return PyErr_Format(PyExc_StandardError, "h_dq() is undefined for this constraint.");
+	return PyErr_Format(PyExc_NotImplementedError, "h_dq() is undefined for this constraint.");
     if(!PyArg_ParseTuple(args, "O", &q1))
         return NULL; 
     ret = PyFloat_FromDouble(self->h_dq(self, q1));
@@ -160,7 +160,7 @@ static PyObject* h_dqdq(Constraint *self, PyObject *args)
 
     // Check for cycles (function has not been defined in Python or C layers)
     if(self->h_dqdq == NULL || self->h_dqdq == python_h_dqdq) 
-	return PyErr_Format(PyExc_StandardError, "h_dqdq() is undefined for this constraint.");
+	return PyErr_Format(PyExc_NotImplementedError, "h_dqdq() is undefined for this constraint.");
     if(!PyArg_ParseTuple(args, "OO", &q1, &q2))
         return NULL; 
     ret = PyFloat_FromDouble(self->h_dqdq(self, q1, q2));
@@ -178,7 +178,7 @@ static PyObject* h_dqdqdq(Constraint *self, PyObject *args)
 
     // Check for cycles (function has not been defined in Python or C layers)
     if(self->h_dqdqdq == NULL || self->h_dqdqdq == python_h_dqdqdq) 
-	return PyErr_Format(PyExc_StandardError, "h_dqdqdq() is undefined for this constraint.");
+	return PyErr_Format(PyExc_NotImplementedError, "h_dqdqdq() is undefined for this constraint.");
     if(!PyArg_ParseTuple(args, "OOO", &q1, &q2, &q3))
         return NULL; 
     ret = PyFloat_FromDouble(self->h_dqdqdq(self, q1, q2, q3));
@@ -197,7 +197,7 @@ static PyObject* h_dqdqdqdq(Constraint *self, PyObject *args)
 
     // Check for cycles (function has not been defined in Python or C layers)
     if(self->h_dqdqdqdq == NULL || self->h_dqdqdqdq == python_h_dqdqdqdq) 
-	return PyErr_Format(PyExc_StandardError, "h_dqdqdqdq() is undefined for this constraint.");
+	return PyErr_Format(PyExc_NotImplementedError, "h_dqdqdqdq() is undefined for this constraint.");
     if(!PyArg_ParseTuple(args, "OOOO", &q1, &q2, &q3, &q4))
         return NULL; 
     ret = PyFloat_FromDouble(self->h_dqdqdqdq(self, q1, q2, q3, q4));
