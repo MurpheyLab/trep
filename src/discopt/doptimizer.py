@@ -268,7 +268,7 @@ class DOptimizer(object):
         return dX, dU
 
             
-    def optimize(self, X, U, max_steps):
+    def optimize(self, X, U, max_steps=50):
 
         X = np.array(X)
         U = np.array(U)
