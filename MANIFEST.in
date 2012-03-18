@@ -1,0 +1,4 @@
+
+include src/_trep/trep.h
+recursive-include examples *.py
+recursive-include doc *

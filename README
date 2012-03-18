@@ -1,0 +1,12 @@
+trep is released under the GPLv3 license.
+
+See http://trep.googlecode.com/ for more information.
+
+
+Build trep:             python setup.py build
+
+Install trep:           sudo python setup.py install
+
+Build documentation:    python setup.py build_sphinx
+
+
