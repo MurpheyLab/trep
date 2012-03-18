@@ -1,3 +1,5 @@
+from __version__ import *
+
 import _trep
 from _trep import WORLD, TX, TY, TZ, RX, RY, RZ, CONST_SE3
 
@@ -23,4 +25,3 @@ import potentials
 import constraints
 import forces
         
-__version__ = '0.91'
