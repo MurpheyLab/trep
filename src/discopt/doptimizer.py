@@ -209,9 +209,6 @@ class DOptimizer(object):
 
         (Kproj, dX, dU, Q, R, S) = self.calc_descent_direction(X, U, method)
 
-        if method == 'steepest':
-            self.first_order_left = max(0, self.first_order_left - 1)
-
         self.step_method = method
 
         # Check for sane descent direction
@@ -271,10 +268,10 @@ class DOptimizer(object):
         return dX, dU
 
             
-    def optimize(self, xi0, max_steps):
+    def optimize(self, X, U, max_steps):
 
-        X = np.array(xi0[0])
-        U = np.array(xi0[1])
+        X = np.array(X)
+        U = np.array(U)
 
         self.step_method = "N/A" 
         self.first_order_left = self.first_order_iterations
@@ -283,7 +280,8 @@ class DOptimizer(object):
 
         for i in range(max_steps):
             if self.first_order_left > 0:
-                method = 'steepest'
+                method = 'quasi'
+                self.first_order_left = max(0, self.first_order_left - 1)
             else:
                 method = 'newton'
 

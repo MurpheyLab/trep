@@ -74,7 +74,16 @@ VERSION_PY = """
 __version__ = '%s'
 """
 
-def update_version_file(version):
+def update_version_file():
+    try:
+        version_git = get_version_from_git()
+        version_file = get_version_from_file()
+        if version_git == version_file:
+            return
+    except GitDescribeError, IOError:
+        pass
+
+    version = get_version()
     f = open("src/__version__.py", "wt")
     f.write(VERSION_PY % version)
     f.close()
@@ -113,7 +122,7 @@ def get_version():
     return '<unknown>'
 
 
-update_version_file(get_version())
+update_version_file()
 
 cmd_class = {}
 cmd_options = {}
@@ -151,6 +160,7 @@ setup (name = 'trep',
                  'trep.forces',
                  'trep.visual',
                  'trep.puppets',
+                 'trep.discopt'
                  ],
        ext_modules = [_trep,
                       #_polyobject
