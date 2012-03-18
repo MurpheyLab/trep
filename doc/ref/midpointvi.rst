@@ -169,7 +169,10 @@ Dynamics
    used.
 
    The method returns the number of root solver iterations needed to
-   find the solution.
+   find the solution.  
+
+   Raises a :exc:`ConvergenceError` exception if the root solver
+   cannot find a solution after *max_iterations*.
         
 .. method:: MidpointVI.calc_f()
         
