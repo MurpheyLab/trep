@@ -4,4 +4,4 @@ callgrind.out.*
 \#*\#
 *.pyprof
 build/
-export.sh
+src/__version__.py
