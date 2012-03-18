@@ -192,13 +192,13 @@ def generate_desired_trajectory(system, t, amp=130*mpi/180):
             qd[i, theta_index] = (1 - cos(2*mpi/4*(t-3.0)))*amp/2
     return qd
 
-def make_state_cost(base, x, theta):
+def make_state_cost(dsys, base, x, theta):
     weight = base*np.ones((dsys.nX,))
     weight[system.get_config('x').index] = x
     weight[system.get_config('theta').index] = theta
     return np.diag(weight)
 
-def make_input_cost(base, x, theta=None):
+def make_input_cost(dsys, base, x, theta=None):
     weight = base*np.ones((dsys.nU,))
     if theta is not None:
         weight[system.get_input('theta-force').index] = theta
@@ -211,39 +211,39 @@ def make_input_cost(base, x, theta=None):
 system = build_system(True)
 mvi = trep.MidpointVI(system)
 t = np.arange(0.0, 10.0, 0.01)
-dsys = discopt.DSystem(mvi, t)
+dsys_a = discopt.DSystem(mvi, t)
 
 
 # Generate an initial trajectory
-(X,U) = dsys.build_trajectory()
-for k in range(dsys.kf()):
+(X,U) = dsys_a.build_trajectory()
+for k in range(dsys_a.kf()):
     if k == 0:
-        dsys.set(X[k], U[k], 0)
+        dsys_a.set(X[k], U[k], 0)
     else:
-        dsys.step(U[k])
-    X[k+1] = dsys.f()
+        dsys_a.step(U[k])
+    X[k+1] = dsys_a.f()
 
 
 # Generate cost function
 qd = generate_desired_trajectory(system, t, 130*mpi/180)
-(Xd, Ud) = dsys.build_trajectory(qd)
-Qcost = make_state_cost(0.01, 0.01, 100.0)
-Rcost = make_input_cost(0.01, 0.01, 0.01)
+(Xd, Ud) = dsys_a.build_trajectory(qd)
+Qcost = make_state_cost(dsys_a, 0.01, 0.01, 100.0)
+Rcost = make_input_cost(dsys_a, 0.01, 0.01, 0.01)
 cost = discopt.DCost(Xd, Ud, Qcost, Rcost)
 
-optimizer = discopt.DOptimizer(dsys, cost)
+optimizer = discopt.DOptimizer(dsys_a, cost)
 
 # Perform the first optimization
 optimizer.first_order_iterations = 4
 finished, X, U = optimizer.optimize(X, U, max_steps=40)
 
 # Increase the cost of the torque input
-cost.R = make_input_cost(0.01, 0.01, 100.0)
+cost.R = make_input_cost(dsys_a, 0.01, 0.01, 100.0)
 optimizer.first_order_iterations = 4
 finished, X, U = optimizer.optimize(X, U, max_steps=40)
 
 # Increase the cost of the torque input
-cost.R = make_input_cost(0.01, 0.01, 1000000.0)
+cost.R = make_input_cost(dsys_a, 0.01, 0.01, 1000000.0)
 optimizer.first_order_iterations = 4
 finished, X, U = optimizer.optimize(X, U, max_steps=40)
 
@@ -251,38 +251,38 @@ finished, X, U = optimizer.optimize(X, U, max_steps=40)
 # The torque should be really tiny now, so we can hopefully use this
 # trajectory as the initial trajectory of the real system.  
 
-# Remember the x-force
-U = U[:, (system.get_input('x-force').index,)]
-
 # Build a new system without the extra input
 system = build_system(False)
 mvi = trep.MidpointVI(system)
-dsys = discopt.DSystem(mvi, t)
+dsys_b = discopt.DSystem(mvi, t)
+
+# Map the optimized trajectory for dsys_a to dsys_b
+(X, U) = dsys_b.import_trajectory(dsys_a, X, U)
 
 # Simulate the new system starting from the initial condition of our
 # last optimization and using the x-force input.
-for k in range(dsys.kf()):
+for k in range(dsys_b.kf()):
     if k == 0:
-        dsys.set(X[k], U[k], 0)
+        dsys_b.set(X[k], U[k], 0)
     else:
-        dsys.step(U[k])
-    X[k+1] = dsys.f()
+        dsys_b.step(U[k])
+    X[k+1] = dsys_b.f()
 
 # Generate a new cost function for the current system.
 qd = generate_desired_trajectory(system, t, 130*mpi/180)
-(Xd, Ud) = dsys.build_trajectory(qd)
-Qcost = make_state_cost(0.01, 0.01, 100.0)
-Rcost = make_input_cost(0.01, 0.01)
+(Xd, Ud) = dsys_b.build_trajectory(qd)
+Qcost = make_state_cost(dsys_b, 0.01, 0.01, 100.0)
+Rcost = make_input_cost(dsys_b, 0.01, 0.01)
 cost = discopt.DCost(Xd, Ud, Qcost, Rcost)
 
-optimizer = discopt.DOptimizer(dsys, cost)
+optimizer = discopt.DOptimizer(dsys_b, cost)
 
 # Perform the optimization on the real system
 optimizer.first_order_iterations = 4
 finished, X, U = optimizer.optimize(X, U, max_steps=40)
 
 if '--novisual' not in sys.argv:
-    q,p,v,u,rho = dsys.split_trajectory(X, U)
+    q,p,v,u,rho = dsys_b.split_trajectory(X, U)
     view = Viewer(system, t, q, qd)
     view.main()
 

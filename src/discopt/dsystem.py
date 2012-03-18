@@ -1,5 +1,7 @@
 import trep
 import numpy as np
+import dlqr
+from numpy import dot
 
 # There is a lot of input validation here because I've dealt with a
 # lot of headaches from mismatching array dimensions and shapes in the
@@ -355,16 +357,104 @@ class DSystem(object):
 
         Returns (A, B) 
         """
+        ## A = np.zeros((len(X)-1, self.nX, self.nX))
+        ## B = np.zeros((len(X)-1, self.nX, self.nU))
+        ## for k in xrange(len(X)-1):
+        ##     if k == 0:
+        ##         self.set(X[0], U[0], 0)
+        ##     else:
+        ##         self.step(U[k])
+        ##     A[k] = self.fdx()
+        ##     B[k] = self.fdu()
+        ## return A,B
+
+        # Setting the state at every timestep instead of just
+        # simulating from the initial condition should be more stable
+        # and versatile.
         A = np.zeros((len(X)-1, self.nX, self.nX))
         B = np.zeros((len(X)-1, self.nX, self.nU))
         for k in xrange(len(X)-1):
-            if k == 0:
-                self.set(X[0], U[0], 0)
-            else:
-                self.step(U[k])
+            self.set(X[k], U[k], k)
             A[k] = self.fdx()
             B[k] = self.fdu()
         return A,B
+
+
+    def project(self, bX, bU, Kproj=None):
+        if Kproj is None:
+            # Not necessarily a good idea!
+            Kproj = self.calc_feedback_controller(bX, bU)
+        
+        nX = np.zeros(bX.shape)
+        nU = np.zeros(bU.shape)
+
+        nX[0] = bX[0]
+        for k in range(len(bX)-1):
+            nU[k] = bU[k] - dot(Kproj[k], nX[k] - bX[k])
+            if k == 0:
+                self.set(nX[k], nU[k], k)
+            else:
+                self.step(nU[k])
+            nX[k+1] = self.f()
+            
+        return nX, nU
+
+
+    def calc_feedback_controller(self, X, U, Q=None, R=None, return_linearization=False):
+        (A, B) = self.linearize_trajectory(X, U)
+
+        if Q is None:
+            _Q = np.eye(self.nX)
+            Q = lambda k: _Q
+        if R is None:            
+            _R = np.eye(self.nU)
+            R = lambda k: _R
+        
+        Kproj = dlqr.solve_tv_lqr(A, B, Q, R)[0]
+        if return_linearization:
+            return (Kproj, A, B)
+        else:
+            return Kproj
+        
+
+    def import_trajectory(self, dsys_a, X, U):
+        """
+        dsys_b = self
+
+        Maps trajectory X,U for dsys_a to nX, nY for dsys_b.
+        """
+
+        nX = np.zeros((len(X), self.nX))
+        nU = np.zeros((len(U), self.nU))
+
+        (q_a, p_a, v_a, mu_a, rho_a) = dsys_a.split_trajectory(X, U)
+        (q_b, p_b, v_b, mu_b, rho_b) = self.split_trajectory(nX, nU)
+
+        def build_map(list_a, list_b):
+            a_names = [item.name for item in list_a]
+            b_names = [item.name for item in list_b]
+            b_to_a_map = {}
+            for i, b_name in enumerate(b_names):
+                if b_name in a_names:
+                    b_to_a_map[i] = a_names.index(b_name)
+            return b_to_a_map
+
+        q_map = build_map(dsys_a.system.configs, self.system.configs)
+        d_map = build_map(dsys_a.system.dyn_configs, self.system.dyn_configs)
+        k_map = build_map(dsys_a.system.kin_configs, self.system.kin_configs)
+        u_map = build_map(dsys_a.system.inputs, self.system.inputs)
+
+        if len(q_map) != 0:
+            q_b[:, q_map.keys()] = q_a[:, q_map.values()]
+        if len(d_map) != 0:
+            p_b[:, d_map.keys()] = p_a[:, d_map.values()]
+        if len(u_map) != 0:
+            mu_b[:, u_map.keys()] = mu_a[:, u_map.values()]
+        if len(k_map) != 0:
+            v_b[:, k_map.keys()] = v_a[:, k_map.values()]
+            rho_b[:, k_map.keys()] = rho_a[:, k_map.values()]
+
+        return self.build_trajectory(q_b, p_b, v_b, mu_b, rho_b)        
 
         
     def check_fdx(self, xk, uk, k, delta=1e-5, tolerance=1e-5, verbose=False):

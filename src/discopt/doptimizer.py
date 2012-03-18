@@ -234,30 +234,11 @@ class DOptimizer(object):
 
 
     def calc_projection(self, X, U, return_linearization=False):
-        (A, B) = self.dsys.linearize_trajectory(X, U)    
-        Kproj = dlqr.solve_tv_lqr(A, B, self.Qproj, self.Rproj)[0]
-        if return_linearization:
-            return (Kproj, A, B)
-        else:
-            return Kproj
+        return self.dsys.calc_feedback_controller(X, U,
+                                                  self.Qproj, self.Rproj,
+                                                  return_linearization)
 
  
-    def project(self, bX, bU, Kproj):
-        nX = np.zeros(bX.shape)
-        nU = np.zeros(bU.shape)
-
-        nX[0] = bX[0]
-        for k in range(len(bX)-1):
-            nU[k] = bU[k] - dot(Kproj[k], nX[k] - bX[k])
-            if k == 0:
-                self.dsys.set(nX[k], nU[k], k)
-            else:
-                self.dsys.step(nU[k])
-            nX[k+1] = self.dsys.f()
-            
-        return nX, nU
-
-
     def dproject(self, A, B, bdX, bdU, K):
         dX = np.zeros(bdX.shape)
         dU = np.zeros(bdU.shape)
@@ -306,8 +287,8 @@ class DOptimizer(object):
 
         (Kproj, dX, dU, Q, R, S) = self.calc_descent_direction(X, U, method)
 
-        def calc_cost(z):
-            return self.calc_cost(*self.project(X + zi*dX, U + zi*dU, Kproj))
+        def calc_cost(zi):
+            return self.calc_cost(*self.dsys.project(X + zi*dX, U + zi*dU, Kproj))
 
         armijo_z = np.array(sorted([self.armijo_beta**m for m in range(20)]))
         z = np.linspace(-0.1, 1.01, points)
@@ -328,9 +309,7 @@ class DOptimizer(object):
 
         armijo_cost = np.zeros(armijo_z.shape)
         for i,zi in enumerate(armijo_z):
-            armijo_cost[i] = self.calc_cost(*self.project(X + zi*dX,
-                                                          U + zi*dU,
-                                                          Kproj))
+            armijo_cost[i] = calc_cost(zi)
 
         armijo_max = np.zeros(z.shape)
         for i,zi in enumerate(z):
@@ -354,10 +333,10 @@ class DOptimizer(object):
         (Kproj, dX, dU, Q, R, S) = self.calc_descent_direction(X, U, method)
         exact_dcost = self.calc_dcost(X, U, dX, dU)
 
-        nX, nU = self.project(X - delta*dX, U - delta*dU, Kproj)
+        nX, nU = self.dsys.project(X - delta*dX, U - delta*dU, Kproj)
         cost0 = self.calc_cost(nX, nU)
 
-        nX, nU = self.project(X + delta*dX, U + delta*dU, Kproj)
+        nX, nU = self.dsys.project(X + delta*dX, U + delta*dU, Kproj)
         cost1 = self.calc_cost(nX, nU)
                 
         approx_dcost = (cost1 - cost0)/(2*delta)
@@ -377,7 +356,7 @@ class DOptimizer(object):
         # Calculate cost0
         bX = X - delta*dX
         bU = U - delta*dU
-        nX, nU = self.project(bX, bU, Kproj)
+        nX, nU = self.dsys.project(bX, bU, Kproj)
         (A, B) = self.dsys.linearize_trajectory(nX, nU)
         (ndX, ndU) = self.dproject(A, B, dX, dU, Kproj)
         dcost0 = self.calc_dcost(nX, nU, ndX, ndU)
@@ -385,7 +364,7 @@ class DOptimizer(object):
         # Calculate cost1
         bX = X + delta*dX
         bU = U + delta*dU
-        nX, nU = self.project(bX, bU, Kproj)
+        nX, nU = self.dsys.project(bX, bU, Kproj)
         (A, B) = self.dsys.linearize_trajectory(nX, nU)
         (ndX, ndU) = self.dproject(A, B, dX, dU, Kproj)
         dcost1 = self.calc_dcost(nX, nU, ndX, ndU)
