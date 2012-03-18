@@ -1,4 +1,4 @@
-from __version__ import *
+from __version__ import __version__
 
 import _trep
 from _trep import WORLD, TX, TY, TZ, RX, RY, RZ, CONST_SE3
