@@ -5,6 +5,10 @@
 
 .. currentmodule:: trep.discopt
 
+.. contents::
+   :local:
+
+
 :class:`DSystem` objects represent a :class:`MidpointVI` variational
 integrators as first order discrete systems of the form :math:`x(k+1)
 = f(x(k), u(k), k)`. This representation is used by :class:`DOptimizer`
@@ -61,38 +65,54 @@ DSystem Objects
 
    Number of states to the discrete system.
 
+   *int*
+
 
 .. attribute:: DSystem.nU
 
-   Number of inputs to the discrete system."""
+   Number of inputs to the discrete system.
 
+   *int*
+
+.. attribute:: DSystem.varint
+
+   The variational integrator wrapped by this instance.
+
+   :class:`MidpointVI`
 
 .. attribute:: DSystem.system
 
    The mechanical system modeled by the variational integrator.
 
+   :class:`System`
 
 .. attribute:: DSystem.time
 
    The time of the discrete steps.
 
+   numpy array, shape (N)
 
 .. attribute:: xk
 
    Current state of the system.
 
+   numpy array, shape (nX)
 
 .. attribute:: uk
 
    Current input of the system.
 
+   numpy array, shape (nU)
 
 .. attribute:: k
                
    Current discrete time of the system.
-
+   
+   int
 
 .. method:: DSystem.kf()
+
+   :rtype: int
 
    Return the last available state that the system can be set to.
    This is one less than len(self.time).
@@ -164,25 +184,46 @@ State and Trajectory Manipulation
    Load a trajectory from a file.
 
 
-Dynamics and Derivatives
-^^^^^^^^^^^^^^^^^^^^^^^^
+Dynamics
+^^^^^^^^
 
-.. method:: DSystem.set(xk, uk, k, lambda_k=None)
+.. method:: DSystem.set(self, xk, uk, k[, \
+                        xk_hint=None, lambda_hint=None])
 
    Set the current state, input, and time of the discrete system.
 
+   If *xk_hint* and *lambda_hint* are provided, these are used to
+   provide hints to hints to :meth:`MidpointVI.step`.  If the solution
+   is known (for example, if you are calculating the linearization
+   about a known trajectory) this can result in faster performance by
+   reducing the number of root solver iterations in the variational
+   integrator.
 
-.. method:: DSystem.step(uk)
 
+.. method:: DSystem.step(self, uk[, xk_hint=None, lambda_hint=None])
 
    Advance the system to the next discrete time using the given
-   values for the input.  Returns a numpy array.
+   input *uk*.
+
+   This is equivalent to calling ``self.set(self.f(), uk, self.k+1)``.
+
+   If *xk_hint* and *lambda_hint* are provided, these are used to
+   provide hints to hints to :meth:`MidpointVI.step`.  If the solution
+   is known (for example, if you are calculating the linearization
+   about a known trajectory) this can result in faster performance by
+   reducing the number of root solver iterations in the variational
+   integrator.
 
 
 .. method:: DSystem.f()
 
+   :rtype: numpy array, shape (nX)
+
    Get the next state of the system, :math:`x(k+1)`.  
 
+
+First Derivatives
+^^^^^^^^^^^^^^^^^
 
 .. method:: DSystem.fdx()
 
@@ -195,6 +236,9 @@ Dynamics and Derivatives
    These functions return first derivatives of the system dynamics
    :math:`f()` as numpy arrays with the derivatives across the rows.
 
+
+Second Derivatives
+^^^^^^^^^^^^^^^^^^
 
 .. method:: DSystem.fdxdx(z)
 
@@ -227,6 +271,8 @@ Linearization and Feedback Controllers
 
 .. method:: DSystem.linearize_trajectory(X, U)
 
+   :rtype: tuple (A, B)
+
    Calculate the linearization of the system dynamics about a
    trajectory.  *X* and *U* do not have to be an exact trajectory of
    the system.
@@ -235,6 +281,8 @@ Linearization and Feedback Controllers
 
 
 .. method:: DSystem.project(bX, bU[, Kproj=None])
+
+   :rtyple: tuple (X, U)
 
    Project *bX* and *bU* into a nearby trajectory for the system using
    a linear feedback law::
@@ -252,6 +300,8 @@ Linearization and Feedback Controllers
 
 
 .. method:: DSystem.calc_feedback_controller(X, U[, Q=None, R=None, return_linearization=False])
+
+   :rtype: K or tuple (K, A, B)
 
    Calculate a stabilizing feedback controller for the system about a
    trajectory *X* and *U*.  The feedback law is calculated by solving
