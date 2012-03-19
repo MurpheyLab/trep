@@ -24,7 +24,6 @@ class DSystem(object):
     # can correctly calculate the vk[k] part of the state and provide
     # the time to the variational integrator while presenting the
     # f(x[k], u[k], k) interface.
-
     
     def __init__(self, varint, t):
         self.varint = varint
@@ -32,7 +31,7 @@ class DSystem(object):
         self._xk = None
         self._uk = None
         self._time = np.array(t).squeeze()
-        self._k = 0
+        self._k = None
 
         self._nQ = len(self.system.configs)
         self._np = len(self.system.dyn_configs)
@@ -61,14 +60,14 @@ class DSystem(object):
         return self._nU
 
     @property
-    def time(self):
-        """The time of the discrete steps."""
-        return self._time
-
-    @property
     def system(self):
         """The mechanical system modeled by the variational integrator."""
         return self.varint.system
+
+    @property
+    def time(self):
+        """The time of the discrete steps."""
+        return self._time
 
     @time.setter
     def time(self, t):
@@ -76,10 +75,26 @@ class DSystem(object):
         assert t.ndim == 1
         self._time = np.array(t).squeeze()
 
+    @property
+    def xk(self):
+        """Current state of the system."""
+        return self._xk.copy()
+
+    @property
+    def uk(self):
+        """Current input of the system."""
+        return self._uk.copy()
+
+    @property
+    def k(self):
+        """Current discrete time of the system."""
+        return self._k
+    
+
     def kf(self):
         """
         Return the last available state that the system can be set to.
-        This is one less than the length of the time vector.
+        This is one less than len(self.time).
         """
         return len(self._time)-1
 
@@ -152,7 +167,7 @@ class DSystem(object):
     def split_state(self, X=None):
         """
         Split a state vector into its configuration, moementum, and
-        kinematic velocity parts.  If X is None, returns zeros arrays
+        kinematic velocity parts.  If X is None, returns zero arrays
         for each component.
 
         Returns (Q,p,v)
@@ -167,7 +182,8 @@ class DSystem(object):
     def split_input(self, U=None):
         """
         Split a state input vector U into it's force and kinematic
-        input parts, (u, rho).
+        input parts, (u, rho).  If U is empty, returns zero arrays of
+        the appropriate size.
         """
         if U is None:
             U = np.zeros(self.nU)
@@ -179,7 +195,7 @@ class DSystem(object):
         """
         Split an X,U state trajectory into its Q,p,v,u,rho components.
         If X or U are None, the corresponding components are arrays of
-        zero..
+        zero.
         """
         if X is None and U is None:
             X = np.zeros((len(self._time), self.nX))
@@ -202,6 +218,8 @@ class DSystem(object):
         Set the current state, input, and time of the discrete system.
         """
         self._k = k
+        self._xk = xk.copy()
+        self._uk = uk.copy()
         (q1, p1, v1) = self.split_state(xk)
         (u1, rho2) = self.split_input(uk)
         t1 = self._time[self._k+0]
@@ -216,7 +234,9 @@ class DSystem(object):
         Advance the system to the next discrete time using the given
         values for the input.  Returns a numpy array.
         """
-        self._k += 1
+        self._xk = self.f()
+        self._uk = uk.copy()
+        self._k += 1        
         (u1, rho2) = self.split_input(uk)
         t2 = self._time[self._k+1]
         self.varint.step(t2, u1, rho2)
@@ -224,11 +244,10 @@ class DSystem(object):
 
     def f(self):
         """
-        Get the new state of the system.
+        Get the next state of the system.
         """
-        v2 = [(q2-q1)/(self.varint.t2 - self.varint.t1)
-              for (q2, q1) in zip(self.varint.q2, self.varint.q1)]
-        v2 = v2[len(self.system.dyn_configs):]
+        v2 = (self.varint.q2 - self.varint.q1)/(self.varint.t2 - self.varint.t1)
+        v2 = v2[self.varint.nd:]
         return self.build_state(self.varint.q2, self.varint.p2, v2)
 
 
@@ -269,7 +288,7 @@ class DSystem(object):
         """
         Get the second derivative of f with respect to the state, with
         the outputs multiplied by vector z.  Returns a [nX x nX] numpy
-        array .
+        array.
         """
 
         zQ = z[self._slice_Q]
@@ -292,7 +311,7 @@ class DSystem(object):
         """
         Get the second derivative of f with respect to the state and
         input, with the outputs multiplied by vector z. Returns a [nX
-        x nU] numpy array .
+        x nU] numpy array.
         """        
 
         zQ = z[self._slice_Q]
@@ -316,7 +335,7 @@ class DSystem(object):
         """
         Get the second derivative of f with respect to the input, with
         the outputs multiplied by vector z.  Returns a [nU x nU] numpy
-        array .
+        array.
         """
 
         zQ = z[self._slice_Q]
@@ -353,24 +372,14 @@ class DSystem(object):
 
     def linearize_trajectory(self, X, U):
         """
-        Calculate the linearization about a trajectory.
+        Calculate the linearization about a trajectory.  X and U do
+        not have to be an exact trajectory of the system.
 
         Returns (A, B) 
         """
-        ## A = np.zeros((len(X)-1, self.nX, self.nX))
-        ## B = np.zeros((len(X)-1, self.nX, self.nU))
-        ## for k in xrange(len(X)-1):
-        ##     if k == 0:
-        ##         self.set(X[0], U[0], 0)
-        ##     else:
-        ##         self.step(U[k])
-        ##     A[k] = self.fdx()
-        ##     B[k] = self.fdu()
-        ## return A,B
-
         # Setting the state at every timestep instead of just
-        # simulating from the initial condition should be more stable
-        # and versatile.
+        # simulating from the initial condition is more stable and
+        # versatile.
         A = np.zeros((len(X)-1, self.nX, self.nX))
         B = np.zeros((len(X)-1, self.nX, self.nU))
         for k in xrange(len(X)-1):
@@ -381,6 +390,19 @@ class DSystem(object):
 
 
     def project(self, bX, bU, Kproj=None):
+        """
+        Project bX and bU into a nearby trajectory for the system
+        using a linear feedback law:
+
+        X[0] = bX[0]
+        U[k] = bU[k] - Kproj * (X[k] - bU[k])
+        X[k+1] = f(X[k], U[k], k)
+
+        If no feedback law is specified, one will be created from the
+        LQR solution to the linearization of the system about bX and
+        bU.  This is typically a bad idea if bX and bU are not very
+        close to an actual trajectory for the system.
+        """        
         if Kproj is None:
             # Not necessarily a good idea!
             Kproj = self.calc_feedback_controller(bX, bU)
@@ -401,6 +423,12 @@ class DSystem(object):
 
 
     def calc_feedback_controller(self, X, U, Q=None, R=None, return_linearization=False):
+        """
+        Calculate a stabilizing feedback controller for the system
+        about a trajectory X and U by solving the discrete LQR problem
+        about the linearized system along X and U.  If the LQR weights
+        Q and R are not specified, identity matrices are used.
+        """
         (A, B) = self.linearize_trajectory(X, U)
 
         if Q is None:
@@ -421,7 +449,8 @@ class DSystem(object):
         """
         dsys_b = self
 
-        Maps trajectory X,U for dsys_a to nX, nY for dsys_b.
+        Maps a trajectory X,U for dsys_a to a trajectory nX, nY for
+        dsys_b.
         """
 
         nX = np.zeros((len(X), self.nX))
@@ -457,8 +486,12 @@ class DSystem(object):
         return self.build_trajectory(q_b, p_b, v_b, mu_b, rho_b)        
 
         
-    def check_fdx(self, xk, uk, k, delta=1e-5, tolerance=1e-5, verbose=False):
-
+    def check_fdx(self, xk, uk, k, delta=1e-5):
+        """
+        Check the first derivative f_dx of the discrete system
+        dynamics against a numeric approximation from f().
+        """
+        
         self.set(xk, uk, k)
         f0 = self.f()
         fdx_exact = self.fdx()
@@ -482,7 +515,11 @@ class DSystem(object):
         return error, exact_norm, approx_norm
 
 
-    def check_fdu(self, xk, uk, k, delta=1e-5, tolerance=1e-5, verbose=False):
+    def check_fdu(self, xk, uk, k, delta=1e-5):
+        """
+        Check the first derivative f_du of the discrete system
+        dynamics against a numeric approximation from f().
+        """
 
         self.set(xk, uk, k)
         f0 = self.f()
@@ -507,7 +544,11 @@ class DSystem(object):
         return error, exact_norm, approx_norm
 
 
-    def check_fdxdx(self, xk, uk, k, delta=1e-5, tolerance=1e-5, verbose=False):
+    def check_fdxdx(self, xk, uk, k, delta=1e-5):
+        """
+        Check the second derivative f_dxdx of the discrete system
+        dynamics against a numeric approximation from f_dx().
+        """
 
         # Build fdxdx_exact
         self.set(xk, uk, k)
@@ -539,7 +580,11 @@ class DSystem(object):
         return error, exact_norm, approx_norm
 
         
-    def check_fdxdu(self, xk, uk, k, delta=1e-5, tolerance=1e-5, verbose=False):
+    def check_fdxdu(self, xk, uk, k, delta=1e-5):
+        """
+        Check the second derivative f_dxdu of the discrete system
+        dynamics against a numeric approximation from f_dx().
+        """
 
         # Build fdxdu_exact
         self.set(xk, uk, k)
@@ -571,7 +616,11 @@ class DSystem(object):
         return error, exact_norm, approx_norm
         
         
-    def check_fdudu(self, xk, uk, k, delta=1e-5, tolerance=1e-5, verbose=False):
+    def check_fdudu(self, xk, uk, k, delta=1e-5):
+        """
+        Check the second derivative f_dudu of the discrete system
+        dynamics against a numeric approximation from f_du().
+        """
 
         # Build fdudu_exact
         self.set(xk, uk, k)
