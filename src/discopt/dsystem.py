@@ -213,8 +213,7 @@ class DSystem(object):
         return (Q,p,v,u,rho)
 
         
-    def set(self, xk, uk, k, lambda_k=None,
-            xk_hint=None, lambda_hint=None):
+    def set(self, xk, uk, k, xk_hint=None, lambda_hint=None):
         """
         Set the current state, input, and time of the discrete system.
         """
@@ -232,7 +231,7 @@ class DSystem(object):
         else:
             q2_hint = None
 
-        self.varint.initialize_from_state(t1, q1, p1, lambda_k)
+        self.varint.initialize_from_state(t1, q1, p1)
         self.varint.step(t2, u1, rho2,
                          q2_hint=q2_hint,
                          lambda1_hint=lambda_hint)
@@ -243,7 +242,7 @@ class DSystem(object):
              lambda_hint=None):
         """
         Advance the system to the next discrete time using the given
-        values for the input.  Returns a numpy array.
+        values for the input.  
         """
         self._xk = self.f()
         self._uk = uk.copy()
