@@ -110,7 +110,8 @@ class DOptimizer(object):
             Q[k] = self.cost.l_dxdx(X[k], U[k], k)
             S[k] = self.cost.l_dxdu(X[k], U[k], k)
             R[k] = self.cost.l_dudu(X[k], U[k], k)
-            self.dsys.set(X[k], U[k], k)
+            self.dsys.set(X[k], U[k], k,
+                          xk_hint=X[k+1])
             Q[k] += self.dsys.fdxdx(z)
             S[k] += self.dsys.fdxdu(z)
             R[k] += self.dsys.fdudu(z)

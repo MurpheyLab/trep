@@ -213,7 +213,8 @@ class DSystem(object):
         return (Q,p,v,u,rho)
 
         
-    def set(self, xk, uk, k, lambda_k=None):
+    def set(self, xk, uk, k, lambda_k=None,
+            xk_hint=None, lambda_hint=None):
         """
         Set the current state, input, and time of the discrete system.
         """
@@ -225,11 +226,21 @@ class DSystem(object):
         t1 = self._time[self._k+0]
         t2 = self._time[self._k+1]
 
+        if xk_hint is not None:
+            q2_hint = self.split_state(xk_hint)[0]
+            q2_hint = q2_hint[:self.varint.nd]
+        else:
+            q2_hint = None
+
         self.varint.initialize_from_state(t1, q1, p1, lambda_k)
-        self.varint.step(t2, u1, rho2)
+        self.varint.step(t2, u1, rho2,
+                         q2_hint=q2_hint,
+                         lambda1_hint=lambda_hint)
 
         
-    def step(self, uk):
+    def step(self, uk,
+             xk_hint=None,
+             lambda_hint=None):
         """
         Advance the system to the next discrete time using the given
         values for the input.  Returns a numpy array.
@@ -239,7 +250,16 @@ class DSystem(object):
         self._k += 1        
         (u1, rho2) = self.split_input(uk)
         t2 = self._time[self._k+1]
-        self.varint.step(t2, u1, rho2)
+
+        if xk_hint is not None:
+            q2_hint = self.split_state(xk_hint)[0]
+            q2_hint = q2_hint[:self.varint.nd]
+        else:
+            q2_hint = None
+
+        self.varint.step(t2, u1, rho2,
+                         q2_hint=q2_hint,
+                         lambda1_hint=lambda_hint)
 
 
     def f(self):
@@ -383,7 +403,8 @@ class DSystem(object):
         A = np.zeros((len(X)-1, self.nX, self.nX))
         B = np.zeros((len(X)-1, self.nX, self.nU))
         for k in xrange(len(X)-1):
-            self.set(X[k], U[k], k)
+            self.set(X[k], U[k], k,
+                     xk_hint=X[k+1])
             A[k] = self.fdx()
             B[k] = self.fdu()
         return A,B
@@ -414,9 +435,10 @@ class DSystem(object):
         for k in range(len(bX)-1):
             nU[k] = bU[k] - dot(Kproj[k], nX[k] - bX[k])
             if k == 0:
-                self.set(nX[k], nU[k], k)
+                self.set(nX[k], nU[k], k,
+                         xk_hint=bX[k+1])
             else:
-                self.step(nU[k])
+                self.step(nU[k], xk_hint=bX[k+1])
             nX[k+1] = self.f()
             
         return nX, nU
