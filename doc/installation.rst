@@ -38,7 +38,7 @@ Python and Numpy.  Detailed instructions are provided for
 :ref:`Debian <debian-install>` and :ref:`OS X <osx-install>`.
 
 Download the `latest release
-<http://sourceforge.net/projects/trep/files/trep/>`_ of trep and
+<http://code.google.com/p/trep/downloads/list>`_ of trep and
 unpack the archive. In the unpacked directory, run python setup.py
 build. If your build environment is properly installed, the script
 will compile trep. Install the package by running python setup.py
@@ -65,7 +65,7 @@ Debian Linux Installation
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
 1. Install the prerequisites: ``sudo aptitude install python python-dev python-opengl python-numpy python-scipy python-imaging python-qt4 python-qt4-gl python-matplotlib``
-2. Download the `latest release <http://sourceforge.net/projects/trep/files/trep/>`_.
+2. Download the `latest release <http://code.google.com/p/trep/downloads/list>`_.
 3. Unpack the sources: ``tar xvfj trep-*.tar.bz2``
 4. Change to the source directory: ``cd trep-*``
 5. Build: ``python setup.py build``
@@ -77,9 +77,11 @@ Documentation
 
 The current documentation can be viewed or downloaded directly from
 the website.  If you want to modify or build the documentation, you
-will need to install `Sphinx <http://http://sphinx.pocoo.org/>`_.  To
-build the documentation, change to the ``doc`` sub-directory and type
-``make html``.  The build output will be located in
-``doc/build/html``.  Additionally, you can type ``make help`` to see
-other output types, including LaTeX.
+will need to install `Sphinx <http://sphinx.pocoo.org/>`_.  To
+build the documentation, run the command::
+
+  python setup.py build_sphinx
+
+from trep's directory.  The HTML documentation will be built in
+``build/sphinx/html``.
 

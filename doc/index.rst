@@ -31,8 +31,7 @@ and checkout the :mod:`module reference <trep>`.
 
 
 If you have any questions or suggestions, please head over to our
-`sourceforge page <http://sourceforge.net/projects/trep/>`_ and
-contact us by email.
+`project page <http://trep.googlecode.com/>`_.
 
 
 Contents:
