@@ -1,6 +1,7 @@
 #!/usr/bin/python
 
 import subprocess
+from distutils.util import convert_path
 from distutils.core import setup
 from distutils.extension import Extension
 from distutils.command.sdist import sdist as _sdist
@@ -80,16 +81,17 @@ def update_version_file():
         version_file = get_version_from_file()
         if version_git == version_file:
             return
-    except GitDescribeError, IOError:
+    except (GitDescribeError, IOError):
         pass
 
     version = get_version()
-    f = open("src/__version__.py", "wt")
+    f = open(convert_path("src/__version__.py"), "wt")
     f.write(VERSION_PY % version)
     f.close()
     return version
 
 class GitDescribeError(StandardError): pass
+
 
 def get_version_from_git():
     try:
