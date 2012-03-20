@@ -21,36 +21,14 @@ def solve_tv_lqr(A, B, Q, R):
       P - matrix (P(0) solution to Ricatti equation)
     """
     
-    # Hackish attempt to start with a steady state approximation to P.
-    # Slowed down convergence of the cart on a pendulum, so I'm not
-    # using it anymore.
-    
-    ## kf = len(A)
-    ## K = [None]*(kf)
-    ## P = Q(kf)
-
-    ## k = kf-1
-    ## for i in range(500):
-    ##     gamma = (R(k) + B[k].T * P * B[k])
-    ##     K_part = B[k].T*P*A[k] # See lq function for explanation of this
-    ##     K[k] = np.linalg.solve(gamma, K_part)
-    ##     P_old = P
-    ##     P = Q(k) + A[k].T*P*A[k] - K_part.T*K[k]
-    ##     P = (P + P.T)/2.0  # Note: absolutely necessary for stability
-
-    ## print "diff: ", np.linalg.norm(P-P_old)
-
     kf = len(A)
     K = [None]*(kf)
     P = Q(kf)
 
     for k in reversed(range(kf)):
-        # gamma = (R(k) + B[k].T * P * B[k])
         gamma = R(k) + dot(dot(B[k].T, P),B[k])
-        # K_part = B[k].T*P*A[k] 
         K_part = dot(B[k].T,dot(P,A[k])) # See lq function for explanation of this
         K[k] = np.linalg.solve(gamma, K_part)
-        # P = Q(k) + A[k].T*P*A[k] - K_part.T*K[k]
         P = Q(k) + dot(dot(A[k].T,P),A[k]) - dot(K_part.T,K[k])
         P = (P + P.T)/2.0  # Note: absolutely necessary for stability
 
@@ -59,8 +37,8 @@ def solve_tv_lqr(A, B, Q, R):
 
 def solve_tv_lq(A, B, q, r, Q, S, R):
     """
-    (K, P) = solve_tv_lqr(A, B, Q, R)
-    Solve the time-varying discrete LQR problem.
+    (K, P) = solve_tv_lq(A, B, q, r, Q, S, R)
+    Solve the time-varying discrete LQ problem.
 
     Inputs:
       A - Sequence of N matrices (system dynamics)
@@ -85,7 +63,6 @@ def solve_tv_lq(A, B, q, r, Q, S, R):
     b = q[kf]
 
     for k in reversed(range(kf)):
-        #gamma = R(k) + B[k].T*P*B[k]
         gamma = R(k) + dot(dot(B[k].T,P),B[k])
         gamma_lu = sp.linalg.lu_factor(gamma, True)
 
@@ -97,7 +74,5 @@ def solve_tv_lq(A, B, q, r, Q, S, R):
         K[k] = sp.linalg.lu_solve(gamma_lu, K_part)
         b = q[k] - dot(K[k].T,r[k]) + dot(A[k].T - dot(K[k].T,B[k].T),b)
         P = Q(k) + dot(dot(A[k].T,P),A[k]) - dot(K_part.T,K[k])
-
-        #print "asymm err: ", np.linalg.norm( (P-P.T)/2 )
         P = (P + P.T)/2.0  # Note: absolutely necessary for stability
     return (K, C, P, b)
