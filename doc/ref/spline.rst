@@ -55,7 +55,7 @@ Spline Objects
    *(read-only)*
 
 
-.. attribute:: Spline.cofficients
+.. attribute:: Spline.coefficients
 
    :rtype: :class:`numpy.ndarray`
 
