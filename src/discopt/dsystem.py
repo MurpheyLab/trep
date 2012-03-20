@@ -101,7 +101,7 @@ class DSystem(object):
 
     def build_state(self, Q=None, p=None, v=None):
         """
-        Build state vector from components.  Unspecified components
+        Build a state vector from components.  Unspecified components
         are set to zero.
         """
         X = np.zeros((self._nX, ))
@@ -113,7 +113,7 @@ class DSystem(object):
 
     def build_input(self, u=None, rho=None):
         """
-        Build input vector from components.  Unspecified components
+        Build an input vector from components.  Unspecified components
         are set to zero.
         """
         U = np.zeros((self._nU, ))
@@ -181,7 +181,7 @@ class DSystem(object):
 
     def split_input(self, U=None):
         """
-        Split a state input vector U into it's force and kinematic
+        Split a state input vector U into its force and kinematic
         input parts, (u, rho).  If U is empty, returns zero arrays of
         the appropriate size.
         """
@@ -372,7 +372,7 @@ class DSystem(object):
         return fdudu
     
 
-    def save_state_trajectory(self, filename, X, U):
+    def save_state_trajectory(self, filename, X=None, U=None):
         """
         Save a trajectory to a file.
         """
@@ -466,7 +466,7 @@ class DSystem(object):
             return Kproj
         
 
-    def import_trajectory(self, dsys_a, X, U):
+    def convert_trajectory(self, dsys_a, X, U):
         """
         dsys_b = self
 

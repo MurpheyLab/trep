@@ -10,8 +10,8 @@
 
 
 :class:`DSystem` objects represent a :class:`MidpointVI` variational
-integrators as first order discrete systems of the form :math:`x(k+1)
-= f(x(k), u(k), k)`. This representation is used by :class:`DOptimizer`
+integrators as first order discrete systems of the form :math:`X(k+1)
+= f(X(k), U(k), k)`. This representation is used by :class:`DOptimizer`
 for discrete trajectory optimization. :class:`DSystem` also provides
 methods for automatically calculating linearizations and feedback
 controllers along trajectories.
@@ -21,7 +21,7 @@ configuration, the dynamic momentum, and the kinematic velocity:
 
 .. math::
 
-   x(k) = \begin{bmatrix} q_d(k) \\ q_k(k) \\ p(k) \\ v_k(k) \end{bmatrix}
+   X(k) = \begin{bmatrix} q_d(k) \\ q_k(k) \\ p(k) \\ v_k(k) \end{bmatrix}
 
 The configuration and momentum are the same as in :class:`MidpointVI`.
 The kinematic velocity is calculated as:
@@ -35,10 +35,11 @@ inputs and the future state of the kinematic configurations:
 
 .. math::
 
-   u(k) = \begin{bmatrix} \mu(k) \\ q_k(k+1) \end{bmatrix}
+   U(k) = \begin{bmatrix} u(k) \\ \rho(k) \end{bmatrix}
 
-where the force inputs are denoted by :math:`\mu(k)` to distinguish
-them from the discrete system inputs :math:`u(k)`.  
+where the kinematic inputs are denoted by :math:`\rho` thoughout this
+code.  Additionally, the state input *U* is always capitalized to
+distinguish it from the force input *u* which is always lower case.
 
 :class:`DSystem` provides methods for converting between trajectories
 for the discrete system and trajectories for the variational
@@ -115,73 +116,146 @@ DSystem Objects
    :rtype: int
 
    Return the last available state that the system can be set to.
-   This is one less than len(self.time).
+   This is one less than ``len(self.time)``.
 
 
 State and Trajectory Manipulation
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. method:: DSystem.build_state(Q=None, p=None, v=None)
+.. method:: DSystem.build_state([Q=None, p=None, v=None])
 
-   Build state vector from components.  Unspecified components
+   :param Q: A configuration vector
+   :type Q: numpy array, shape (nQ)
+   :param p: A momentum vector
+   :type p: numpy array, shape (nd)
+   :param v: A kinematic velocity vector
+   :type v: numpy array, shape (nk)
+
+   Build a state vector *Xk* from components.  Unspecified components
    are set to zero.
 
 
-.. method:: DSystem.build_input(u=None, rho=None)
+.. method:: DSystem.build_input([u=None, rho=None])
 
-   Build input vector from components.  Unspecified components
+   :param u: An input force vector 
+   :type u: numpy array, shape (nu)
+   :param rho:  A kinematic input vector
+   :type rho: numpy array, shape (nk)
+   :type: numpy array, shape (nU)
+     
+   Build an input vector *Uk* from components.  Unspecified components
    are set to zero.
 
 
-.. method:: DSystem.build_trajectory(Q=None, p=None, v=None, u=None, rho=None)
+.. method:: DSystem.build_trajectory([Q=None, p=None, v=None, u=None, rho=None])
+            
+   :param Q: A configuration trajectory
+   :type Q: numpy array, shape (N, nQ)
+   :param p: A momentum trajectory
+   :type p: numpy array, shape (N, nd)
+   :param v: A velocity trajectory
+   :type v: numpy array, shape (N, nk)
+   :param u: An input force trajectory
+   :type u: numpy array, shape (N-1, nu)
+   :param rho: A kinematic input trajectory
+   :type rho: numpy array, shape (N-1, nk)
+   :rtype: tuple of (*X*, *U*)
 
    Combine component trajectories into a state and input trajectories.
    The state length is the same as the time base, the input length is
    one less than the time base.  Unspecified components are set to
-   zero.
+   zero::
 
-   dsys.build_trajectory() -> all zero state and input trajectories
+     >>> dsys.build_trajectory() # Create a zero state and input trajectory
 
         
-.. method:: DSystem.split_state(X=None)
+.. method:: DSystem.split_state([X=None])
 
-   Split a state vector into its configuration, moementum, and
-   kinematic velocity parts.  If X is None, returns zero arrays for
-   each component.
-
-   Returns (Q,p,v)
-
-
-.. method:: DSystem.split_input(U=None)
-            
-   Split a state input vector U into it's force and kinematic input
-   parts, (u, rho).  If U is empty, returns zero arrays of the
-   appropriate size.  
-
-
-.. method:: DSystem.split_trajectory(X=None, U=None)
-
-   Split an X,U state trajectory into its Q,p,v,u,rho components.
-   If X or U are None, the corresponding components are arrays of
-   zero.
-
-
-.. method:: DSystem.import_trajectory(dsys_a, X, U)
-
-   dsys_b = self
+   :param X: A state vector for the system
+   :type X: numpy array, shape (nX)
+   :rtype: tuple of (*Q*, *p*, *v*)
    
-   Maps a trajectory X,U for dsys_a to a trajectory nX, nY for
-   dsys_b.
+   Split a state vector into its configuration, moementum, and
+   kinematic velocity parts.  If *X* is :data:`None`, returns zero
+   arrays for each component.
 
 
-.. method:: DSystem.save_state_trajectory(filename, X, U)
+.. method:: DSystem.split_input([U=None])
 
-   Save a trajectory to a file.
+   :param U: An input vector for the system
+   :type U: numpy array, shape (nU)
+   :rtype: tuple of (*u*, *rho*)
+            
+   Split a state input vector *U* into its force and kinematic input
+   parts, (*u*, *rho*).  If *U* is :data:`None`, returns zero arrays of the
+   appropriate size.
+
+
+.. method:: DSystem.split_trajectory([X=None, U=None])
+            
+   :param X: A state trajectory
+   :type X: numpy array, shape (N, nX)
+   :param U: An input trajectory
+   :type U: numpy array, shape (N-1, nU)
+   :rtype: tuple of (*Q*, *p*, *v*, *u*, *rho*)
+
+   Split the state trajectory (*X*, *U*) into its *Q*, *p*, *v*, *u*,
+   *rho* components.  If *X* or *U* are :data:`None`, the corresponding
+   components are arrays of zero.
+
+
+.. method:: DSystem.convert_trajectory(dsys_a, X, U)
+
+   :param dsys_a: Another discrete system
+   :type dsys_a: :class:`DSystem`
+   :param X: A state trajectory for *dsys_a*
+   :type X: numpy array, shape (N, nX)
+   :param U: An input trajectory for *dsys_a*
+   :type U: numpy array, shape (N, nU)
+   :rtype: trajectory for this system, tuple (*X*, *U*)
+
+   Convert the trajectory (*X*, *U*) for *dsys_a* into a trajectory
+   for this system.  This reorders the trajectory components according
+   to the configuration and input variable names and drops components
+   that aren't in this system.  Variables in this system that are not
+   in *dsys_a* are replaced with zero.
+
+   .. note:: 
+      
+      The returned path may not be a valid trajectory for this system
+      in the sense that :math:`x(k+1) = f(x(k), u(k), k)`.  This
+      function only reorders the information.
+
+
+.. method:: DSystem.save_state_trajectory(filename, [X=None, U=None])
+
+   :param filename: Location to save the trajectory
+   :type filename: string
+   :param X: A state trajectory
+   :type X: numpy array, shape (N, nX)
+   :param U: An input trajectory
+   :type U: numpy array, shape (N-1, nU)
+
+   Save a trajectory to a file.  This splits the trajectory with
+   :meth:`split_trajectory` and saves the results with
+   :func:`trep.save_traejctory`.  If *X* or *U* are not specified,
+   they are replaced with zero arrays.
 
 
 .. method:: DSystem.load_state_trajectory(filename)
 
-   Load a trajectory from a file.
+   :param filename: Location of saved trajectory
+   :type filename: string
+   :rtype: tuple of (X, U)
+
+   Load a trajectory from a file that was stored with
+   :meth:`save_state_trajectory` or
+   :func:`trep.save_trajectory`.  
+
+   If the file does not contain complete information for the system
+   (e.g, it was saved for a different system with different states, or
+   the inputs were not saved), the missing components will be filled
+   with zeros.
 
 
 Dynamics
