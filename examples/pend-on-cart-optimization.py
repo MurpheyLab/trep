@@ -257,7 +257,7 @@ mvi = trep.MidpointVI(system)
 dsys_b = discopt.DSystem(mvi, t)
 
 # Map the optimized trajectory for dsys_a to dsys_b
-(X, U) = dsys_b.import_trajectory(dsys_a, X, U)
+(X, U) = dsys_b.convert_trajectory(dsys_a, X, U)
 
 # Simulate the new system starting from the initial condition of our
 # last optimization and using the x-force input.
