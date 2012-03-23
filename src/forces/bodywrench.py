@@ -88,7 +88,7 @@ class BodyWrench(_BodyWrenchForce, Force):
     if _opengl:
         def opengl_draw(self):
             glPushMatrix()
-            glMultMatrixf(trep.visual.gl_flatten_matrix(self.frame.g()))
+            glMultMatrixf(self.frame.g().flatten('F'))
             glPushAttrib(GL_CURRENT_BIT | GL_LIGHTING_BIT | GL_LINE_BIT)
             glColor3f(1.0, 0.0, 0.0)
             glDisable(GL_LIGHTING)

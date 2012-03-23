@@ -1,5 +1,6 @@
 import trep
 import numpy as np
+import os.path
 from scipy.interpolate import interp1d
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *

@@ -109,7 +109,7 @@ class HybridWrench(_HybridWrenchForce, Force):
             mat[0,3] = self.frame.g()[0,3]
             mat[1,3] = self.frame.g()[1,3]
             mat[2,3] = self.frame.g()[2,3]
-            glMultMatrixf(trep.visual.gl_flatten_matrix(mat))
+            glMultMatrixf(mat.flatten('F'))
             glPushAttrib(GL_CURRENT_BIT | GL_LIGHTING_BIT | GL_LINE_BIT)
             glColor3f(1.0, 0.0, 0.0)
             glDisable(GL_LIGHTING)
