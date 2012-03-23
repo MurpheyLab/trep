@@ -1,5 +1,7 @@
 import datetime
 import numpy as np
+
+import trep
 import dlqr
 
 import numpy.linalg
@@ -12,18 +14,110 @@ except ImportError:
     pyplot_available = False
 
 
-# You can use the monitor to get feedback during the optimization.
-# Inherit from this class and overload the functions you are
-# interested in.
-## class DOptimizerMonitor(object):
-##     pass
+class DOptimizerMonitor(object):
+    def optimize_begin(self, X, U):
+        pass
+    def optimize_end(self, converged, X, U, cost):
+        pass
+
+
+    def step_begin(self, iteration):
+        pass
+    def step_info(self, method, cost, dcost, X, U, dX, dU, Kproj):
+        pass
+    def step_method_failure(self, method, cost, dcost, fallback_method):
+        pass
+    def step_termination(self, cost, dcost):
+        pass
+    def step_completed(self, method, cost, nX, nU):
+        pass
+
+
+    def armijo_simulation_failure(self, armijo_iteration, nX, nU, bX, bU):
+        pass
+    def armijo_search_failure(self, X, U, dX, dU, cost0, dcost0, Kproj):
+        pass
+    def armijo_evaluation(self, armijo_iteration, nX, nU, bX, bU, cost, max_cost):
+        pass
+    
+
+class DOptimizerDefaultMonitor(DOptimizerMonitor):
+    def __init__(self):
+        self.iteration = 0
+        self.start_cost = 0
+        self.start_dcost = 0
+        self.method = ''
+
+        self.cost_history = {}
+        self.dcost_history = {}
+
+
+    def msg(self, msg):
+        print "%s %3d: %s" % (
+            datetime.datetime.now().strftime('[%H:%M:%S]'),
+            self.iteration, msg)
+
+
+    def optimize_begin(self, X, U):
+        self.cost_history = {}
+        self.dcost_history = {}
+
+
+    def optimize_end(self, converged, X, U, cost):
+        print ""
+
+
+    def step_begin(self, iteration):
+        self.iteration = iteration
+
+        
+    def step_info(self, method, cost, dcost, X, U, dX, dU, Kproj):
+        self.start_cost = cost
+        self.start_dcost = dcost
+        self.method = method
+        self.cost_history[self.iteration] = cost
+        self.dcost_history[self.iteration] = dcost
+
+
+    def step_method_failure(self, method, cost, dcost, fallback_method):
+        self.msg("Descent method %r failed (dcost=%s), fallbacking to %s" % (
+            original_method, dcost, fallback_method))
+
+
+    def step_termination(self, cost, dcost):
+        self.msg("Optimization Terminated.  cost=%s   dcost=%s" % (cost, dcost))
+
+
+    def step_completed(self, method, cost, nX, nU):
+        self.msg("cost=(%s => %s)  dcost=%s method=%s  armijo=%d" % (
+            self.start_cost, cost, self.start_dcost, method, self.armijo))
+
+
+    def armijo_simulation_failure(self, armijo_iteration, nX, nU, bX, bU):
+        self.msg("  Armijo simulation (%d) failed after %d steps." % (
+            armijo_iteration, len(nX)))
+        
+    
+    def armijo_search_failure(self, X, U, dX, dU, cost0, dcost0, Kproj):
+        pass
+
+    
+    def armijo_evaluation(self, armijo_iteration, nX, nU, bX, bU, cost, max_cost):
+        self.armijo = armijo_iteration
 
 
 class DOptimizer(object):
-    def __init__(self, dsys, cost):
+    def __init__(self, dsys, cost,
+                 first_order_iterations=5,
+                 monitor=None):
         self.dsys = dsys
         self.cost = cost
         self.optimize_ic = False
+
+        if monitor is None:
+            self.monitor = DOptimizerDefaultMonitor()
+        else:
+            self.monitor = monitor
 
         # Default weights used to generate feedback controller for the
         # projection.  These can be changed if desired.
@@ -32,23 +126,14 @@ class DOptimizer(object):
         self.Qproj = lambda k: Qproj
         self.Rproj = lambda k: Rproj
 
-        self.step_method = "N/A"  # Method used to generate last descent direction
-
         self.armijo_beta = 0.7
         self.armijo_alpha = 0.00001
         self.armijo_max_iterations = 30
-        self.armijo_prev_m = 0
 
         self.descent_tolerance = 1e-6
 
         # Number of first order iterations to do at the start of an optimization
         self.first_order_iterations = 10
-        # Number of first order iterations to do after a second order iteration fails
-        self.first_order_fallbacks = 5
-
-        # Number of steepest-descent iterations left before a newton's
-        # method iteration is attempted
-        self.first_order_left = 0
 
 
     def calc_cost(self, X, U):        
@@ -166,72 +251,84 @@ class DOptimizer(object):
             dX[k+1] = dot(A[k],dX[k]) + dot(B[k],dU[k])
             
         return (Kproj, dX, dU, Q, R, S)
-                      
 
+
+    def armijo_simulate(self, bX, bU, Kproj):
+        nX = np.zeros(bX.shape)
+        nU = np.zeros(bU.shape)
+        try:
+            nX[0] = bX[0]
+            for k in range(len(bX)-1):
+                nU[k] = bU[k] - dot(Kproj[k], nX[k] - bX[k])
+                if k == 0:
+                    self.dsys.set(nX[k], nU[k], k)
+                else:
+                    self.dsys.step(nU[k])
+                nX[k+1] = self.dsys.f()
+        except trep.ConvergenceError:
+            return (False, nX[:k], nU[:k])
+        return (True, nX, nU)
+
+        
     def armijo_search(self, X, U, Kproj, dX, dU):
 
-        m0 = 0
-        cost = self.calc_cost(X, U)
-        dcost = self.calc_dcost(X, U, dX, dU)
+        cost0 = self.calc_cost(X, U)
+        dcost0 = self.calc_dcost(X, U, dX, dU)
         
-        for m in range(m0, self.armijo_max_iterations):
+        for m in range(0, self.armijo_max_iterations):
             lam = self.armijo_beta**m
-            max_cost = cost + self.armijo_alpha* lam * dcost
+            max_cost = cost0 + self.armijo_alpha* lam * dcost0
 
             bX = X + lam*dX
             bU = U + lam*dU
 
-            nX = np.zeros(bX.shape)
-            nU = np.zeros(bU.shape)
-            try:
-                
-                nX[0] = bX[0]
-                for k in range(len(X)-1):
-                    nU[k] = bU[k] - dot(Kproj[k], nX[k] - bX[k])
-                    if k == 0:
-                        self.dsys.set(nX[k], nU[k], k)
-                    else:
-                        self.dsys.step(nU[k])
-                    nX[k+1] = self.dsys.f()
-                    
-            except StandardError:
-                print "armijo: simulation failed at m=%d, continuing" % m
+            (result, nX, nU) = self.armijo_simulate(bX, bU, Kproj)
+
+            if not result:
+                self.monitor.armijo_simulation_failure(m, nX, nU, nX, bU)
                 continue
-            cost_n = self.calc_cost(nX, nU)
-            
-            if cost_n < max_cost:
-                self.armijo_prev_m = m
-                return (nX, nU, m)
+
+            cost1 = self.calc_cost(nX, nU)
+            self.monitor.armijo_evaluation(m, nX, nU, bX, bU, cost1, max_cost)
+            if cost1 < max_cost:
+                return (nX, nU, cost1)
         else:
+            self.monitor.armijo_search_failure(X, U, dX, dU, cost0, dcost0, Kproj)
             raise StandardError("Armijo Failed to Converge")
 
 
-    def step(self, X, U, method='steepest'):
+    def step(self, iteration, X, U, method='steepest'):
+
+        self.monitor.step_begin(iteration)
 
         (Kproj, dX, dU, Q, R, S) = self.calc_descent_direction(X, U, method)
+        
+        cost0 = self.calc_cost(X, U)
+        dcost0 = self.calc_dcost(X, U, dX, dU)
 
-        self.step_method = method
+        self.monitor.step_info(method, cost0, dcost0, X, U, dX, dU, Kproj)
 
         # Check for sane descent direction
-        dcost = self.calc_dcost(X, U, dX, dU)
-        if dcost > 0:
+        if dcost0 > 0:
             if method != 'steepest':
-                # Fallback to steepest descent step
-                print "fallback (%f)" % dcost
-                #self.first_order_left += max(0, (self.first_order_fallbacks - 1))
-                return self.step(X, U, 'steepest')
+                fallback = self.select_fallback_method(iteration, method)
+                self.monitor.step_method_failure(method, cost0, dcost0, fallback)
+                return self.step(iteration, X, U, fallback)
             else:
                 # This should never occur
                 raise StandardError("Derivative of cost is positive for steepest descent.")
 
         # Check for terminal condition
-        if abs(dcost) < self.descent_tolerance:
-            return (True, X, U, dX, dU, dcost, None)
+        if abs(dcost0) < self.descent_tolerance:
+            self.monitor.step_termination(cost0, dcost0)
+            return (True, X, U, dcost0, cost0)
 
         # Line search in descent direction
-        (X, U, armijo_iterations) = self.armijo_search(X, U, Kproj, dX, dU)
+        (X, U, cost1) = self.armijo_search(X, U, Kproj, dX, dU)
 
-        return (False, X, U, dX, dU, dcost, armijo_iterations)
+        self.monitor.step_completed(method, cost1, X, U)
+
+        return (False, X, U, dcost0, cost1)
 
 
     def calc_projection(self, X, U, return_linearization=False):
@@ -249,36 +346,32 @@ class DOptimizer(object):
             dX[k+1] = dot(A[k],dX[k]) + dot(B[k],dU[k])
         return dX, dU
 
+
+    def select_method(self, iteration):
+        if iteration < self.first_order_iterations:
+            method = 'quasi'
+        else:
+            method = 'newton'
+        return method
+
+    def select_fallback_method(self, iteration, current_method):
+        return 'steepest'
+
             
     def optimize(self, X, U, max_steps=50):
-
         X = np.array(X)
         U = np.array(U)
 
-        self.step_method = "N/A" 
-        self.first_order_left = self.first_order_iterations
-        self.armijo_prev_m = 0
-        print "initial cost: %f" % self.calc_cost(X, U)
+        self.monitor.optimize_begin(X, U)
 
         for i in range(max_steps):
-            if self.first_order_left > 0:
-                method = 'quasi'
-                self.first_order_left = max(0, self.first_order_left - 1)
-            else:
-                method = 'newton'
-
-            (converged, X, U, dX, dU, dcost, armijo_iterations) = self.step(X, U, method)
-
-            cost = self.calc_cost(X, U)
-
+            method = self.select_method(i)
+            (converged, X, U, cost, method) = self.step(i, X, U, method)
             if converged:
-                print "Finished at cost: ", cost
-                return (True, X, U)
-            now = datetime.datetime.now().strftime('%H:%M:%S')
-            print "[%s] %4d: method=%r cost=%f    dcost=%0.8f   ddcost=%f  %2d armijo iterations"  % (
-                now, i, self.step_method, cost, dcost, 0, self.armijo_prev_m)
+                break
 
-        return (False, X, U)
+        self.monitor.optimize_end(converged, X, U, cost)
+        return (converged, X, U)
 
 
     def descent_plot(self, X, U, method='steepest', points=40, legend=True):
