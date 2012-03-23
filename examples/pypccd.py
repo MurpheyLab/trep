@@ -18,7 +18,7 @@
 import sys
 import trep
 from trep import tx, ty, tz, rx, ry, rz
-from trep.visual import SystemTrajectoryViewer
+import trep.visual as visual
 import numpy as np
 
 tf = 10.0
@@ -92,40 +92,29 @@ class PyPoint(trep.Constraint):
 # Define the mechanical system
 system = trep.System()
 frames = [
-    ty(-0.5, name='Base'),
-    ty(-0.2), [
-        ry('J', name='J'), [
-            tz(-0.5, name='I', mass=1),
-            tz(-1), [
-                ty(-0.1), [
-                    ry('H', name='H'), [
-                        tz(-1, name='G', mass=1),
-                        tz(-2, name='O2')]]]]],
-    ty(-0.1), [
-        tx(-1.5), [
-            ry('K', name='K'), [
-                tz(-1, name='L', mass=1),
-                tz(-2), [
-                    ty(0.1), [
-                        ry('M', name='M'), [
-                            tz(-0.5, name='N', mass=1),
-                            tz(-1.0, name='O')]]]]]],
-    ty(0.5), [
-        tx(1.5), [
-            ry('A', name='A'), [
-                tz(-1, name='B', mass=1),
-                tz(-2), [
-                    ty(-0.1), [
-                        ry('C', name='C'), [
-                            tz(-0.375, name='D', mass=1),
-                            tz(-0.75), [
-                                ty(-0.1), [
-                                    ry('E', name='E'), [
-                                        tz(-0.5, name='F', mass=1),
-                                        tz(-1.0, name='G2')
-                                        ]
-                                    ]
-                                ]
+    rx('J', name='J'), [
+        tz(-0.5, name='I', mass=1),
+        tz(-1), [
+            rx('H', name='H'), [
+                tz(-1, name='G', mass=1),
+                tz(-2, name='O2')]]],
+    ty(1.5), [
+        rx('K', name='K'), [
+            tz(-1, name='L', mass=1),
+            tz(-2), [
+                rx('M', name='M'), [
+                    tz(-0.5, name='N', mass=1),
+                    tz(-1.0, name='O')]]]],
+    ty(-1.5), [
+        rx('A', name='A'), [
+            tz(-1, name='B', mass=1),
+            tz(-2), [
+                rx('C', name='C'), [
+                    tz(-0.375, name='D', mass=1),
+                    tz(-0.75), [
+                        rx('E', name='E'), [
+                            tz(-0.5, name='F', mass=1),
+                            tz(-1.0, name='G2')
                             ]
                         ]
                     ]
@@ -141,9 +130,9 @@ trep.potentials.Gravity(system, (0, 0, -9.8))
 trep.forces.Damping(system, 0.1)
 
 # Close the open chains with constraints.
-PyPoint(system, 'O', (1,0,0), 'O2')
+PyPoint(system, 'O', (0,1,0), 'O2')
 PyPoint(system, 'O', (0,0,1), 'O2')
-PyPoint(system, 'G', (1,0,0), 'G2')
+PyPoint(system, 'G', (0,1,0), 'G2')
 PyPoint(system, 'G', (0,0,1), 'G2')
 
 # We can set the system's configuration with a dictionary that maps
@@ -192,9 +181,7 @@ while mvi.t1 < tf:
 # viewer can automatically draw a primitive representation for
 # arbitrary systems from the tree structure.  print_instructions() has
 # the viewer print out basic usage information to the console.
-viewer = SystemTrajectoryViewer(system, t, q)
-viewer.print_instructions()
-viewer.run()
+visual.visualize_3d([visual.VisualItem3D(system, t, q)])
 
 
 

@@ -8,13 +8,14 @@
 
 import sys
 import trep
-from trep.visual import stlmodel
 from trep import tx, ty, tz, rx, ry, rz
 from math import sin, cos, pi as mpi, exp
 import numpy as np
 from numpy import matrix, array
 import scipy
 from scipy.integrate import odeint
+
+import trep.visual as visual
 
 # Define the length of the simulation and the time step.
 tf = 10.0
@@ -183,46 +184,31 @@ def simulate_system(system, tf, dt):
 # Call our function to simulate the system.
 (t,q) = simulate_system(system, tf, dt)
 
+
 # The simulation is finished and now we are going to animate the
-# results but with a more customized viewer.  We can start from the
-# usual SystemTrajectoryViewer. 
-viewer = trep.visual.SystemTrajectoryViewer(system, t, q)
+# results but with a more customized viewer.  
 
-# The first thing we do is turn off the auto-drawing.
-viewer.auto_draw = False
-# We can add display functions to frames in the system.  When the
-# viewer is drawing the system, it will shift the opengl coordinate
-# frame to the configuration of each frame and call it's display
-# function.  In this case, we are loading an stlmodel for parts of the
-# system and passing the model's draw function as a display function.
-viewer.add_display_func('Torso',          stlmodel('./puppet-stl/torso.stl').draw)
-viewer.add_display_func('Left Shoulder',  stlmodel('./puppet-stl/lefthumerus.stl').draw)
-viewer.add_display_func('Right Shoulder', stlmodel('./puppet-stl/righthumerus.stl').draw)
-viewer.add_display_func('Left Elbow',     stlmodel('./puppet-stl/leftradius.stl').draw)
-viewer.add_display_func('Right Elbow',    stlmodel('./puppet-stl/rightradius.stl').draw)
-viewer.add_display_func('Right Hip',      stlmodel('./puppet-stl/femur.stl').draw)
-viewer.add_display_func('Left Hip',       stlmodel('./puppet-stl/femur.stl').draw)
-viewer.add_display_func('right Knee',     stlmodel('./puppet-stl/tibia.stl').draw)
-viewer.add_display_func('Left Knee',      stlmodel('./puppet-stl/tibia.stl').draw)
-viewer.add_display_func('Head',           stlmodel('./puppet-stl/head.stl').draw)
-viewer.color = [0.5, 0.5, 0.55]
-viewer.background_color = (1.0, 1.0, 1.0, 1.0)
+class PuppetVisual(visual.VisualItem3D):
+    def __init__(self, *args, **kwds):
+        super(PuppetVisual, self).__init__(*args, **kwds)
 
-# Since we turned off auto-draw, the constraints are not being
-# visualized.  So we can add a separate display function that simply
-# calls each string's automatic visualization function.
-def draw_constraints():
-    for x in system.constraints:
-        x.opengl_draw()
-# By attaching this function to no frame, it will be called when the
-# OpenGL coordinate frame is at the world frame.
-viewer.add_display_func(None, draw_constraints)
+        self.attachDrawing('Torso',          visual.stlmodel('./puppet-stl/torso.stl').draw)
+        self.attachDrawing('Left Shoulder',  visual.stlmodel('./puppet-stl/lefthumerus.stl').draw)
+        self.attachDrawing('Right Shoulder', visual.stlmodel('./puppet-stl/righthumerus.stl').draw)
+        self.attachDrawing('Left Elbow',     visual.stlmodel('./puppet-stl/leftradius.stl').draw)
+        self.attachDrawing('Right Elbow',    visual.stlmodel('./puppet-stl/rightradius.stl').draw)
+        self.attachDrawing('Right Hip',      visual.stlmodel('./puppet-stl/femur.stl').draw)
+        self.attachDrawing('Left Hip',       visual.stlmodel('./puppet-stl/femur.stl').draw)
+        self.attachDrawing('right Knee',     visual.stlmodel('./puppet-stl/tibia.stl').draw)
+        self.attachDrawing('Left Knee',      visual.stlmodel('./puppet-stl/tibia.stl').draw)
+        self.attachDrawing('Head',           visual.stlmodel('./puppet-stl/head.stl').draw)
+        self.attachDrawing(None, self.draw_constraints)
 
-# We can set the initial position and angle if we don't like the
-# default values.  These can be found by trial and error or by adding
-# code somewhere (like in the draw_constraints function) to print out
-# the viewer's angle and position while you move the camera around. 
-viewer.camera.camera_pos = [1.97, -15.728, 2.944]
-viewer.camera.camera_ang = [-80.39, -18.36, 0.0]
+    def draw_constraints(self):
+        for x in self.system.constraints:
+            x.opengl_draw()
 
-viewer.run()
+
+visual.visualize_3d([PuppetVisual(system, t, q)])
+
+

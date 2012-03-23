@@ -4,10 +4,9 @@
 import sys
 import trep
 from trep import Frame
+import trep.visual as visual
 import math
 from math import pi as mpi
-from trep.visual.stlmodel import stlmodel
-from trep.visual import SystemTrajectoryViewer
 from OpenGL.GLUT import *
 from OpenGL.GLU import *
 from OpenGL.GL import *
@@ -49,97 +48,6 @@ def simulate_system(system):
             print "t =",mvi.t1
 
     return (t, q)
-
-
-class CustomViewer(SystemTrajectoryViewer):
-    """
-    We define a customized viewer for the scissor lift by subclassing
-    SystemTrajectoryViewer.
-    """
-    
-    def __init__(self, system, times, traj):
-        # Make the window large enough to show the entire scissor lift.
-        window_height = 600
-        window_width = int(2.0/segments*window_height)
-
-        # Initialize the parent viewer.  Note that we're using a 2D
-        # camera instead of the usual 3D camera. 
-        SystemTrajectoryViewer.__init__(self,
-                                        system=system,
-                                        times=times,
-                                        traj=traj,
-                                        display_dt=1/25.0,
-                                        camera=trep.visual.Camera_2D(),
-                                        window_width=window_width,
-                                        window_height=window_height)
-        
-        self.camera.camera_pos = [0, -0.5*L_link*segments,2*L_link*1.2]
-
-        # Turn off auto_draw and add a display function the each link
-        # in the system. We check the names to make sure we aren't
-        # adding the display to the wrong frames in the system.
-        self.auto_draw = False
-        for frame in system.frames:
-            if frame.name and (frame.name.startswith('R') or
-                               frame.name.startswith('L')):
-                self.add_display_func(frame.name, lambda : self.draw_part(L_link))
-
-    def initialize_opengl(self):
-        """
-        This is called when OpenGL is ready to be initialized.  We
-        customize it so we can set the default line width and
-        background color.
-        """
-        SystemTrajectoryViewer.initialize_opengl(self)
-        glLineWidth(1.0)
-        glClearColor (1.0, 1.0, 1.0, 1.0)
-
-    def draw_part(self, length):
-        """
-        This function draws a link.  Notice that we don't have to deal
-        with the position or angle of the link.  This is already
-        handled by the parent viewer by setting the OpenGL coordinate
-        frame to the configuration of the frame that is currently
-        being drawn.
-        """
-        c = length/2.0
-        a = c+0.110
-        b = 0.130
-        r = 0.03
-        segments = 50
-        dtheta = mpi/10.0
-
-        glPushAttrib(GL_CURRENT_BIT | GL_LIGHTING_BIT )
-        glDisable(GL_LIGHTING)
-
-        glColor3f(0.0, 0.0, 0.0)
-
-        glBegin(GL_LINE_LOOP)
-        for i in range(segments):
-            theta = 2*mpi*i/segments
-            glVertex3f(a*math.cos(theta) + c, -0.01, b*math.sin(theta))
-        glEnd()
-
-        glBegin(GL_LINE_LOOP)
-        for i in range(segments):
-            theta = 2*mpi*i/segments
-            glVertex3f(r*math.cos(theta), -0.01, r*math.sin(theta))
-        glEnd()
-
-        glBegin(GL_LINE_LOOP)
-        for i in range(segments):
-            theta = 2*mpi*i/segments
-            glVertex3f(r*math.cos(theta) + c, -0.01, r*math.sin(theta))
-        glEnd()
-
-        glBegin(GL_LINE_LOOP)
-        for i in range(segments):
-            theta = 2*mpi*i/segments
-            glVertex3f(r*math.cos(theta) + 2*c, -0.01, r*math.sin(theta))
-        glEnd()
-        
-        glPopAttrib()
-
 
 
 def make_scissor_lift():
@@ -205,7 +113,5 @@ system = make_scissor_lift()
 
 
 # Create a visualization of the scissor lift.
-viewer = CustomViewer(system, t, q)
-viewer.run()
-
+visual.visualize_2d([visual.VisualItem2D(system, t, q, plane='XZ')])
 

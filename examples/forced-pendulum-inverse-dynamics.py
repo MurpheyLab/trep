@@ -3,7 +3,6 @@ import math
 from math import pi, sin
 import time
 import trep
-import trep.visual
 import trep.potentials
 import numpy as np
 

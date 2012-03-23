@@ -4,7 +4,7 @@
 import sys
 import trep
 from trep import tx, ty, tz, rx, ry, rz
-from trep.visual import SystemTrajectoryViewer
+import trep.visual as visual
 
 # Set the length of simulation and the time step.
 tf = 10.0
@@ -137,6 +137,4 @@ while mvi.t1 < tf:
 # viewer can automatically draw a primitive representation for
 # arbitrary systems from the tree structure.  print_instructions() has
 # the viewer print out basic usage information to the console.
-viewer = SystemTrajectoryViewer(system, t, q)
-viewer.print_instructions()
-viewer.run()
+visual.visualize_3d([ visual.VisualItem3D(system, t, q) ])

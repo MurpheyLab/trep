@@ -3,6 +3,7 @@ callgrind.out.*
 # Ignore emacs back ups
 \#*\#
 *.pyprof
+*.pyc
 build/
 dist/
 

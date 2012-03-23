@@ -5,7 +5,7 @@ import sys
 import trep
 from trep import tx,ty,tz,rx,ry,rz
 import trep.constraints
-from trep.visual import SystemTrajectoryViewer
+import trep.visual as visual
 
 tf = 10.0
 dt = 0.01
@@ -13,15 +13,15 @@ dt = 0.01
 # Here we define the mechanical system
 system = trep.System()
 frames = [
-    tx(3), # Provided as an angle reference
-    ry("theta"), [tx(3, mass=1)]
+    ty(3), # Provided as an angle reference
+    rx("theta"), [ty(3, mass=1)]
     ]
 system.import_frames(frames)
 trep.potentials.ConfigSpring(system, 'theta', k=20, q0=0.6)
 
 # These are the initial conditions for the variational integrator.
-q0 = (1.57,)   # Note the comma, this is how you create a tuple with 
-q1 = (1.57,)   # a single element
+q0 = (0,)   # Note the comma, this is how you create a tuple with 
+q1 = (0,)   # a single element
 
 # Now we create and initialize a variational integrator for the system.
 mvi = trep.MidpointVI(system)
@@ -39,6 +39,4 @@ while mvi.t1 < tf:
 # After the simulation is finished, we can visualize the results.  The
 # viewer can automatically draw a primitive representation for
 # arbitrary systems from the tree structure.
-viewer = SystemTrajectoryViewer(system, t, q)
-viewer.print_instructions()
-viewer.run()
+visual.visualize_3d([ visual.VisualItem3D(system, t, q) ])

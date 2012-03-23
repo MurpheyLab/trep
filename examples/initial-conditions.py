@@ -4,7 +4,6 @@ import sys
 from math import sin
 import trep
 from trep import tx,ty,tz,rx,ry,rz
-from trep.visual import SystemTrajectoryViewer
 
 tf = 10.0
 dt = 0.01
@@ -126,11 +125,3 @@ def forcing2(t):
 t4 = t1[:i] + t4
 q4 = q1[:i] + q4
 p4 = p1[:i] + p4
-
-# Uncomment this line to see the result
-# visualize(system, t4, q4)
-
-
-
-
-

@@ -4,9 +4,8 @@ import sys
 import math
 import time
 import trep
-import trep.visual
 import trep.potentials
-import numpy
+import numpy as np
 
 
 links = 2
@@ -59,23 +58,18 @@ system = make_pendulum(links)
 # f(q,dq)]
 n = len(system.configs)
 
-# Create an array to store df/dx
-dfdx = numpy.zeros( (2*n, 2*n) )
-
 # The derivative df/dx is:
 #  [ d[dq]/d[q]   d[dq]/d[dq]    = [  0              I  
 #    d[f]/d[q]    d[f]/d[dq] ]   =   d[f]/d[q]  d[f]/d[dq] ]
 
-for i in range(n):  # Set the upper right identity block
-    dfdx[i, n+i] = 1.0
-
-for (row, qi) in enumerate(system.configs):
-    for(col, qj) in enumerate(system.configs):
-        dfdx[n+row,col] = system.f_dq(qi, qj)
-        dfdx[n+row,n+col] = system.f_ddq(qi, qj)
+dfdx = np.vstack([
+    np.hstack([np.zeros((n,n)), np.eye(n)]),
+    np.hstack([system.f_dq(), system.f_ddq()])
+    ])
+    
 
 # And that's all.  The more general case includes force inputs and
 # kinematic inputs.  See the puppet-continuous-deriv.py for that.
 
-print "df/dx is: "
+print "The continuous linearization is: "
 print dfdx

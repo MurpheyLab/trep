@@ -1,169 +1,48 @@
 import numpy as np
-
-from itertools import product
 import sys
 import trep
 from trep import tx, ty, tz, rx, ry, rz
 import trep.discopt as discopt
-
 import math
 from math import sin, cos
 from math import pi as mpi
-import pygame
+import trep.visual as visual
+from PyQt4.QtCore import Qt, QRectF, QPointF
+from PyQt4.QtGui import QColor
 
 
-class Viewer(object):
-    def __init__(self, system, t, q, qd):
-        self.system = system
-        self.t = t
-        self.q = q
-        self.qd = qd
-
-        self.window_width = 800
-        self.window_height = 600
-        self.scale = 200
-        self.camera_x = 0
-
-        pygame.init()
-
-        self.frame_index = 0
-        self.paused = True
-        self.clock = pygame.time.Clock()
-        self.clock.tick(0)
-
-        self.cart_color = [
-            pygame.Color(200, 200, 200),
-            pygame.Color(230, 230, 230)
-            ]
-        self.cart_height = 20
-        self.cart_width = 80
-        self.link_color = [
-            pygame.Color(0, 0, 0),
-            pygame.Color(200, 200, 200)
-            ]
-        self.link_width = 5
-        self.weight_color = [
-            pygame.Color(0, 66, 66),
-            pygame.Color(0, 200, 200)
-            ]
-            
-        self.weight_radius = 20
-
-    def transform(self, point):
-        x = point[0] 
-        y = point[1]
-
-        x = int(self.window_width/2 + self.scale*(x - self.camera_x))
-        y = int(self.window_height/2 - self.scale*y)
-        return (x,y)
-
-    def draw_cart(self, q, colors=0):
-        self.system.q = q
-
-        cart_pos = self.transform(self.system.get_frame('Cart').p())
-        pygame.draw.rect(self.screen, self.cart_color[colors],
-                         pygame.Rect(cart_pos[0] - self.cart_width/2,
-                                     cart_pos[1] - self.cart_height/2,
-                                     self.cart_width, self.cart_height))
-        pygame.draw.line(self.screen, self.link_color[colors],
-                         self.transform(self.system.get_frame('Cart').p()),
-                         self.transform(self.system.get_frame('Pendulum').p()),
-                         self.link_width)
-        pygame.draw.circle(self.screen, self.link_color[colors],
-                           self.transform(self.system.get_frame('Cart').p()),
-                           self.link_width/2)
-        pygame.draw.circle(self.screen, self.weight_color[colors],
-                           self.transform(self.system.get_frame('Pendulum').p()),
-                           self.weight_radius)
-
-    def draw_ground(self):
-        color1 = pygame.Color(100, 100, 100)
-        period = 50.0 # pixels
-        color2 = pygame.Color(150, 150, 150)
-        duty = 25.0 # pixels
-        slant = 5.0 # pixels
-        thickness = 10
-        top = self.window_height/2 - thickness/2
-
-        pygame.draw.rect(self.screen, color1,
-                         pygame.Rect(0, top, self.window_width, thickness))
-
-        # Draw alternating rectangles to give the appearance of movement.
-        left_edge = -self.scale*self.camera_x
-        i0 = int(math.floor(left_edge/period))
-        i1 = int(math.ceil(i0 + self.window_width/period))
-
-        for i in range(i0-1, i1+1):
-            #pygame.draw.rect(screen, color2, pygame.Rect(i*period - left_edge, top,
-            #                                             duty, thickness))
-            x = i*period - left_edge
-            pygame.draw.polygon(self.screen, color2, (
-                (x, top), (x+duty, top),
-                (x+duty+slant, top+thickness-1), (x+slant, top+thickness-1)))
-
-    def draw_time(self):
-        # Create a font
-        font = pygame.font.Font(None, 17)
+class PendCartVisual(visual.VisualItem2D):
+    def __init__(self, *args, **kwds):
         
-        # Render the text
-        txt = 't = %4.2f' % self.t[self.frame_index]
-        text = font.render(txt , True, (0, 0, 0))
+        draw_track = kwds.setdefault('draw_track', True)
+        del(kwds['draw_track'])
 
-        # Create a rectangle
-        textRect = text.get_rect()
-        
-        # Center the rectangle
-        textRect.right = self.window_width - 10
-        textRect.top = 10
-        #textRect.centerx = screen.get_rect().centerx
-        #textRect.centery = screen.get_rect().centery
-        # Blit the text
-        self.screen.blit(text, textRect)
-        
-    def togglepause(self):        
-        if self.paused:
-            self.paused = False
-            self.clock.tick(0) # Reset the clock start time
-        elif self.paused == False and self.frame_index == len(self.t)-1:
-            self.frame_index = 0
-        else:
-            self.paused = True
-        
-    def main(self):
-        self.window = pygame.display.set_mode((self.window_width, self.window_height))
-        pygame.display.set_caption('trajectory optimization')
-        self.screen = pygame.display.get_surface()
-        self.run_viewer = True        
-        
-        while self.run_viewer:
-            for event in pygame.event.get(): 
-                if event.type == pygame.QUIT or \
-                   (event.type == pygame.KEYDOWN and event.key == pygame.K_q) or \
-                   (event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE):
-                    self.run_viewer = False
-                if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
-                    self.togglepause()
-                if event.type == pygame.KEYDOWN and event.key == pygame.K_r:
-                    self.frame_index = 0
-                    
-            self.screen.fill(pygame.Color('white'))
-            self.draw_ground()
-            self.draw_cart(self.qd[self.frame_index], 1)
-            self.draw_cart(self.q[self.frame_index], 0)
-            self.draw_time()
-            pygame.display.flip()
+        super(PendCartVisual, self).__init__(*args, **kwds)
 
-            if not self.paused:
-                if self.frame_index < len(self.t)-1:
-                    self.frame_index += 1
-                    if self.frame_index < len(self.t):
-                        delay = (self.t[self.frame_index]-self.t[self.frame_index-1])
-                    else:
-                        delay = 1.0/60.0
-            else:
-                delay = 1/60.0
-            self.clock.tick(1.0/delay)
+        if draw_track:
+            self.attachDrawing(None, self.paint_track)
+        self.attachDrawing('Cart', self.paint_cart)
+        self.attachDrawing('PendulumBase', self.paint_pend)
+        self.attachDrawing('Pendulum', self.paint_mass)
 
+    def paint_track(self, painter):
+        rect = QRectF(0, 0, 4.0, 0.05)
+        rect.moveCenter(QPointF(0,0))
+        painter.fillRect(rect, QColor(100, 100, 100))
+
+    def paint_cart(self, painter):
+        rect = QRectF(0, 0, 0.2, 0.07)
+        rect.moveCenter(QPointF(0,0))
+        painter.fillRect(rect, QColor(200, 200, 200))
+
+    def paint_pend(self, painter):
+        rect = QRectF(-0.01, 0, 0.02, -1.0)
+        painter.fillRect(rect, QColor(0, 0, 0))
+
+    def paint_mass(self, painter):
+        rect = QRectF(0, 0, 0.07, 0.07)
+        rect.moveCenter(QPointF(0,0))
+        painter.fillRect(rect, QColor(200, 200, 0))
 
 
 def build_system(torque_force=False):
@@ -174,7 +53,7 @@ def build_system(torque_force=False):
     system = trep.System()
     frames = [
         tx('x', name='Cart', mass=cart_mass), [
-            rz('theta'), [
+            rz('theta', name="PendulumBase"), [
                 ty(-pendulum_length, name="Pendulum", mass=pendulum_mass)]]]
     system.import_frames(frames)
     trep.potentials.Gravity(system, (0, -9.8, 0))
@@ -282,8 +161,15 @@ optimizer.first_order_iterations = 4
 finished, X, U = optimizer.optimize(X, U, max_steps=40)
 
 if '--novisual' not in sys.argv:
-    q,p,v,u,rho = dsys_b.split_trajectory(X, U)
-    view = Viewer(system, t, q, qd)
-    view.main()
 
+    q,p,v,u,rho = dsys_b.split_trajectory(X, U)
+
+    if False:
+        view = Viewer(system, t, q, qd)
+        view.main()
+    else:
+        visual.visualize_2d([
+            PendCartVisual(system, t, qd),
+            PendCartVisual(system, t, q, draw_track=False)
+            ])
 

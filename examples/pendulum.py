@@ -4,9 +4,8 @@ import sys
 import math
 import time
 import trep
-import trep.visual
 import trep.potentials
-
+import trep.visual as visual
 
 links = 5
 dt = 0.01
@@ -53,7 +52,7 @@ def make_pendulum(num_links):
         # the transformation type, and the third is the name of the
         # configuration variable that parameterizes the
         # transformation.
-        child = trep.Frame(frame, trep.RY, "link-%d" % link, "link-%d" % link)
+        child = trep.Frame(frame, trep.RX, "link-%d" % link, "link-%d" % link)
 
         # Move down to create the length of the pendulum link.
         child = trep.Frame(child, trep.TZ, -1)
@@ -82,6 +81,4 @@ finish = time.clock()
 
 # Display
 print "%d-link pendulum, dt=%f, tf=%f... runtime=%f s" % (links, dt, tf, finish-start)
-viewer = trep.visual.SystemTrajectoryViewer(system, t, q)
-viewer.print_instructions()
-viewer.run()
+visual.visualize_3d([ visual.VisualItem3D(system, t, q) ])

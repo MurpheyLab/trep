@@ -4,9 +4,8 @@ import sys
 import math
 import time
 import trep
-import trep.visual
 import trep.potentials
-import numpy
+import numpy as np
 
 links = 2
 dt = 0.01
@@ -77,32 +76,14 @@ mvi.step(dt*2)
 #  d[x(k+1)]/d[x(k)] = [  d[q(k+1)]/d[q(k)]  d[q(k+1)]/d[p(k)]
 #                         d[p(k+1)]/d[q(k)]  d[p(k+1)]/d[p(k)]
 
-# Create an array to store dx
-n = len(system.configs)
-dx = numpy.zeros( (2*n, 2*n) )
+dfdx = np.vstack([
+    np.hstack([mvi.q2_dq1(), mvi.q2_dp1()]),
+    np.hstack([mvi.p2_dq1(), mvi.p2_dp1()])
+    ])
 
-# Calculate the upper left block.
-for (i, qi) in enumerate(system.configs):
-    for(j, qj) in enumerate(system.configs):
-        dx[i,j] = mvi.q2_dq1(qi, qj)
 
-# Calculate the upper right block.
-for (i, qi) in enumerate(system.configs):
-    for(j, qj) in enumerate(system.configs):
-        dx[i,n+j] = mvi.q2_dp1(qi, qj)
-
-# Calculate the lower left block.
-for (i, qi) in enumerate(system.configs):
-    for(j, qj) in enumerate(system.configs):
-        dx[n+i,j] = mvi.p2_dq1(qi, qj)
-
-# Calculate the lower right block.
-for (i, qi) in enumerate(system.configs):
-    for(j, qj) in enumerate(system.configs):
-        dx[n+i,n+j] = mvi.p2_dp1(qi, qj)
-
-print "The dynamic linearization is: "
-print dx
+print "The discrete linearization is: "
+print dfdx
 
 # As with the continuous linearization, the general case gets more
 # confusing as you consider kinematic configuraiton variables and

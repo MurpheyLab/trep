@@ -164,7 +164,10 @@ setup (name = 'trep',
                  'trep.puppets',
                  'trep.discopt'
                  ],
-       ext_modules = [_trep,
+       package_data={
+           'trep.visual' : ['icons/*.svg']
+           },
+       ext_modules=[_trep,
                       #_polyobject
                       ],
        cmdclass=cmd_class,
