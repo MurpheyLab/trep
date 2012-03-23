@@ -211,13 +211,13 @@ class View3D(QGLWidget):
 
 
     def mousePressEvent(self, event):
-        if event.button() == Qt.RightButton:
+        if event.button() == Qt.LeftButton:
             self._oldPos = event.pos()
             self.grabKeyboard()
 
 
     def mouseReleaseEvent(self, event):
-        if event.button() == Qt.RightButton:
+        if event.button() == Qt.LeftButton:
             self._oldPos = event.pos()
             self.releaseKeyboard()
             self._moving = [0,0,0]
@@ -225,7 +225,7 @@ class View3D(QGLWidget):
 
 
     def mouseMoveEvent(self, event):
-        if event.buttons() & Qt.RightButton:
+        if event.buttons() & Qt.LeftButton:
             diff = event.pos() - self._oldPos
             self._oldPos = event.pos()
             dx = float(diff.x())
