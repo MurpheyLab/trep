@@ -1,7 +1,8 @@
+.. currentmodule:: trep
+
 :class:`Force` -- Base Class for Forces
 =======================================
 
-.. currentmodule:: trep
 
 .. class:: Force(system[, name=None])
 
