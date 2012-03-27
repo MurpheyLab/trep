@@ -35,6 +35,8 @@ extern PyTypeObject BodyWrenchForceType;
 extern PyTypeObject HybridWrenchForceType;
 extern PyTypeObject SpatialWrenchForceType;
 
+extern PyTypeObject PistonExampleForceType;
+
 void initialize_transform_types(PyObject *module);
 
 static PyMethodDef CTrepMethods[] = {
@@ -76,6 +78,7 @@ PyMODINIT_FUNC __attribute__((visibility("default"))) init_trep(void)
         {"_ConfigSpringPotential", &ConfigSpringPotentialType, 0},
         {"_FrameSequence", &FrameSequenceType, 0},
         {"_NonlinearConfigSpring", &NonlinearConfigSpringType, 0},
+        {"_PistonExampleForce", &PistonExampleForceType, 0},
         {NULL}
     };
 

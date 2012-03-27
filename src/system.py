@@ -991,8 +991,8 @@ class System(_System):
         self._update_cache(_trep.SYSTEM_CACHE_DYNAMICS_DERIV2)
         return self._lambda_dudu[u1, u2, constraint].copy()
 
-    def test_derivative_dq(self, func, func_dq, delta=1e-6, tolerance=1e-7, verbose=False,
-                           test_name='<unnamed>'):
+    def test_derivative_dq(self, func, func_dq, delta=1e-6, tolerance=1e-7,
+                           verbose=False, test_name='<unnamed>'):
         """
         Test the derivative of a function with respect to a
         configuration variable value against its numerical
@@ -1006,17 +1006,9 @@ class System(_System):
         delta -> perturbation to the current configuration to
                  calculate the numeric approximation.
 
-        tolerance -> acceptable difference between the approximation
-                     and exact value.  (|exact - approx| <= tolerance)
-
-        verbose -> Boolean indicating if a message should be printed for failures.
-
-        name -> String identifier to print out when reporting messages
-                when verbose is true.
-
-        Returns False if any tests fail and True otherwise.
+        Returns stuff
         """
-        q0 = self.get_q()
+        q0 = self.q
 
         tests_total = 0
         tests_failed = 0
@@ -1044,8 +1036,8 @@ class System(_System):
                 if verbose:
                     print "Test '%s' failed for dq derivative of '%s'." % (test_name, q)
                     print "  Error: %f > %f" % (error, tolerance)
-                    print "  Approx dy: %f" % dy_approx
-                    print "   Exact dy: %f" % dy_exact
+                    print "  Approx dy: %s" % dy_approx
+                    print "   Exact dy: %s" % dy_exact
                     
         if verbose:
             if tests_failed == 0:
@@ -1082,7 +1074,7 @@ class System(_System):
 
         Returns False if any tests fail and True otherwise.
         """
-        dq0 = self.get_dq()
+        dq0 = self.dq
 
         tests_total = 0
         tests_failed = 0

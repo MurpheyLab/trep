@@ -1,6 +1,7 @@
 import trep
 import _trep
 from _trep import _Force
+import numpy as np
 
 class Force(_Force):
     """
@@ -142,4 +143,16 @@ class Force(_Force):
         assert isinstance(u1, _trep._Input)        
         assert isinstance(u2, _trep._Input)        
         return self._f_dudu(q, u1, u2)
+
+    def validate_f_dq(self, delta=1e-6, tolerance=1e-6, verbose=False):
+        """Check f_dq() against approximate numeric derivative from f()"""
+        def f():
+            return np.array([self.f(q) for q in self.system.configs])
+        def f_dq(q1):
+            return np.array([self.f_dq(q,q1) for q in self.system.configs])
+        
+        return self.system.test_derivative_dq(f, f_dq,
+                                              delta, tolerance,
+                                              verbose=verbose,
+                                              test_name='%s.f_dq()' % self.__class__.__name__)
 

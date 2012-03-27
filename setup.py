@@ -57,6 +57,7 @@ _trep = Extension('trep._trep',
                       'src/_trep/forces/bodywrench.c',
                       'src/_trep/forces/hybridwrench.c', 
                       'src/_trep/forces/spatialwrench.c',
+                      'src/_trep/forces/pistonexample.c',
                       ],
                   depends=[
                       'src/_trep/trep.h'
