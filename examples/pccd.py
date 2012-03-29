@@ -60,10 +60,10 @@ trep.potentials.Gravity(system, (0, 0, -9.8))
 trep.forces.Damping(system, 0.1)
 
 # Close the open chains with constraints.
-trep.constraints.Point(system, 'O', (0,1,0), 'O2')
-trep.constraints.Point(system, 'O', (0,0,1), 'O2')
-trep.constraints.Point(system, 'G', (0,1,0), 'G2')
-trep.constraints.Point(system, 'G', (0,0,1), 'G2')
+trep.constraints.PointOnPlane(system, 'O', (0,1,0), 'O2')
+trep.constraints.PointOnPlane(system, 'O', (0,0,1), 'O2')
+trep.constraints.PointOnPlane(system, 'G', (0,1,0), 'G2')
+trep.constraints.PointOnPlane(system, 'G', (0,0,1), 'G2')
 
 
 # We can set the system's configuration by passing a dictionary of

@@ -6,85 +6,85 @@
 typedef struct
 {
     Constraint constraint;  // Inherits from Constraint
-    Frame *frame1;
-    Frame *frame2;
-    vec4 axis;
-} PointConstraint;
+    Frame *plane_frame;
+    Frame *point_frame;
+    vec4 normal;
+} PointOnPlaneConstraint;
 
-static double h(PointConstraint *self)
+static double h(PointOnPlaneConstraint *self)
 {
     vec4 n;
     vec4 dp;
 
-    mul_mv4(n, *Frame_g(self->frame1), self->axis);
+    mul_mv4(n, *Frame_g(self->plane_frame), self->normal);
     sub_vec4(dp,
-	     *Frame_p(self->frame1),
-	     *Frame_p(self->frame2));    
+	     *Frame_p(self->plane_frame),
+	     *Frame_p(self->point_frame));    
     return n[0]*dp[0] + n[1]*dp[1] + n[2]*dp[2];
 }
 
-static double h_dq(PointConstraint *self,  Config *q1)
+static double h_dq(PointOnPlaneConstraint *self,  Config *q1)
 {
     vec4 n;
     vec4 dp;
     double h = 0.0;
 
-    mul_mv4(n, *Frame_g_dq(self->frame1, q1), self->axis);
-    sub_vec4(dp, *Frame_p(self->frame1), *Frame_p(self->frame2));
+    mul_mv4(n, *Frame_g_dq(self->plane_frame, q1), self->normal);
+    sub_vec4(dp, *Frame_p(self->plane_frame), *Frame_p(self->point_frame));
     h = n[0]*dp[0] + n[1]*dp[1] + n[2]*dp[2];
 
-    mul_mv4(n, *Frame_g(self->frame1), self->axis);    
+    mul_mv4(n, *Frame_g(self->plane_frame), self->normal);    
     sub_vec4(dp,
-	     *Frame_p_dq(self->frame1, q1),
-	     *Frame_p_dq(self->frame2, q1));
+	     *Frame_p_dq(self->plane_frame, q1),
+	     *Frame_p_dq(self->point_frame, q1));
     h += n[0]*dp[0] + n[1]*dp[1] + n[2]*dp[2];
 
     return h;
 }
 
-static double h_dqdq(PointConstraint *self, Config *q1, Config *q2)
+static double h_dqdq(PointOnPlaneConstraint *self, Config *q1, Config *q2)
 {
     vec4 n;
     vec4 dp;
     double h = 0.0;
 
-    mul_mv4(n, *Frame_g_dqdq(self->frame1, q1, q2), self->axis);
-    sub_vec4(dp, *Frame_p(self->frame1), *Frame_p(self->frame2));
+    mul_mv4(n, *Frame_g_dqdq(self->plane_frame, q1, q2), self->normal);
+    sub_vec4(dp, *Frame_p(self->plane_frame), *Frame_p(self->point_frame));
     h = n[0]*dp[0] + n[1]*dp[1] + n[2]*dp[2];
 
-    mul_mv4(n, *Frame_g_dq(self->frame1, q1), self->axis);    
+    mul_mv4(n, *Frame_g_dq(self->plane_frame, q1), self->normal);    
     sub_vec4(dp,
-	     *Frame_p_dq(self->frame1, q2),
-	     *Frame_p_dq(self->frame2, q2));
+	     *Frame_p_dq(self->plane_frame, q2),
+	     *Frame_p_dq(self->point_frame, q2));
     h += n[0]*dp[0] + n[1]*dp[1] + n[2]*dp[2];
 
-    mul_mv4(n, *Frame_g_dq(self->frame1, q2), self->axis);    
+    mul_mv4(n, *Frame_g_dq(self->plane_frame, q2), self->normal);    
     sub_vec4(dp,
-	     *Frame_p_dq(self->frame1, q1),
-	     *Frame_p_dq(self->frame2, q1));
+	     *Frame_p_dq(self->plane_frame, q1),
+	     *Frame_p_dq(self->point_frame, q1));
     h += n[0]*dp[0] + n[1]*dp[1] + n[2]*dp[2];
 
-    mul_mv4(n, *Frame_g(self->frame1), self->axis);    
+    mul_mv4(n, *Frame_g(self->plane_frame), self->normal);    
     sub_vec4(dp,
-	     *Frame_p_dqdq(self->frame1, q1, q2),
-	     *Frame_p_dqdq(self->frame2, q1, q2));
+	     *Frame_p_dqdq(self->plane_frame, q1, q2),
+	     *Frame_p_dqdq(self->point_frame, q1, q2));
     h += n[0]*dp[0] + n[1]*dp[1] + n[2]*dp[2];
 
     return h;
 }
 
-static void dealloc(PointConstraint *self)
+static void dealloc(PointOnPlaneConstraint *self)
 {
-    Py_CLEAR(self->frame1);
-    Py_CLEAR(self->frame2);
+    Py_CLEAR(self->plane_frame);
+    Py_CLEAR(self->point_frame);
     ((PyObject*)self)->ob_type->tp_free((PyObject*)self);
 }
 
-static int init(PointConstraint *self, PyObject *args, PyObject *kwds)
+static int init(PointOnPlaneConstraint *self, PyObject *args, PyObject *kwds)
 {
     // Note that we do not called Constraint.__init__ here.  It will
     // be called by Constraint.__init__.
-    clear_vec4(self->axis);
+    clear_vec4(self->normal);
     
     self->constraint.h = (ConstraintFunc_h)&h;
     self->constraint.h_dq = (ConstraintFunc_h_dq)&h_dq;
@@ -95,20 +95,20 @@ static int init(PointConstraint *self, PyObject *args, PyObject *kwds)
 }
 
 static PyMemberDef members_list[] = {
-    {"_frame1", T_OBJECT_EX, offsetof(PointConstraint, frame1), 0, trep_internal_doc},
-    {"_frame2", T_OBJECT_EX, offsetof(PointConstraint, frame2), 0, trep_internal_doc},
-    {"_axis0", T_DOUBLE, offsetof(PointConstraint, axis[0]), 0, trep_internal_doc},
-    {"_axis1", T_DOUBLE, offsetof(PointConstraint, axis[1]), 0, trep_internal_doc},
-    {"_axis2", T_DOUBLE, offsetof(PointConstraint, axis[2]), 0, trep_internal_doc},
+    {"_plane_frame", T_OBJECT_EX, offsetof(PointOnPlaneConstraint, plane_frame), 0, trep_internal_doc},
+    {"_point_frame", T_OBJECT_EX, offsetof(PointOnPlaneConstraint, point_frame), 0, trep_internal_doc},
+    {"_normal0", T_DOUBLE, offsetof(PointOnPlaneConstraint, normal[0]), 0, trep_internal_doc},
+    {"_normal1", T_DOUBLE, offsetof(PointOnPlaneConstraint, normal[1]), 0, trep_internal_doc},
+    {"_normal2", T_DOUBLE, offsetof(PointOnPlaneConstraint, normal[2]), 0, trep_internal_doc},
     {NULL}  /* Sentinel */
 };
 
 extern PyTypeObject ConstraintType;
-PyTypeObject PointConstraintType = {
+PyTypeObject PointOnPlaneConstraintType = {
     PyObject_HEAD_INIT(NULL)
     0,                         /*ob_size*/
-    "_trep._PointConstraint",  /*tp_name*/
-    sizeof(PointConstraint),   /*tp_basicsize*/
+    "_trep._PointOnPlaneConstraint",  /*tp_name*/
+    sizeof(PointOnPlaneConstraint),   /*tp_basicsize*/
     0,                         /*tp_itemsize*/
     (destructor)dealloc,       /*tp_dealloc*/
     0,                         /*tp_print*/

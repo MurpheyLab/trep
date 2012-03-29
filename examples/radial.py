@@ -195,8 +195,8 @@ class RadialEngine(trep.System):
         trep.forces.Damping(self, 0.1)
 
         # Constrain the master piston
-        trep.constraints.Point(self, 'cylinder0', (0,1,0), 'piston0-base')
-        trep.constraints.Point(self, 'cylinder0', (0,1,0), 'piston0-center')
+        trep.constraints.PointOnPlane(self, 'cylinder0', (0,1,0), 'piston0-base')
+        trep.constraints.PointOnPlane(self, 'cylinder0', (0,1,0), 'piston0-center')
 
         # Add the combustion force for the master piston.
         PistonForce(self, 'crank-theta', 0.0, 'piston0-center', self.spline)
@@ -229,8 +229,8 @@ class RadialEngine(trep.System):
         self.import_frames(frames)
 
         # Constrain the piston to the cylinder.
-        trep.constraints.Point(self, 'cylinder%d' % n, (0,1,0), 'piston%d-base' % n)
-        trep.constraints.Point(self, 'cylinder%d' % n, (0,1,0), 'piston%d-center' % n)
+        trep.constraints.PointOnPlane(self, 'cylinder%d' % n, (0,1,0), 'piston%d-base' % n)
+        trep.constraints.PointOnPlane(self, 'cylinder%d' % n, (0,1,0), 'piston%d-center' % n)
 
         # Add the combustion force.
         PistonForce(self, 'crank-theta', ang, 'piston%d-center' % n, self.spline)
@@ -276,7 +276,7 @@ class PistonVisual(visual.VisualItem3D):
         self.density = 5000
 
 # No we can show the simulation using the builtin basic visualizer.
-#visual.visualize_3d([PistonVisual(system, t, q)])
+visual.visualize_3d([PistonVisual(system, t, q)])
 
 
 

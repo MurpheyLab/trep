@@ -84,8 +84,8 @@ def make_scissor_lift():
         right_end = Frame(right, trep.TX, L_link)
 
         # Join the two links at the middle.
-        trep.constraints.Point(system, left_mid, (1,0,0), right_mid)
-        trep.constraints.Point(system, left_mid, (0,0,1), right_mid)
+        trep.constraints.PointOnPlane(system, left_mid, (1,0,0), right_mid)
+        trep.constraints.PointOnPlane(system, left_mid, (0,0,1), right_mid)
 
         # Add a new level.  Note that left and right switch each time
         return add_level(right_end, left_end, link+1)

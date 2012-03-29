@@ -25,41 +25,12 @@ tf = 10.0
 dt = 0.01
 
 
-class PyPoint(trep.Constraint):
-    """
-    The poorly named 'Point' constraint enforces the constraint:
-
-    g_1 dot n dot (p1 - p2) = 0
-
-    where p1 and p2 are the position of two coordinate frames and g_1
-    is coordinate frame of p_1 and n is a constant vector.
-
-    Three point constraints with linearly independent vectors force
-    two frames to have the same position.
-
-    This python version only implements enough derivatives to
-    calculate the dynamics of a system.  For dynamic linearizations,
-    the constraints needs to implement more derivatives.  See the trep
-    source code.
-    """    
+class PyPointOnPlane(trep.Constraint):
     def __init__(self, system, frame1, axis, frame2, name=None):
-        """
-        Create a new Point constraint between frame1 and frame2 along
-        the axis.  The axis should be a sequence of three numbers and
-        is defined with respect to the frame1 coordinate system.
-        """
         trep.Constraint.__init__(self, system, name)
         self.frame1 = system.get_frame(frame1)
         self.frame2 = system.get_frame(frame2)
         self.axis = np.array(axis[:3] + (0,))
-
-    def __repr__(self):
-        return "<PyPoint g1='%s' axis=(%f %f %f) g2='%s'>" % (
-               self.frame1.name,
-               self.axis[0],
-               self.axis[1],
-               self.axis[2],
-               self.frame2.name)
 
     def h(self):
         """ Calculate the constraint function h(q) """
@@ -130,10 +101,10 @@ trep.potentials.Gravity(system, (0, 0, -9.8))
 trep.forces.Damping(system, 0.1)
 
 # Close the open chains with constraints.
-PyPoint(system, 'O', (0,1,0), 'O2')
-PyPoint(system, 'O', (0,0,1), 'O2')
-PyPoint(system, 'G', (0,1,0), 'G2')
-PyPoint(system, 'G', (0,0,1), 'G2')
+PyPointOnPlane(system, 'O', (0,1,0), 'O2')
+PyPointOnPlane(system, 'O', (0,0,1), 'O2')
+PyPointOnPlane(system, 'G', (0,1,0), 'G2')
+PyPointOnPlane(system, 'G', (0,0,1), 'G2')
 
 # We can set the system's configuration with a dictionary that maps
 # the configuration variable names to the values we want to assign.
