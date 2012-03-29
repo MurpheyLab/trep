@@ -12,18 +12,14 @@ except:
 
 
 class Distance(_DistanceConstraint, Constraint):
-    """
-    """    
     def __init__(self, system, frame1, frame2, distance, name=None):
         Constraint.__init__(self, system, name)
         _DistanceConstraint.__init__(self)
 
-        if not system.get_frame(frame1):
-            raise ValueError("Could not find frame %r" % frame1)
+        assert frame1 is not None
         self._frame1 = system.get_frame(frame1)
-        
-        if not system.get_frame(frame2):
-            raise ValueError("Could not find frame %r" % frame2)
+
+        assert frame is not None
         self._frame2 = system.get_frame(frame2)
 
         if isinstance(distance, str):
@@ -45,28 +41,34 @@ class Distance(_DistanceConstraint, Constraint):
                 self.get_distance(),
                 self.frame2.name)        
 
-    def get_config(self): return self._config
-    config = property(get_config)
-    
-    def get_frame1(self): return self._frame1
-    frame1 = property(get_frame1)
-    
-    def get_frame2(self): return self._frame2
-    frame2 = property(get_frame2)
+    @property
+    def config(self):
+        return self._config
 
-    def get_distance(self):
+    @property
+    def frame1(self):
+        return self._frame1
+
+    @property
+    def frame2(self):
+        return self._frame2
+
+    @property 
+    def distance(self):
         """Returns the constraint's distance."""
         if self.config:
             return self.config.q
         else:
             return self._distance
-    
-    def set_distance(self, value):
+
+    @distance.setter
+    def distance(self, value):
         """Set the constraint's distance."""
         if self.config:
             self.config.q = value
         else:
             self._distance = value
+
 
     def get_actual_distance(self):
         """Return the actual distance between frame1 and frame2."""

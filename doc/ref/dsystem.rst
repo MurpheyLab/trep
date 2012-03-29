@@ -45,6 +45,10 @@ distinguish it from the force input *u* which is always lower case.
 for the discrete system and trajectories for the variational
 integrator.
 
+.. admonition:: Examples
+
+   ``pend-on-cart-optimization.py``
+
 
 DSystem Objects
 ---------------
