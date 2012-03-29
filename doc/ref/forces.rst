@@ -20,6 +20,5 @@ Python or C.
    bodywrench
    hybridwrench
    spatialwrench
-   testforce
 
    
