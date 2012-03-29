@@ -12,7 +12,7 @@ import math
 import numpy as np
 from OpenGL.GL import *
 
-tf = 10.0
+tf = 30.0
 dt = 0.01
 
 
@@ -186,13 +186,13 @@ class RadialEngine(trep.System):
                         ],            
                     ],
                 ],    
-            rx(0.0, name='cylinder0'), [tz(0.2)],
+            rx(0.0, name='cylinder0'), [tz(CRANK_OFFSET/2)],
             ]
         # Add the frames to the system.
         self.import_frames(frames)
 
         # Add some damping
-        trep.forces.Damping(self, 0.1)
+        trep.forces.Damping(self, 0.2)
 
         # Constrain the master piston
         trep.constraints.PointOnPlane(self, 'cylinder0', (0,1,0), 'piston0-base')
@@ -225,7 +225,7 @@ class RadialEngine(trep.System):
         # The tz() frame is unnecessary, but when using the auto
         # drawing visual model, it gives a visual indication of the
         # cylinder.
-        frames = [rx(ang, name='cylinder%d' % n),[tz(0.2)]]
+        frames = [rx(ang, name='cylinder%d' % n),[tz(CRANK_OFFSET/2)]]
         self.import_frames(frames)
 
         # Constrain the piston to the cylinder.
