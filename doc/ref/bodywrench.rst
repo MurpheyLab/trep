@@ -1,4 +1,4 @@
-.. currentmodule:: trep
+.. currentmodule:: trep.forces
 
 :class:`BodyWrench` -- Apply a body wrench to a frame.
 ======================================================

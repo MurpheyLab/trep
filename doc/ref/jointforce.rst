@@ -1,4 +1,4 @@
-.. currentmodule:: trep
+.. currentmodule:: trep.forces
 
 :class:`JointForce` -- Apply forces to a configuration variable.
 ================================================================

@@ -1,4 +1,4 @@
-.. currentmodule:: trep
+.. currentmodule:: trep.forces
 
 :class:`Damping` -- Damping on Configuration Variables
 ======================================================
