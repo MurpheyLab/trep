@@ -10,7 +10,7 @@ class Damping(_DampingForce, Force):
         Force.__init__(self, system, name)
         _DampingForce.__init__(self)
 
-        self.default = float(default)
+        self._default = float(default)
         self.coefficients = {}
         
         for (config, coeff) in coefficients.iteritems():
@@ -22,10 +22,11 @@ class Damping(_DampingForce, Force):
     def _structure_changed(self):
         # Build a 1D array with a damping coefficient for each
         # dynamic configuration variable.
-        coefficients = np.ones(self.system.nQd, dtype=np.float, order='C')*self.default
+        coefficients = np.ones(self.system.nQd, dtype=np.float, order='C')*self._default
         for (config, coeff) in self.coefficients.iteritems():
             coefficients[config.index] = coeff
         self._coefficients = coefficients
+
 
     def get_damping_coefficient(self, config):
         config = self.system.get_config(config)
@@ -34,9 +35,20 @@ class Damping(_DampingForce, Force):
         if config in self.coefficients:
             return self.coefficients[config]
         else:
-            return default
+            return self._default
 
-    def set_damping_coefficient(self, config, coeff):
-        self.coefficients[self.system.get_config(config)] = float(coeff)
+    def set_damping_coefficient(self, config, coeff):        
+        if coeff is None:
+            self.coefficients.pop(self.system.get_config(config), None)
+        else:
+            self.coefficients[self.system.get_config(config)] = float(coeff)
         self._structure_changed()
-        
+
+    @property
+    def default(self):
+        return self._default
+
+    @default.setter
+    def default(self, value):
+        self._default = float(value)
+        self._structure_changed()
