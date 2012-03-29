@@ -9,8 +9,10 @@
 
 This module contains the built in types of holonomic constraints.
 
-Constraints
-===========
+These are the types of constraints currently built in to :mod:`trep`.
+:ref:`creating_constraints` describes how to create a new type of
+constraint in Python or C.
+
 
 .. toctree::
 

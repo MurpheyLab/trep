@@ -40,7 +40,7 @@ where the :math:`u(t)` is a :class:`Input` variable.
    Create a new input to apply a force on a configuration variable.
 
    *config* should be an existing configuration variable (a name,
-    index, or object).
+   index, or object).
 
    *finput* should be a string to name the new input variable.
 

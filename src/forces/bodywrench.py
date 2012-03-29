@@ -36,54 +36,61 @@ class BodyWrench(_BodyWrenchForce, Force):
         self._wrench_vars = wrench_var
         self._wrench_cons = wrench_con
 
-    def _get_wrench_vars(self):
+    @property
+    def _wrench_vars(self):
         return (self._wrench_var0,
                 self._wrench_var1,
                 self._wrench_var2,
                 self._wrench_var3,
                 self._wrench_var4,
                 self._wrench_var5)
-    def _set_wrench_vars(self, vars):
+
+    @_wrench_vars.setter
+    def _wrench_vars(self, vars):
         self._wrench_var0 = vars[0]
         self._wrench_var1 = vars[1]
         self._wrench_var2 = vars[2]
         self._wrench_var3 = vars[3]
         self._wrench_var4 = vars[4]
         self._wrench_var5 = vars[5]
-    _wrench_vars = property(_get_wrench_vars, _set_wrench_vars)
-        
-    def _get_wrench_cons(self):
+
+    @property
+    def _wrench_cons(self):
         return (self._wrench_con0,
                 self._wrench_con1,
                 self._wrench_con2,
                 self._wrench_con3,
                 self._wrench_con4,
                 self._wrench_con5)
-    def _set_wrench_cons(self, cons):
+
+    @_wrench_cons.setter
+    def _wrench_cons(self, cons):
         self._wrench_con0 = cons[0]
         self._wrench_con1 = cons[1]
         self._wrench_con2 = cons[2]
         self._wrench_con3 = cons[3]
         self._wrench_con4 = cons[4]
         self._wrench_con5 = cons[5]
-    _wrench_cons = property(_get_wrench_cons, _set_wrench_cons)
-                    
-    def get_wrench(self):
-        return [V if V else C for (V,C) in zip(self._wrench_vars, self._wrench_cons)]
-    wrench = property(get_wrench)
 
-    def get_wrench_val(self):
+    @property
+    def wrench(self):
+        return [V if V else C for (V,C) in zip(self._wrench_vars, self._wrench_cons)]
+
+    @property
+    def wrench_val(self):
         return [V.q if V else C for (V,C) in zip(self._wrench_vars, self._wrench_cons)]
-    def set_wrench_val(self, wrench):
+
+    @wrench_val.setter
+    def wrench_val(self, wrench):
         for i,v in enumerate(wrench[:6]):
             if self._wrench_vars[i]:
                 self._wrench_vars[i].q = v
             else:
                 self._wrench_cons[i] = v
-    wrench_val = property(get_wrench_val, set_wrench_val)
 
-    def get_frame(self): return self._frame
-    frame = property(get_frame)
+    @property 
+    def frame(self):
+        return self._frame
 
     if _opengl:
         def opengl_draw(self):
