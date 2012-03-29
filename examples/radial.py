@@ -36,7 +36,7 @@ piston_force_curve = [
     (2.0*math.pi, 0.0, 0, 0),
     ]
 
-PURE_PYTHON = True
+PURE_PYTHON = False
 
 if PURE_PYTHON:
 
@@ -238,7 +238,7 @@ class RadialEngine(trep.System):
 
 
 
-# Create the radial engine
+# Create a radial engine with 5 pistons
 system = RadialEngine(5)
 
 # Find a configuratoin that satisfies the constraints.
