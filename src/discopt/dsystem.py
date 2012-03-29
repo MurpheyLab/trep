@@ -443,6 +443,20 @@ class DSystem(object):
         return nX, nU
 
 
+    def dproject(self, A, B, bdX, bdU, K):
+        """
+        Project bdX and bdU into the tangent trajectory space for the
+        system about the linearization A,B.
+        """
+        dX = np.zeros(bdX.shape)
+        dU = np.zeros(bdU.shape)
+        dX[0] = bdX[0]
+        for k in xrange(len(bdX)-1):
+            dU[k] = bdU[k] - dot(K[k], dX[k] - bdX[k])
+            dX[k+1] = dot(A[k],dX[k]) + dot(B[k],dU[k])
+        return dX, dU
+
+
     def calc_feedback_controller(self, X, U, Q=None, R=None, return_linearization=False):
         """
         Calculate a stabilizing feedback controller for the system

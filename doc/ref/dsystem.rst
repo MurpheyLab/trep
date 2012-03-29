@@ -373,6 +373,17 @@ Linearization and Feedback Controllers
    Returns the projected trajectory in a tuple ``(X, U)``\ .
 
 
+.. method:: DSystem.dproject(A, B, bdX, bdU, K)
+
+   :rtyple: tuple (dX, dU)
+
+   Project *bdX* and *bdU* into the tangent trajectory space of the
+   system.  *A* and *B* are the linearization of the system about the
+   trajectory.  *K* is a stabilizing feedback controller.
+
+   Returns the projected tangent trajectory ``(dX, dU)``\ .
+
+
 .. method:: DSystem.calc_feedback_controller(X, U[, Q=None, R=None, return_linearization=False])
 
    :rtype: K or tuple (K, A, B)
