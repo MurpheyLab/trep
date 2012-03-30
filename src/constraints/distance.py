@@ -19,7 +19,7 @@ class Distance(_DistanceConstraint, Constraint):
         assert frame1 is not None
         self._frame1 = system.get_frame(frame1)
 
-        assert frame is not None
+        assert frame2 is not None
         self._frame2 = system.get_frame(frame2)
 
         if isinstance(distance, str):
