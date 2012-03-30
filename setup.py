@@ -4,7 +4,7 @@ import subprocess
 from distutils.util import convert_path
 from distutils.core import setup
 from distutils.extension import Extension
-from distutils.sysconfig import get_python_inc
+from distutils.sysconfig import get_python_inc, get_config_var
 import os.path
 import numpy
 
@@ -138,6 +138,8 @@ cmd_options['install_headers'] = {
 
 ################################################################################
 
+ext_modules = []
+
 _trep = Extension('trep._trep',
                   include_dirs=include_dirs,
                   define_macros=define_macros,
@@ -181,11 +183,17 @@ _trep = Extension('trep._trep',
                       'src/_trep/c_api.h'
                       ])
 
-## _polyobject = Extension('_polyobject',
-##                     extra_compile_args=[],
-##                     extra_link_args=['-lGL'],
-##                     include_dirs = ['/usr/local/include'],
-##                     sources = ['src/newvisual/_polyobject.c'])
+ext_modules += [_trep]
+
+
+# Check for OpenGL headers.  If we can't find anything, just don't
+# build _polyobject.  There is a python implementation to fallback on.
+if os.path.exists(os.path.join(get_config_var('INCLUDEDIR'), "GL", "gl.h")):
+    _polyobject = Extension('trep.visual._polyobject',
+                            extra_compile_args=[],
+                            extra_link_args=['-lGL'],
+                            sources = ['src/visual/_polyobject.c'])
+    ext_modules += [_polyobject]
 
 
 setup (name = 'trep',
@@ -206,9 +214,7 @@ setup (name = 'trep',
        package_data={
            'trep.visual' : ['icons/*.svg']
            },
-       ext_modules=[_trep,
-                      #_polyobject
-                      ],
+       ext_modules=ext_modules,
        cmdclass=cmd_class,
        command_options=cmd_options,
        headers=[

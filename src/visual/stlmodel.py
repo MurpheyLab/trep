@@ -1,8 +1,10 @@
 from OpenGL.GL import *
+from polyobject import PolyObject
+import numpy as np
 import struct
 
 
-class stlmodel:
+class stlmodel(PolyObject):
     """
     The stlmodel class loads an STL model from a file and provides
     basic facilities for drawing the model in OpenGL.  
@@ -32,13 +34,14 @@ class stlmodel:
         color should be the desired color (list of three numbers
         between 0 and 1), or None to use the current color.
         """
+        super(stlmodel, self).__init__()
+        
         self._wireframe = wireframe
         self._compiled = False
         self._color = color
         self._scale = scale
         self.gl_list = 0
         
-        self.triangles = []
         # STL FIle Format:
 	# STL File Format:
 	# 80 byte -ASCII Header - Ignore
@@ -62,62 +65,52 @@ class stlmodel:
 	# 4 byte - float - vertex 3 z
 	#                    
 	# 2 byte - unsigned int - attribute byte count
-        
+
+        # This is pretty slow, it could probably be sped up a lot.
         src = open(filename, 'rb')
         src.read(80)
     
         count = struct.unpack('<L', src.read(4))[0]
 
+        vertices = np.zeros((count*3, 3), np.double)
+        normals = np.zeros((count*3, 3), np.double)
+        triangles = np.zeros((count, 3), np.int)
+
         for i in xrange(count):
             norm = struct.unpack('<fff', src.read(12))
-            vert1 = struct.unpack('<fff', src.read(12))
-            vert2 = struct.unpack('<fff', src.read(12))
-            vert3 = struct.unpack('<fff', src.read(12))
+            vert1 = np.array(struct.unpack('<fff', src.read(12)))
+            vert2 = np.array(struct.unpack('<fff', src.read(12)))
+            vert3 = np.array(struct.unpack('<fff', src.read(12)))
             src.read(2)
 
             # Blender doesn't export the normal vectors,
             # so we recompute them here.
-            v = (vert1[0]-vert2[0], vert1[1]-vert2[1], vert1[2]-vert2[2])
-            z = (vert3[0]-vert2[0], vert3[1]-vert2[1], vert3[2]-vert2[2])
-            norm = (-(v[1]*z[2]-v[2]*z[1]),
-                    -(v[2]*z[0]-v[0]*z[2]),
-                    -(v[0]*z[1] - v[1]*z[0]))
-        
-                      
-            self.triangles.append((norm,
-                                   vert1,
-                                   vert2,
-                                   vert3))
+            v = vert1 - vert2
+            z = vert3 - vert2
+            norm = np.cross(z, v)
+
+            vertices[3*i+0,:] = vert1
+            vertices[3*i+1,:] = vert2
+            vertices[3*i+2,:] = vert3
+            
+            normals[3*i+0,:] = norm
+            normals[3*i+1,:] = norm
+            normals[3*i+2,:] = norm
+
+            triangles[i,0] = 3*i+0
+            triangles[i,1] = 3*i+1
+            triangles[i,2] = 3*i+2
+
+        self.vertices = vertices
+        self.normals = normals
+        self.triangles = triangles
+
         src.close()
 
     def draw(self):
         """
         Draw the model in the current OpenGL context.
         """
-        if not self._compiled:
-            self._compile()
-        if self.gl_list:
-            glCallList(self.gl_list)
-            
-    def _compile(self):
-        """
-        Internal use only.
-
-        Draw and compile the model into a display list for fast
-        drawing later.
-        """
-        if self.gl_list == 0:
-            self.gl_list = glGenLists(1)
-
-        # If we don't get a valid list, just go ahead and draw
-        # anyways.  The program will run slower, but will still work
-        # fine.
-        if self.gl_list:
-            # Using GL_COMPILE_AND_EXECUTE raises an invalid operation
-            # error at glEndList() on some opengl implementations.
-            # Don't know what's wrong...
-            glNewList(self.gl_list, GL_COMPILE)
-            
         glPushAttrib(GL_POLYGON_BIT | GL_CURRENT_BIT)
         if self._wireframe:
             glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
@@ -126,20 +119,8 @@ class stlmodel:
 
         if self._color:
             glColor3fv(self._color)
-
-        glBegin(GL_TRIANGLES)
-        for tri in self.triangles:
-            glNormal3fv(tri[0])
-            glVertex3fv([xi*si for (xi,si) in zip(tri[1], self._scale)])
-            glVertex3fv([xi*si for (xi,si) in zip(tri[2], self._scale)])
-            glVertex3fv([xi*si for (xi,si) in zip(tri[3], self._scale)])
-        glEnd()
-
+        PolyObject.draw(self)
         glPopAttrib()
-
-        if self.gl_list:
-            glEndList()
-            self._compiled = True
             
 
         
