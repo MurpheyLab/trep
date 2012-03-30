@@ -4,15 +4,25 @@ import subprocess
 from distutils.util import convert_path
 from distutils.core import setup
 from distutils.extension import Extension
-from distutils.command.sdist import sdist as _sdist
+from distutils.sysconfig import get_python_inc
+import os.path
 import numpy
 
-include_dirs = [
-    numpy.get_include()  
-    ]
+
+include_dirs = []
 cflags=[]
 ldflags=[]
 define_macros=[]
+cmd_class = {}
+cmd_options = {}
+
+
+# If numpy include file isn't in the standard Python include path, add
+# it manually.  This shouldn't be necessary if numpy is installed
+# properly, but Todd was having problems with this.  
+if not os.path.exists(os.path.join(get_python_inc(), "numpy", "arrayobject.h")):
+    include_dirs += [numpy.get_include()]
+
 
 # Fast indexing results in significant speed ups for second
 # derivatives.  Turning it off will force fast index accesses to use
@@ -20,53 +30,11 @@ define_macros=[]
 # correct dimensions for debugging and development.
 define_macros += [("TREP_FAST_INDEXING", None)]
 
-_trep = Extension('trep._trep',
-                  include_dirs=include_dirs,
-                  define_macros=define_macros,
-                  extra_compile_args=cflags,
-                  extra_link_args=ldflags,
-                  sources = [
-                      'src/_trep/midpointvi.c',
-                      'src/_trep/system.c',
-                      'src/_trep/math-code.c',
-                      'src/_trep/frame.c',
-                      'src/_trep/_trep.c',
-                      'src/_trep/config.c',
-                      'src/_trep/potential.c',
-                      'src/_trep/force.c',
-                      'src/_trep/input.c',
-                      'src/_trep/constraint.c',
-                      'src/_trep/frametransform.c',
-                      'src/_trep/spline.c',
-                      'src/_trep/framesequence.c',
-                      
-                      # Constraints
-                      'src/_trep/constraints/distance.c',
-                      'src/_trep/constraints/point.c',
-                      
-                      # Potentials
-                      'src/_trep/potentials/gravity.c',
-                      'src/_trep/potentials/linearspring.c',
-                      'src/_trep/potentials/configspring.c',
-                      'src/_trep/potentials/nonlinear_config_spring.c',
-                      
-                      # Forces
-                      'src/_trep/forces/damping.c',
-                      'src/_trep/forces/jointforce.c',
-                      'src/_trep/forces/bodywrench.c',
-                      'src/_trep/forces/hybridwrench.c', 
-                      'src/_trep/forces/spatialwrench.c',
-                      'src/_trep/forces/pistonexample.c',
-                      ],
-                  depends=[
-                      'src/_trep/trep_internal.h'
-                      ])
 
-## _polyobject = Extension('_polyobject',
-##                     extra_compile_args=[],
-##                     extra_link_args=['-lGL'],
-##                     include_dirs = ['/usr/local/include'],
-##                     sources = ['src/newvisual/_polyobject.c'])
+
+################################################################################
+# Version management
+#   Tries to create src/__version__.py from git describe.
 
 
 VERSION_PY = """
@@ -126,8 +94,6 @@ def get_version():
 
 update_version_file()
 
-cmd_class = {}
-cmd_options = {}
 
 ################################################################################
 # Sphinx support
@@ -147,6 +113,68 @@ except ImportError:
 
 
 ################################################################################
+# Header paths
+#
+# The default path for install_headers (on my machine anyways) is
+# /usr/local/python<ver>/...  but the path returned by
+# get_python_inc() is always /usr/python<ver>/... so other extension
+# modules can't find it without specifying the path explicitly.  Here
+# we override the default to install the headers in get_python_inc().
+
+cmd_options['install_headers'] = {
+    'install_dir' : ('setup.py', os.path.join(get_python_inc(), 'trep'))
+    }
+
+
+################################################################################
+
+_trep = Extension('trep._trep',
+                  include_dirs=include_dirs,
+                  define_macros=define_macros,
+                  extra_compile_args=cflags,
+                  extra_link_args=ldflags,
+                  sources = [
+                      'src/_trep/midpointvi.c',
+                      'src/_trep/system.c',
+                      'src/_trep/math-code.c',
+                      'src/_trep/frame.c',
+                      'src/_trep/_trep.c',
+                      'src/_trep/config.c',
+                      'src/_trep/potential.c',
+                      'src/_trep/force.c',
+                      'src/_trep/input.c',
+                      'src/_trep/constraint.c',
+                      'src/_trep/frametransform.c',
+                      'src/_trep/spline.c',
+                      'src/_trep/framesequence.c',
+                      
+                      # Constraints
+                      'src/_trep/constraints/distance.c',
+                      'src/_trep/constraints/point.c',
+                      
+                      # Potentials
+                      'src/_trep/potentials/gravity.c',
+                      'src/_trep/potentials/linearspring.c',
+                      'src/_trep/potentials/configspring.c',
+                      'src/_trep/potentials/nonlinear_config_spring.c',
+                      
+                      # Forces
+                      'src/_trep/forces/damping.c',
+                      'src/_trep/forces/jointforce.c',
+                      'src/_trep/forces/bodywrench.c',
+                      'src/_trep/forces/hybridwrench.c', 
+                      'src/_trep/forces/spatialwrench.c',
+                      'src/_trep/forces/pistonexample.c',
+                      ],
+                  depends=[
+                      'src/_trep/trep_internal.h'
+                      ])
+
+## _polyobject = Extension('_polyobject',
+##                     extra_compile_args=[],
+##                     extra_link_args=['-lGL'],
+##                     include_dirs = ['/usr/local/include'],
+##                     sources = ['src/newvisual/_polyobject.c'])
 
 
 setup (name = 'trep',
