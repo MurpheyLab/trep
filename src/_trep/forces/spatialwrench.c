@@ -1,10 +1,7 @@
 #include <Python.h>
 #include "structmember.h"
-#include "trep.h"
+#include "../trep_internal.h"
 
-#include <Python.h>
-#include "structmember.h"
-#include "trep.h"
 
 typedef struct
 {

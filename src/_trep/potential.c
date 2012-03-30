@@ -1,6 +1,6 @@
 #include <Python.h>
 #include "structmember.h"
-#include "trep.h"
+#include "trep_internal.h"
 
 static double python_V(Potential *potential)
 {

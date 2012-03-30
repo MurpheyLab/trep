@@ -1,6 +1,6 @@
 #include <Python.h>
 #define IMPORT_ARRAY // need to import numpy array interface.
-#include "trep.h"
+#include "trep_internal.h"
 
 PyObject *ConvergenceError; // Exception when MVI step fails to converge.
 char trep_internal_doc[] = "Internal use only - see trep developer documentation for more information.";

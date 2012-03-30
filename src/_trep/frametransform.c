@@ -1,5 +1,5 @@
 #include <Python.h>
-#include "trep.h"
+#include "trep_internal.h"
 
 extern PyTypeObject FrameTransformType;
 

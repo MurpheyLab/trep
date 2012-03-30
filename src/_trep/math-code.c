@@ -1,5 +1,5 @@
 #include <Python.h>
-#include "trep.h"
+#include "trep_internal.h"
 
 // Used to return zero values
 mat4x4 zero_mat4x4 = {

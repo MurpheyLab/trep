@@ -1,6 +1,6 @@
 #include <Python.h>
 #include "structmember.h"
-#include "trep.h"
+#include "trep_internal.h"
    
 /* Frame_get_cache_index(frame, config) -> int
  *

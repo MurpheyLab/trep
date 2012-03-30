@@ -8,7 +8,6 @@ from distutils.command.sdist import sdist as _sdist
 import numpy
 
 include_dirs = [
-    'src/_trep',
     numpy.get_include()  
     ]
 cflags=[]
@@ -60,7 +59,7 @@ _trep = Extension('trep._trep',
                       'src/_trep/forces/pistonexample.c',
                       ],
                   depends=[
-                      'src/_trep/trep.h'
+                      'src/_trep/trep_internal.h'
                       ])
 
 ## _polyobject = Extension('_polyobject',

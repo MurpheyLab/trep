@@ -1,6 +1,6 @@
 #include <Python.h>
 #include "structmember.h"
-#include "trep.h"
+#include "trep_internal.h"
 
 /*
  * These python_h* functions are the default functions pointed to in
