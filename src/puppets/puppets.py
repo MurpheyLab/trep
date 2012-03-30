@@ -3,6 +3,7 @@ from trep import rx, ry, rz, tx, ty, tz, const_txyz
 
 from OpenGL.GL import *
 from OpenGL.GLU import *
+from trep.visual import *
 
 
 # Default dimensions, originated from Pygmalion motion capture data
@@ -350,62 +351,42 @@ class Puppet(trep.System):
             length_var.q = self.get_constraint(info['name']).get_actual_distance()
 
 
-def gl_flatten_matrix(matrix):
-    """
-    Flatten a 4x4 matrix into a column-major 16 value array
-    representation.
-    """
-    temp = []
-    for c in range(4):
-        for r in range(4):
-            temp.append(matrix[r][c])
-    return temp
+class PuppetVisual(VisualItem3D):
+    def __init__(self, *args, **kwds):
+        super(PuppetVisual, self).__init__(*args, **kwds)
 
-class PuppetPainter(object):
+        self.setOrientation(forward=[0,-1,0], up=[0,0,1])
 
-    def __init__(self, puppet, color=(0.2, 0.2, 0.2, 1.0)):
-        self.puppet = puppet
-        self.color = color
-
-        self.draw_funcs = [
-            ('pelvis', self.draw_torso),
-            ('lhumerus',  self.draw_left_humerus),
-            ('lradius',   self.draw_left_radius),
-            ('lhand',     self.draw_left_hand),
-            ('rhumerus', self.draw_right_humerus),
-            ('rradius',  self.draw_right_radius),
-            ('rhand',    self.draw_right_hand),
-            ('lfemur',    self.draw_left_femur),
-            ('ltibia',    self.draw_left_tibia),
-            ('lfoot',     self.draw_left_foot),
-            ('rfemur',   self.draw_right_femur),
-            ('rtibia',   self.draw_right_tibia),
-            ('rfoot',    self.draw_right_foot),
-            ('head_center',   self.draw_head),
-            ('neck_joint', self.draw_neck_joint)            
-            ]
-
-        self.draw_funcs = [(self.puppet.get_frame(a), b) for (a,b) in self.draw_funcs]
+        self.color=(0.2, 0.2, 0.2, 1.0)
+        self.puppet = self._system
+        self.attachDrawing('pelvis', self.draw_torso)
+        self.attachDrawing('lhumerus',  self.draw_left_humerus)
+        self.attachDrawing('lradius',   self.draw_left_radius)
+        self.attachDrawing('lhand',     self.draw_left_hand)
+        self.attachDrawing('rhumerus', self.draw_right_humerus)
+        self.attachDrawing('rradius',  self.draw_right_radius)
+        self.attachDrawing('rhand',    self.draw_right_hand)
+        self.attachDrawing('lfemur',    self.draw_left_femur)
+        self.attachDrawing('ltibia',    self.draw_left_tibia)
+        self.attachDrawing('lfoot',     self.draw_left_foot)
+        self.attachDrawing('rfemur',   self.draw_right_femur)
+        self.attachDrawing('rtibia',   self.draw_right_tibia)
+        self.attachDrawing('rfoot',    self.draw_right_foot)
+        self.attachDrawing('head_center',   self.draw_head)
+        self.attachDrawing('neck_joint', self.draw_neck_joint)
+        self.attachDrawing(None, self.draw_globals)
+        
         self.quad = gluNewQuadric()
         gluQuadricNormals(self.quad, GLU_SMOOTH)
         
-    def draw(self):
+        
+    def draw_globals(self):
         glPushAttrib(GL_CURRENT_BIT)            
         glColor4f(*self.color)
 
         glPushMatrix()
         #glScale(self.scale, self.scale, self.scale)
         
-        for (frame, func) in self.draw_funcs:
-            if frame:
-                glPushMatrix()
-                frame_g = frame.g()
-                glMultMatrixf(gl_flatten_matrix(frame_g))
-                func()
-                glPopMatrix()
-            else:
-                func()
-
         for part in (self.puppet.constraints +
                      self.puppet.potentials +
                      self.puppet.forces):
@@ -645,17 +626,6 @@ if __name__ == '__main__':
             print "t =",gmvi.t2
 
 
-    
-    import trep.visual
-
-    ## viewer = trep.visual.SystemTrajectoryViewer(puppet, t, q)
-    ## viewer.density = 500
-    ## viewer.run()
-
-    viewer = trep.visual.SystemTrajectoryViewer(puppet, t, q)
-    painter = PuppetPainter(puppet)
-    viewer.auto_draw = False
-    viewer.add_display_func(None, painter.draw)
-    viewer.run()
+    visualize_3d([PuppetVisual(puppet, t, q)])
 
     
