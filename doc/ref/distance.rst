@@ -41,7 +41,7 @@ frames and :math:`d` is the desired distance between them.
    with that name.
 
 
-.. attribute:: config
+.. attribute:: Distance.config
 
    This is the kinematic configuration variable that controls the
    distance, or :data:`None` for a fixed distance constraint.
@@ -49,15 +49,15 @@ frames and :math:`d` is the desired distance between them.
    *(read-only)*
 
 
-.. attribute:: frame1
-               frame2
+.. attribute:: Distance.frame1
+               Distance.frame2
 
    These are the two :class:`Frame` objects being constrained.
 
    *(read-only)*
 
 
-.. attribute:: distance
+.. attribute:: Distance.distance
 
    This is the *desired* constraint between the two coordinate frames.
    This is either the fixed value or the value of the configuration
@@ -65,7 +65,7 @@ frames and :math:`d` is the desired distance between them.
    updated.
 
 
-.. method:: get_actual_distance()
+.. method:: Distance.get_actual_distance()
 
    Calculate the current distance between the two coordinate frames.
    If the constraint is currently satisfied, this is equal to

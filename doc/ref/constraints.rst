@@ -4,7 +4,7 @@
 ===============================================
 
 .. module:: trep.constraints
-   :platform: Linux, Mac, Windows
+   :platform: Linux, Mac
    :synopsis: Built in holonomic constraint types.
 
 This module contains the built in types of holonomic constraints.

@@ -1,7 +1,7 @@
 :class:`LinearSpring` -- Linear spring between two points
 =========================================================
 
-.. currentmodule:: trep
+.. currentmodule:: trep.potentials
 
 
 :class:`LinearSpring` creates a spring force between the origins of

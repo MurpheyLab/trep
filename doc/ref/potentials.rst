@@ -3,6 +3,9 @@
 Potential Energies
 ==================
 
+.. currentmodule:: trep.potentials
+
+
 Conservative forces are best modeled in :mod:`trep` as potential
 energies.  Every type of potential is derived from :class:`Potential`.
 

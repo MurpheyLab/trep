@@ -3,7 +3,7 @@
 Forces
 ======
 
-.. currentmodule:: trep
+.. currentmodule:: trep.forces
 
 Non-conservative forces are modeled in trep by deriving from the
 :class:`Force` type.  These types of forces include damping and

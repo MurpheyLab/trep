@@ -1,7 +1,7 @@
 :class:`Gravity` -- Basic Gravity
 =================================
 
-.. currentmodule:: trep
+.. currentmodule:: trep.potentials
 
 .. class:: Gravity(system[, gravity=(0.0, 0.0, -9.8), name=None])
 

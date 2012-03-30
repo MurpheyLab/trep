@@ -2,7 +2,7 @@
 =====================
 
 .. module:: trep
-   :platform: Linux, Mac, Windows
+   :platform: Linux, Mac
    :synopsis: Dynamics and Optimal Control Tools
 
 :mod:`trep` is a Python module for simulation and trajectory

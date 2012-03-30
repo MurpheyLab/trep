@@ -1,7 +1,7 @@
 :class:`ConfigSpring` -- Linear Spring acting on a configuration variable
 =========================================================================
 
-.. currentmodule:: trep
+.. currentmodule:: trep.potentials
 
 Unlike the :class:`LinearSpring` which creates a spring force between
 two points in 3D space, a :class:`ConfigSpring` implements a spring
