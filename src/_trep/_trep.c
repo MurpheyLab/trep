@@ -50,7 +50,7 @@ static PyMethodDef CTrepMethods[] = {
 #ifndef PyMODINIT_FUNC	/* declarations for DLL import/export */
 #define PyMODINIT_FUNC void
 #endif
-PyMODINIT_FUNC __attribute__((visibility("default"))) init_trep(void) 
+PyMODINIT_FUNC init_trep(void) 
 {
     int i;
     PyObject *m;
