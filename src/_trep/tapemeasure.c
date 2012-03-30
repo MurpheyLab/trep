@@ -3,7 +3,7 @@
 #define TREP_MODULE
 #include "trep.h"
 
-double FrameSequence_length(FrameSequence *self)
+double TapeMeasure_length(TapeMeasure *self)
 {
     double xk = 0.0;  // Length of one segment
     double x = 0.0;   // Total length
@@ -24,7 +24,7 @@ double FrameSequence_length(FrameSequence *self)
     return x;
 }
 
-double FrameSequence_length_dq(FrameSequence *self, Config *q1)
+double TapeMeasure_length_dq(TapeMeasure *self, Config *q1)
 {
     double xk = 0.0;  // Length of one segment
     double xk_dq1 = 0.0; // Derivative of one segment
@@ -52,7 +52,7 @@ double FrameSequence_length_dq(FrameSequence *self, Config *q1)
     return x_dq1;
 }
 
-double FrameSequence_length_dqdq(FrameSequence *self, Config *q1, Config *q2)
+double TapeMeasure_length_dqdq(TapeMeasure *self, Config *q1, Config *q2)
 {
     double xk = 0.0;  // Length of one segment
     double xk_dq1 = 0.0; // 1st Derivative of one segment
@@ -100,7 +100,7 @@ double FrameSequence_length_dqdq(FrameSequence *self, Config *q1, Config *q2)
     return x_dq1dq2;
 }
 
-double FrameSequence_length_dqdqdq(FrameSequence *self, Config *q1, Config *q2, Config *q3)
+double TapeMeasure_length_dqdqdq(TapeMeasure *self, Config *q1, Config *q2, Config *q3)
 {
     double xk = 0.0;  // Length of one segment
     double xk_dq1 = 0.0; // 1st Derivative of one segment
@@ -172,7 +172,7 @@ double FrameSequence_length_dqdqdq(FrameSequence *self, Config *q1, Config *q2, 
     return x_dq1dq2dq3;
 }
 
-double FrameSequence_velocity(FrameSequence *self)
+double TapeMeasure_velocity(TapeMeasure *self)
 {
     Config *q = NULL;
     double dxdq = 0;
@@ -181,14 +181,14 @@ double FrameSequence_velocity(FrameSequence *self)
 
     for(k = 0; k < System_CONFIGS(self->system); k++) {
         q = System_CONFIG(self->system, k);
-        dxdq = FrameSequence_length_dq(self, q);
+        dxdq = TapeMeasure_length_dq(self, q);
         v += dxdq * q->dq;
     }
 
     return v;
 }
 
-double FrameSequence_velocity_dq(FrameSequence *self, Config *q1)
+double TapeMeasure_velocity_dq(TapeMeasure *self, Config *q1)
 {
     Config *q = NULL;
     double dxdqdq1 = 0;
@@ -197,14 +197,14 @@ double FrameSequence_velocity_dq(FrameSequence *self, Config *q1)
 
     for(k = 0; k < System_CONFIGS(self->system); k++) {
         q = System_CONFIG(self->system, k);
-        dxdqdq1 = FrameSequence_length_dqdq(self, q, q1);
+        dxdqdq1 = TapeMeasure_length_dqdq(self, q, q1);
         v_dq1 += dxdqdq1 * q->dq;
     }
 
     return v_dq1;
 }
 
-double FrameSequence_velocity_dqdq(FrameSequence *self, Config *q1, Config *q2)
+double TapeMeasure_velocity_dqdq(TapeMeasure *self, Config *q1, Config *q2)
 {
     Config *q = NULL;
     double dxdqdq1dq2 = 0;
@@ -213,44 +213,44 @@ double FrameSequence_velocity_dqdq(FrameSequence *self, Config *q1, Config *q2)
 
     for(k = 0; k < System_CONFIGS(self->system); k++) {
         q = System_CONFIG(self->system, k);
-        dxdqdq1dq2 = FrameSequence_length_dqdqdq(self, q, q1, q2);
+        dxdqdq1dq2 = TapeMeasure_length_dqdqdq(self, q, q1, q2);
         v_dq1dq2 += dxdqdq1dq2 * q->dq;
     }
 
     return v_dq1dq2;
 }
 
-double FrameSequence_velocity_ddq(FrameSequence *self, Config *dq1)
+double TapeMeasure_velocity_ddq(TapeMeasure *self, Config *dq1)
 {
-    return FrameSequence_length_dq(self, dq1);
+    return TapeMeasure_length_dq(self, dq1);
 }
 
-double FrameSequence_velocity_ddqdq(FrameSequence *self, Config *dq1, Config *q2)
+double TapeMeasure_velocity_ddqdq(TapeMeasure *self, Config *dq1, Config *q2)
 {
-    return FrameSequence_length_dqdq(self, dq1, q2);
+    return TapeMeasure_length_dqdq(self, dq1, q2);
 }
 
-static void dealloc(FrameSequence *self)
+static void dealloc(TapeMeasure *self)
 {
     Py_CLEAR(self->system);
     Py_CLEAR(self->frames);
     self->ob_type->tp_free((PyObject*)self);
 }
 
-static int init(FrameSequence *self, PyObject *args, PyObject *kwds)
+static int init(TapeMeasure *self, PyObject *args, PyObject *kwds)
 {
     return 0;
 }
 
-static PyObject* Py_length(FrameSequence *self, PyObject *args)
+static PyObject* Py_length(TapeMeasure *self, PyObject *args)
 {
     double x;
 
-    x = FrameSequence_length(self);
+    x = TapeMeasure_length(self);
     return Py_BuildValue("d", x);
 }
 
-static PyObject* Py_length_dq(FrameSequence *self, PyObject *args)
+static PyObject* Py_length_dq(TapeMeasure *self, PyObject *args)
 {
     double x_dq1;
     Config *q1 = NULL;
@@ -258,11 +258,11 @@ static PyObject* Py_length_dq(FrameSequence *self, PyObject *args)
     if(!PyArg_ParseTuple(args, "O", &q1))
         return NULL; 
     
-    x_dq1 = FrameSequence_length_dq(self, q1);
+    x_dq1 = TapeMeasure_length_dq(self, q1);
     return Py_BuildValue("d", x_dq1);
 }
 
-static PyObject* Py_length_dqdq(FrameSequence *self, PyObject *args)
+static PyObject* Py_length_dqdq(TapeMeasure *self, PyObject *args)
 {
     double x_dq1dq2;
     Config *q1 = NULL;
@@ -271,11 +271,11 @@ static PyObject* Py_length_dqdq(FrameSequence *self, PyObject *args)
     if(!PyArg_ParseTuple(args, "OO", &q1, &q2))
         return NULL; 
     
-    x_dq1dq2 = FrameSequence_length_dqdq(self, q1, q2);
+    x_dq1dq2 = TapeMeasure_length_dqdq(self, q1, q2);
     return Py_BuildValue("d", x_dq1dq2);
 }
 
-static PyObject* Py_length_dqdqdq(FrameSequence *self, PyObject *args)
+static PyObject* Py_length_dqdqdq(TapeMeasure *self, PyObject *args)
 {
     double x_dq1dq2dq3;
     Config *q1 = NULL;
@@ -285,19 +285,19 @@ static PyObject* Py_length_dqdqdq(FrameSequence *self, PyObject *args)
     if(!PyArg_ParseTuple(args, "OOO", &q1, &q2, &q3))
         return NULL; 
     
-    x_dq1dq2dq3 = FrameSequence_length_dqdqdq(self, q1, q2, q3);
+    x_dq1dq2dq3 = TapeMeasure_length_dqdqdq(self, q1, q2, q3);
     return Py_BuildValue("d", x_dq1dq2dq3);
 }
 
-static PyObject* Py_velocity(FrameSequence *self, PyObject *args)
+static PyObject* Py_velocity(TapeMeasure *self, PyObject *args)
 {
     double x;
 
-    x = FrameSequence_velocity(self);
+    x = TapeMeasure_velocity(self);
     return Py_BuildValue("d", x);
 }
 
-static PyObject* Py_velocity_dq(FrameSequence *self, PyObject *args)
+static PyObject* Py_velocity_dq(TapeMeasure *self, PyObject *args)
 {
     double x_dq1;
     Config *q1 = NULL;
@@ -305,11 +305,11 @@ static PyObject* Py_velocity_dq(FrameSequence *self, PyObject *args)
     if(!PyArg_ParseTuple(args, "O", &q1))
         return NULL; 
     
-    x_dq1 = FrameSequence_velocity_dq(self, q1);
+    x_dq1 = TapeMeasure_velocity_dq(self, q1);
     return Py_BuildValue("d", x_dq1);
 }
 
-static PyObject* Py_velocity_dqdq(FrameSequence *self, PyObject *args)
+static PyObject* Py_velocity_dqdq(TapeMeasure *self, PyObject *args)
 {
     double x_dq1dq2;
     Config *q1 = NULL;
@@ -318,11 +318,11 @@ static PyObject* Py_velocity_dqdq(FrameSequence *self, PyObject *args)
     if(!PyArg_ParseTuple(args, "OO", &q1, &q2))
         return NULL; 
     
-    x_dq1dq2 = FrameSequence_velocity_dqdq(self, q1, q2);
+    x_dq1dq2 = TapeMeasure_velocity_dqdq(self, q1, q2);
     return Py_BuildValue("d", x_dq1dq2);
 }
 
-static PyObject* Py_velocity_ddq(FrameSequence *self, PyObject *args)
+static PyObject* Py_velocity_ddq(TapeMeasure *self, PyObject *args)
 {
     double x_ddq1;
     Config *dq1 = NULL;
@@ -330,11 +330,11 @@ static PyObject* Py_velocity_ddq(FrameSequence *self, PyObject *args)
     if(!PyArg_ParseTuple(args, "O", &dq1))
         return NULL; 
     
-    x_ddq1 = FrameSequence_velocity_ddq(self, dq1);
+    x_ddq1 = TapeMeasure_velocity_ddq(self, dq1);
     return Py_BuildValue("d", x_ddq1);
 }
 
-static PyObject* Py_velocity_ddqdq(FrameSequence *self, PyObject *args)
+static PyObject* Py_velocity_ddqdq(TapeMeasure *self, PyObject *args)
 {
     double x_ddq1dq2;
     Config *dq1 = NULL;
@@ -343,7 +343,7 @@ static PyObject* Py_velocity_ddqdq(FrameSequence *self, PyObject *args)
     if(!PyArg_ParseTuple(args, "OO", &dq1, &q2))
         return NULL; 
     
-    x_ddq1dq2 = FrameSequence_velocity_ddqdq(self, dq1, q2);
+    x_ddq1dq2 = TapeMeasure_velocity_ddqdq(self, dq1, q2);
     return Py_BuildValue("d", x_ddq1dq2);
 }
 
@@ -361,16 +361,16 @@ static PyMethodDef methods_list[] = {
 };
 
 static PyMemberDef members_list[] = {
-    {"_system", T_OBJECT_EX, offsetof(FrameSequence, system), 0, trep_internal_doc},
-    {"_frames", T_OBJECT_EX, offsetof(FrameSequence, frames), 0, trep_internal_doc},
+    {"_system", T_OBJECT_EX, offsetof(TapeMeasure, system), 0, trep_internal_doc},
+    {"_frames", T_OBJECT_EX, offsetof(TapeMeasure, frames), 0, trep_internal_doc},
     {NULL}  /* Sentinel */
 };
 
-PyTypeObject FrameSequenceType = {
+PyTypeObject TapeMeasureType = {
     PyObject_HEAD_INIT(NULL)
     0,                         /*ob_size*/
-    "_trep._FrameSequence",    /*tp_name*/
-    sizeof(FrameSequence),     /*tp_basicsize*/
+    "_trep._TapeMeasure",    /*tp_name*/
+    sizeof(TapeMeasure),     /*tp_basicsize*/
     0,                         /*tp_itemsize*/
     (destructor)dealloc,       /*tp_dealloc*/
     0,                         /*tp_print*/

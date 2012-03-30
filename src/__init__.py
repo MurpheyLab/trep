@@ -14,7 +14,7 @@ from constraint import Constraint
 from potential import Potential
 from midpointvi import MidpointVI
 from frame import tx, ty, tz, rx, ry, rz, const_se3, const_txyz
-from framesequence import FrameSequence
+from tapemeasure import TapeMeasure
 from spline import Spline
 try:
     from spline import SplinePlotter

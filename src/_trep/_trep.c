@@ -17,7 +17,7 @@ extern PyTypeObject PotentialType;
 extern PyTypeObject MidpointVIType;
 extern PyTypeObject SystemType;
 extern PyTypeObject SplineType;
-extern PyTypeObject FrameSequenceType;
+extern PyTypeObject TapeMeasureType;
 
 // Constraint Types defined in src/_trep/constraints/*
 extern PyTypeObject DistanceConstraintType;
@@ -81,7 +81,7 @@ PyMODINIT_FUNC __attribute__((visibility("default"))) init_trep(void)
         {"_HybridWrenchForce", &HybridWrenchForceType, 0},
         {"_SpatialWrenchForce", &SpatialWrenchForceType, 0},
         {"_ConfigSpringPotential", &ConfigSpringPotentialType, 0},
-        {"_FrameSequence", &FrameSequenceType, 0},
+        {"_TapeMeasure", &TapeMeasureType, 0},
         {"_NonlinearConfigSpring", &NonlinearConfigSpringType, 0},
         {"_PistonExampleForce", &PistonExampleForceType, 0},
         {NULL}

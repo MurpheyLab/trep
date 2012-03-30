@@ -6,4 +6,4 @@ Misc. Components
 .. toctree::
    
    spline
-   framesequence
+   tapemeasure

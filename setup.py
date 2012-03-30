@@ -156,7 +156,7 @@ _trep = Extension('trep._trep',
                       'src/_trep/constraint.c',
                       'src/_trep/frametransform.c',
                       'src/_trep/spline.c',
-                      'src/_trep/framesequence.c',
+                      'src/_trep/tapemeasure.c',
                       
                       # Constraints
                       'src/_trep/constraints/distance.c',

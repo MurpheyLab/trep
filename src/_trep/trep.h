@@ -51,7 +51,7 @@ typedef struct Constraint_s Constraint;
 typedef struct Potential_s Potential;
 typedef struct MidpointVI_s MidpointVI;
 typedef struct Spline_s Spline;
-typedef struct FrameSequence_s FrameSequence;
+typedef struct TapeMeasure_s TapeMeasure;
 
 // Common fixed-dimensional vectors & matrices
 typedef double vec4[4];
@@ -667,9 +667,9 @@ struct Spline_s {
 
 
 /*******************************************************************************
- * FrameSequence Objects
+ * TapeMeasure Objects
  */
-struct FrameSequence_s {
+struct TapeMeasure_s {
     PyObject_HEAD
 
     System *system;
@@ -740,10 +740,10 @@ PYEXPORT double Spline_dy(Spline *self, double x);
 PYEXPORT double Spline_ddy(Spline *self, double x);
 
 
-PYEXPORT double FrameSequence_length(FrameSequence *self);
-PYEXPORT double FrameSequence_length_dq(FrameSequence *self, Config *q1);
-PYEXPORT double FrameSequence_length_dqdq(FrameSequence *self, Config *q1, Config *q2);
-PYEXPORT double FrameSequence_length_dqdqdq(FrameSequence *self, Config *q1, Config *q2, Config *q3);
+PYEXPORT double TapeMeasure_length(TapeMeasure *self);
+PYEXPORT double TapeMeasure_length_dq(TapeMeasure *self, Config *q1);
+PYEXPORT double TapeMeasure_length_dqdq(TapeMeasure *self, Config *q1, Config *q2);
+PYEXPORT double TapeMeasure_length_dqdqdq(TapeMeasure *self, Config *q1, Config *q2, Config *q3);
 
 
 /*******************************************************************************

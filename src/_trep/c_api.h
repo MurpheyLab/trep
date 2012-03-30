@@ -1,5 +1,4 @@
-
-#define TREP_C_API_VERSION 0
+#define TREP_C_API_VERSION 1
 
 
 /* Please increment TREP_C_API_VERSION whenever anything in this file
@@ -79,10 +78,10 @@ enum {
     capi_Spline_dy,
     capi_Spline_ddy,
     
-    capi_FrameSequence_length,
-    capi_FrameSequence_length_dq,
-    capi_FrameSequence_length_dqdq,
-    capi_FrameSequence_length_dqdqdq,
+    capi_TapeMeasure_length,
+    capi_TapeMeasure_length_dq,
+    capi_TapeMeasure_length_dqdq,
+    capi_TapeMeasure_length_dqdqdq,
     
     capi_size
     
@@ -475,29 +474,29 @@ double Spline_ddy(Spline *self, double x)
 }
 
 ATTRIBUTE_UNUSED 
-double FrameSequence_length(FrameSequence *self)
+double TapeMeasure_length(TapeMeasure *self)
 {
-    return (*(double (*)(FrameSequence*)) trep_API[capi_FrameSequence_length])(self);
+    return (*(double (*)(TapeMeasure*)) trep_API[capi_TapeMeasure_length])(self);
 }
 
 ATTRIBUTE_UNUSED 
-double FrameSequence_length_dq(FrameSequence *self, Config *q1)
+double TapeMeasure_length_dq(TapeMeasure *self, Config *q1)
 {
-    return (*(double (*)(FrameSequence*, Config*)) trep_API[capi_FrameSequence_length_dq])(self, q1);
+    return (*(double (*)(TapeMeasure*, Config*)) trep_API[capi_TapeMeasure_length_dq])(self, q1);
 }
 
 ATTRIBUTE_UNUSED 
-double FrameSequence_length_dqdq(FrameSequence *self, Config *q1, Config *q2)
+double TapeMeasure_length_dqdq(TapeMeasure *self, Config *q1, Config *q2)
 {
-    return (*(double (*)(FrameSequence*, Config*, Config*)
-                ) trep_API[capi_FrameSequence_length_dqdq])(self, q1, q2);
+    return (*(double (*)(TapeMeasure*, Config*, Config*)
+                ) trep_API[capi_TapeMeasure_length_dqdq])(self, q1, q2);
 }
 
 ATTRIBUTE_UNUSED 
-double FrameSequence_length_dqdqdq(FrameSequence *self, Config *q1, Config *q2, Config *q3)
+double TapeMeasure_length_dqdqdq(TapeMeasure *self, Config *q1, Config *q2, Config *q3)
 {
-    return (*(double (*)(FrameSequence*, Config*, Config*, Config*)
-                ) trep_API[capi_FrameSequence_length_dqdqdq])(self, q1, q2, q3);
+    return (*(double (*)(TapeMeasure*, Config*, Config*, Config*)
+                ) trep_API[capi_TapeMeasure_length_dqdqdq])(self, q1, q2, q3);
 }
 
 
@@ -589,10 +588,10 @@ static PyObject* export_trep(void)
     trep_API[capi_Spline_dy] = (void*)Spline_dy;
     trep_API[capi_Spline_ddy] = (void*)Spline_ddy;
     
-    trep_API[capi_FrameSequence_length] = (void*)FrameSequence_length;
-    trep_API[capi_FrameSequence_length_dq] = (void*)FrameSequence_length_dq;
-    trep_API[capi_FrameSequence_length_dqdq] = (void*)FrameSequence_length_dqdq;
-    trep_API[capi_FrameSequence_length_dqdqdq] = (void*)FrameSequence_length_dqdqdq;
+    trep_API[capi_TapeMeasure_length] = (void*)TapeMeasure_length;
+    trep_API[capi_TapeMeasure_length_dq] = (void*)TapeMeasure_length_dq;
+    trep_API[capi_TapeMeasure_length_dqdq] = (void*)TapeMeasure_length_dqdq;
+    trep_API[capi_TapeMeasure_length_dqdqdq] = (void*)TapeMeasure_length_dqdqdq;
 
     trep_API_def.version = TREP_C_API_VERSION;
     trep_API_def.size = capi_size;

@@ -1,6 +1,6 @@
 from itertools import product
 import trep
-from _trep import _FrameSequence
+from _trep import _TapeMeasure
 import numpy as np
 
 try:
@@ -11,7 +11,7 @@ try:
 except ImportError:
     _opengl = False
 
-class FrameSequence(_FrameSequence):
+class TapeMeasure(_TapeMeasure):
     def __init__(self, system, frames):
         self._system = system
         self._frames = tuple([system.get_frame(f) for f in frames])
@@ -84,7 +84,7 @@ class FrameSequence(_FrameSequence):
                                                self.length_dq,
                                                delta, tolerance,
                                                verbose=verbose,
-                                               test_name='FrameSequence.length_dq()' )
+                                               test_name='TapeMeasure.length_dq()' )
     
     def validate_length_dqdq(self, delta=1e-6, tolerance=1e-6, verbose=False):
         def test(q1):
@@ -93,7 +93,7 @@ class FrameSequence(_FrameSequence):
                 lambda q2: self.length_dqdq(q1, q2),
                 delta, tolerance,
                 verbose=verbose,
-                test_name='FrameSequence.length_dqdq()')
+                test_name='TapeMeasure.length_dqdq()')
 
         result = [test(q1) for q1 in self._system.configs]
         return all(result)
@@ -105,7 +105,7 @@ class FrameSequence(_FrameSequence):
                 lambda q3: self.length_dqdqdq(q1, q2, q3),
                 delta, tolerance,
                 verbose=verbose,
-                test_name='FrameSequence.length_dqdqdq()')
+                test_name='TapeMeasure.length_dqdqdq()')
 
         result = [test(q1,q2) for q1,q2 in product(self._system.configs, repeat=2)]
         return all(result)
@@ -115,7 +115,7 @@ class FrameSequence(_FrameSequence):
                                                self.velocity_dq,
                                                delta, tolerance,
                                                verbose=verbose,
-                                               test_name='FrameSequence.velocity_dq()' )
+                                               test_name='TapeMeasure.velocity_dq()' )
     
     def validate_velocity_dqdq(self, delta=1e-6, tolerance=1e-6, verbose=False):
         def test(q1):
@@ -124,7 +124,7 @@ class FrameSequence(_FrameSequence):
                 lambda q2: self.velocity_dqdq(q1, q2),
                 delta, tolerance,
                 verbose=verbose,
-                test_name='FrameSequence.velocity_dqdq()')
+                test_name='TapeMeasure.velocity_dqdq()')
 
         result = [test(q1) for q1 in self._system.configs]
         return all(result)
@@ -134,7 +134,7 @@ class FrameSequence(_FrameSequence):
                                                 self.velocity_ddq,
                                                 delta, tolerance,
                                                 verbose=verbose,
-                                                test_name='FrameSequence.velocity_ddq()' )
+                                                test_name='TapeMeasure.velocity_ddq()' )
 
     def validate_velocity_ddqdq(self, delta=1e-6, tolerance=1e-6, verbose=False):
         def test(dq1):
@@ -143,7 +143,7 @@ class FrameSequence(_FrameSequence):
                 lambda q2: self.velocity_ddqdq(dq1, q2),
                 delta, tolerance,
                 verbose=verbose,
-                test_name='FrameSequence.velocity_dqdq()')
+                test_name='TapeMeasure.velocity_dqdq()')
 
         result = [test(q1) for q1 in self._system.configs]
         return all(result)
