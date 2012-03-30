@@ -58,9 +58,9 @@ def build_system(torque_force=False):
     system.import_frames(frames)
     trep.potentials.Gravity(system, (0, -9.8, 0))
     trep.forces.Damping(system, 0.01)
-    trep.forces.JointForce(system, 'x', 'x-force')
+    trep.forces.ConfigForce(system, 'x', 'x-force')
     if torque_force:
-        trep.forces.JointForce(system, 'theta', 'theta-force')
+        trep.forces.ConfigForce(system, 'theta', 'theta-force')
     return system
 
 def generate_desired_trajectory(system, t, amp=130*mpi/180):

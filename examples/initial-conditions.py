@@ -20,7 +20,7 @@ frames = [
 system.import_frames(frames)
 trep.potentials.Gravity(system, (0, 0, -9.8))
 trep.forces.Damping(system, 1.2)
-trep.forces.JointForce(system, 'theta2', 'theta2-torque')
+trep.forces.ConfigForce(system, 'theta2', 'theta2-torque')
 mvi = trep.MidpointVI(system)  # Create the variational integrator
 
 

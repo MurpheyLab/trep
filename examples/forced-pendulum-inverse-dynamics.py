@@ -75,7 +75,7 @@ def make_pendulum(num_links, hybrid_wrenched=False):
         child = trep.Frame(frame, trep.RY, config_name, "link-%d" % link)
 
         if not hybrid_wrenched:
-            trep.forces.JointForce(child.system, config_name, 'torque-%d' % link,
+            trep.forces.ConfigForce(child.system, config_name, 'torque-%d' % link,
                                    name='joint-force-%d' % link)
 
         # Move down to create the length of the pendulum link.

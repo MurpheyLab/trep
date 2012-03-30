@@ -16,7 +16,7 @@ Python or C.
 
 .. toctree::
    damping
-   jointforce
+   configforce
    bodywrench
    hybridwrench
    spatialwrench

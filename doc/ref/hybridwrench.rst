@@ -1,7 +1,7 @@
 .. currentmodule:: trep.forces
 
 :class:`HybridWrench` -- Apply a hybrid wrench to a frame.
-======================================================
+==========================================================
 
 :class:`HybridWrench` applies a fixed or variable wrench to a
 coordinate frame.  The wrench is expressed in the world coordinate
@@ -42,18 +42,18 @@ input variable (:class:`trep.Input`).
    each string, with the string defining the input's name.
 
 
-.. attribute:: wrench
+.. attribute:: HybridWrench.wrench
 
    A mixed tuple of numbers and inputs that define the wrench.
 
    *(read-only)*
 
 
-.. attribute:: wrench_val
+.. attribute:: HybridWrench.wrench_val
 
    A tuple of the current numeric values of the wrench.
 
-.. attribute:: frame
+.. attribute:: HybridWrench.frame
 
    The frame that this wrench is applied to.
 

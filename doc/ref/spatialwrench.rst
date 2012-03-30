@@ -1,7 +1,7 @@
 .. currentmodule:: trep.forces
 
 :class:`SpatialWrench` -- Apply a spatial wrench to a frame.
-======================================================
+============================================================
 
 :class:`SpatialWrench` applies a fixed or variable wrench to a
 coordinate frame.  The wrench is expressed in the world coordinate
@@ -49,18 +49,18 @@ fixed real number or an input variable (:class:`trep.Input`).
    each string, with the string defining the input's name.
 
 
-.. attribute:: wrench
+.. attribute:: SpatialWrench.wrench
 
    A mixed tuple of numbers and inputs that define the wrench.
 
    *(read-only)*
 
 
-.. attribute:: wrench_val
+.. attribute:: SpatialWrench.wrench_val
 
    A tuple of the current numeric values of the wrench.
 
-.. attribute:: frame
+.. attribute:: SpatialWrench.frame
 
    The frame that this wrench is applied to.
 

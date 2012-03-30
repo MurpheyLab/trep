@@ -1,11 +1,11 @@
 import trep
 from trep import Force
-from trep._trep import _JointForce
+from trep._trep import _ConfigForce
 
-class JointForce(_JointForce, Force):
+class ConfigForce(_ConfigForce, Force):
     def __init__(self, system, config, finput, name=None):
         Force.__init__(self, system, name)
-        _JointForce.__init__(self)
+        _ConfigForce.__init__(self)
 
         if not system.get_config(config):
             raise ValueError("Could not find config %r" % config)

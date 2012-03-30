@@ -1,9 +1,9 @@
 .. currentmodule:: trep.forces
 
-:class:`JointForce` -- Apply forces to a configuration variable.
-================================================================
+:class:`ConfigForce` -- Apply forces to a configuration variable.
+=================================================================
 
-:class:`JointForce` creates an input variable that applies a force
+:class:`ConfigForce` creates an input variable that applies a force
 directly to a configuration variable:
 
 .. math::
@@ -35,7 +35,7 @@ where the :math:`u(t)` is a :class:`Input` variable.
    ``pend-on-cart-optimization.py``
 
 
-.. class:: JointForce(system, config, finput, name=None)
+.. class:: ConfigForce(system, config, finput, name=None)
 
    Create a new input to apply a force on a configuration variable.
 
@@ -45,10 +45,10 @@ where the :math:`u(t)` is a :class:`Input` variable.
    *finput* should be a string to name the new input variable.
 
 
-.. attribute:: JointForce.finput
+.. attribute:: ConfigForce.finput
 
    The input variable (:class:`Input`) that controls this force.
 
-.. attribute:: JointForce.config
+.. attribute:: ConfigForce.config
 
    The configuration variable (:class:`Config`) that this force is applied to.

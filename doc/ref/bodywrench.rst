@@ -46,18 +46,18 @@ fixed real number or an input variable (:class:`trep.Input`).
    each string, with the string defining the input's name.
 
 
-.. attribute:: wrench
+.. attribute:: BodyWrench.wrench
 
    A mixed tuple of numbers and inputs that define the wrench.
 
    *(read-only)*
 
 
-.. attribute:: wrench_val
+.. attribute:: BodyWrench.wrench_val
 
    A tuple of the current numeric values of the wrench.
 
-.. attribute:: frame
+.. attribute:: BodyWrench.frame
 
    The frame that this wrench is applied to.
 

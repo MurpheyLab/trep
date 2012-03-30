@@ -269,7 +269,7 @@ class Puppet(trep.System):
     def make_joint_forces(self):
         for config in self.dyn_configs:
             self.joint_forces[config.name] = \
-                trep.forces.JointForce(self, config, config.name, config.name)
+                trep.forces.ConfigForce(self, config, config.name, config.name)
             
 
     def make_string_forces(self):

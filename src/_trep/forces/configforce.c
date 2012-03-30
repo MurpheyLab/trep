@@ -8,9 +8,9 @@ typedef struct
     Force force; // Inherits from Force
     Config *config;
     Input *input;  
-} JointForce;
+} ConfigForce;
 
-static double f(JointForce *self, Config *q)
+static double f(ConfigForce *self, Config *q)
 {
     if(q == self->config)
 	return self->input->u;
@@ -18,13 +18,13 @@ static double f(JointForce *self, Config *q)
 	return 0.0;
 }
 
-static double f_dq(JointForce *self, Config *q, Config *q1) { return 0.0; }
-static double f_dqdq(JointForce *self, Config *q, Config *q1, Config *q2) { return 0.0; }
-static double f_ddq(JointForce *self, Config *config, Config *dq1) { return 0.0; }
-static double f_ddqdq(JointForce *self, Config *config, Config *dq1, Config *q2) { return 0.0; }
-static double f_ddqddq(JointForce *self, Config *config, Config *dq1, Config *dq2) { return 0.0; }
+static double f_dq(ConfigForce *self, Config *q, Config *q1) { return 0.0; }
+static double f_dqdq(ConfigForce *self, Config *q, Config *q1, Config *q2) { return 0.0; }
+static double f_ddq(ConfigForce *self, Config *config, Config *dq1) { return 0.0; }
+static double f_ddqdq(ConfigForce *self, Config *config, Config *dq1, Config *q2) { return 0.0; }
+static double f_ddqddq(ConfigForce *self, Config *config, Config *dq1, Config *dq2) { return 0.0; }
 
-static double f_du(JointForce *self, Config *q, Input *u1)
+static double f_du(ConfigForce *self, Config *q, Input *u1)
 {
     if(q == self->config && u1 == self->input)
 	return 1.0;
@@ -32,18 +32,18 @@ static double f_du(JointForce *self, Config *q, Input *u1)
 	return 0.0;
 }
 
-static double f_dudq(JointForce *self, Config *q, Input *u1, Config *q2) { return 0.0; }
-static double f_duddq(JointForce *self, Config *q, Input *u1, Config *dq2) { return 0.0; }
-static double f_dudu(JointForce *self, Config *q, Input *u1, Input *u2) { return 0.0; }
+static double f_dudq(ConfigForce *self, Config *q, Input *u1, Config *q2) { return 0.0; }
+static double f_duddq(ConfigForce *self, Config *q, Input *u1, Config *dq2) { return 0.0; }
+static double f_dudu(ConfigForce *self, Config *q, Input *u1, Input *u2) { return 0.0; }
 
-static void dealloc(JointForce *self)
+static void dealloc(ConfigForce *self)
 {
     Py_CLEAR(self->config);
     Py_CLEAR(self->input);
 //    ((PyObject*)self)->ob_type->tp_free((PyObject*)self);
 }
 
-static int init(JointForce *self, PyObject *args, PyObject *kwds)
+static int init(ConfigForce *self, PyObject *args, PyObject *kwds)
 {
     // Note that we do not call Force.__init__ here.  It will
     // be called by Force.__init__.
@@ -61,17 +61,17 @@ static int init(JointForce *self, PyObject *args, PyObject *kwds)
 }
 
 static PyMemberDef members_list[] = {
-    {"_config", T_OBJECT_EX, offsetof(JointForce, config), 0, trep_internal_doc},
-    {"_input", T_OBJECT_EX, offsetof(JointForce, input), 0, trep_internal_doc},
+    {"_config", T_OBJECT_EX, offsetof(ConfigForce, config), 0, trep_internal_doc},
+    {"_input", T_OBJECT_EX, offsetof(ConfigForce, input), 0, trep_internal_doc},
     {NULL}  /* Sentinel */
 };
 
 extern PyTypeObject ForceType;
-PyTypeObject JointForceType = {
+PyTypeObject ConfigForceType = {
     PyObject_HEAD_INIT(NULL)
     0,                         /*ob_size*/
-    "_trep._JointForce",  /*tp_name*/
-    sizeof(JointForce),   /*tp_basicsize*/
+    "_trep._ConfigForce",  /*tp_name*/
+    sizeof(ConfigForce),   /*tp_basicsize*/
     0,                         /*tp_itemsize*/
     (destructor)dealloc,       /*tp_dealloc*/
     0,                         /*tp_print*/

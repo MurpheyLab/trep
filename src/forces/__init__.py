@@ -2,6 +2,6 @@ from damping import Damping
 from bodywrench import BodyWrench
 from spatialwrench import SpatialWrench
 from hybridwrench import HybridWrench
-from jointforce import JointForce
+from configforce import ConfigForce
 from testforce import TestForce
 
