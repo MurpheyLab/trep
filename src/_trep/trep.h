@@ -1,5 +1,9 @@
-#ifndef _TREP_H_
-#define _TREP_H_
+#ifndef _TREP_INTERNAL_H_
+#define _TREP_INTERNAL_H_
+
+
+#ifdef TREP_MODULE
+/* If we're being included by another extension model, let them handle importing numpy. */
 
 /* Import Numpy C API as described at
  * http://docs.scipy.org/doc/numpy/reference/c-api.array.html#miscellaneous
@@ -9,6 +13,29 @@
 #define NO_IMPORT_ARRAY
 #endif
 #include <numpy/arrayobject.h>
+
+#endif /* TREP_MODULE */
+
+
+
+/*******************************************************************************
+ *******************************************************************************
+ *******************************************************************************
+ * These are public definitions that are exported in the C API. Any
+ * changes need to be updated in trep.h
+ */
+
+
+#ifdef TREP_MODULE
+/* When we build the module, these functions should not be declared
+ * static since they are shared among files.
+ */
+#define PYEXPORT
+#else
+/* But they are static when this is included by other extension modules.
+ */
+#define PYEXPORT static
+#endif
 
 
 /*******************************************************************************
@@ -31,8 +58,6 @@ typedef double vec4[4];
 typedef double vec6[6];
 typedef double mat4x4[4][4];
 
-// Default doc string to indicate internal use.  Defined in _trep.c
-extern char trep_internal_doc[];
 
 /*******************************************************************************
  * FrameTransformType acts as an enumeration to define the frame
@@ -46,6 +71,10 @@ typedef struct {
     PyObject *name;
 } FrameTransform;
 
+#ifdef TREP_MODULE
+/* These are defined in C_API for external extensions.  They cannot
+ * share a definition because extensions are defined as static.
+ */
 extern FrameTransform* TREP_WORLD;
 extern FrameTransform* TREP_TX;
 extern FrameTransform* TREP_TY;
@@ -54,6 +83,7 @@ extern FrameTransform* TREP_RX;
 extern FrameTransform* TREP_RY;
 extern FrameTransform* TREP_RZ;
 extern FrameTransform* TREP_CONST_SE3;
+#endif
 
 /*******************************************************************************
  * Config Objects
@@ -242,42 +272,6 @@ struct Frame_s {
 #define Frame_USES_CONFIG(self, q) (Frame_CACHE(self, q->config_gen) == q)
 
 
-/* Functions to safely retrieve configuration/velocity information
- * from a Frame.
- */
-mat4x4* Frame_lg(Frame *frame);
-mat4x4* Frame_lg_inv(Frame *frame);
-mat4x4* Frame_lg_dq(Frame *frame);
-mat4x4* Frame_lg_inv_dq(Frame *frame);
-mat4x4* Frame_lg_dqdq(Frame *frame);
-mat4x4* Frame_lg_inv_dqdq(Frame *frame);
-mat4x4* Frame_lg_dqdqdq(Frame *frame);
-mat4x4* Frame_lg_inv_dqdqdq(Frame *frame);
-mat4x4* Frame_lg_dqdqdqdq(Frame *frame);
-mat4x4* Frame_lg_inv_dqdqdqdq(Frame *frame);
-mat4x4* Frame_twist_hat(Frame *frame);
-mat4x4* Frame_g(Frame *frame);
-mat4x4* Frame_g_dq(Frame *frame, Config *q1);
-mat4x4* Frame_g_dqdq(Frame *frame, Config *q1, Config *q2);
-mat4x4* Frame_g_dqdqdq(Frame *frame, Config *q1, Config *q2, Config *q3);
-mat4x4* Frame_g_dqdqdqdq(Frame *frame, Config *q1, Config *q2, Config *q3, Config *q4);
-mat4x4* Frame_g_inv(Frame *frame);
-mat4x4* Frame_g_inv_dq(Frame *frame, Config *q1);
-mat4x4* Frame_g_inv_dqdq(Frame *frame, Config *q1, Config *q2);
-vec4* Frame_p(Frame *frame);
-vec4* Frame_p_dq(Frame *frame, Config *q1);
-vec4* Frame_p_dqdq(Frame *frame, Config *q1, Config *q2);
-vec4* Frame_p_dqdqdq(Frame *frame, Config *q1, Config *q2, Config *q3);
-vec4* Frame_p_dqdqdqdq(Frame *frame, Config *q1, Config *q2, Config *q3, Config *q4);
-mat4x4* Frame_vb(Frame *frame);
-mat4x4* Frame_vb_dq(Frame *frame, Config *q1);
-mat4x4* Frame_vb_dqdq(Frame *frame, Config *q1, Config *q2);
-mat4x4* Frame_vb_dqdqdq(Frame *frame, Config *q1, Config *q2, Config *q3);
-mat4x4* Frame_vb_ddq(Frame *frame, Config *dq1);
-mat4x4* Frame_vb_ddqdq(Frame *frame, Config *dq1, Config *q2);
-mat4x4* Frame_vb_ddqdqdq(Frame *frame, Config *dq1, Config *q2, Config *q3);
-mat4x4* Frame_vb_ddqdqdqdq(Frame *frame, Config *dq1, Config *q2, Config *q3, Config *q4);
-
 /*******************************************************************************
  * Input Objects
  */
@@ -367,6 +361,8 @@ struct Potential_s {
     PotentialFunc_V_dqdqdq V_dqdqdq;
 };
 
+
+
 /*******************************************************************************
  * MidpointVI Objects
  */
@@ -374,8 +370,6 @@ struct Potential_s {
 #define MIDPOINTVI_CACHE_SOLUTION        0x01
 #define MIDPOINTVI_CACHE_SOLUTION_DERIV1 0x02
 #define MIDPOINTVI_CACHE_SOLUTION_DERIV2 0x04 
-
-extern PyObject *ConvergenceError;
 
 struct MidpointVI_s {
     PyObject_HEAD
@@ -657,58 +651,6 @@ struct System_s {
 // Return the number of frames with non-zero mass in the system. 
 #define System_MASSES(self) PyTuple_GET_SIZE(self->masses)
 
-/* Updates caching/performance values in the system. */
-double System_total_energy(System *system);
-double System_L(System *system);
-double System_L_dq(System *system, Config *q1);
-double System_L_dqdq(System *system, Config *q1, Config *q2);
-double System_L_dqdqdq(System *system, Config *q1, Config *q2, Config *q3);
-double System_L_ddq(System *system, Config *dq1);
-double System_L_ddqdq(System *system, Config *dq1, Config *q2);
-double System_L_ddqdqdq(System *system, Config *dq1, Config *q2, Config *q3);
-double System_L_ddqdqdqdq(System *system, Config *dq1, Config *q2, Config *q3, Config *q4);
-double System_L_ddqddq(System *system, Config *dq1, Config *dq2);
-double System_L_ddqddqdq(System *system, Config *dq1, Config *dq2, Config *q3);
-double System_L_ddqddqdqdq(System *system, Config *dq1, Config *dq2, Config *q3, Config *q4);
-/* Calculate the current external forcing on 'q' */
-double System_F(System *system, Config *q);
-double System_F_dq(System *system, Config *q, Config *q1);
-double System_F_ddq(System *system, Config *q, Config *dq1);
-double System_F_du(System *system, Config *q, Input *u1);
-double System_F_dqdq(System *system, Config *q, Config *q1, Config *q2);
-double System_F_ddqdq(System *system, Config *q, Config *dq1, Config *q2);
-double System_F_ddqddq(System *system, Config *q, Config *dq1, Config *dq2);
-double System_F_dudq(System *system, Config *q, Input *u1, Config *q2);
-double System_F_duddq(System *system, Config *q, Input *u1, Config *dq2);
-double System_F_dudu(System *system, Config *q, Input *u1, Input *u2);
-int System_calc_dynamics(System *system);
-int System_calc_dynamics_deriv1(System *system);
-int System_calc_dynamics_deriv2(System *system);
-
-/* These never need to be called outside of frame-c.c because they are
- * handled automatically by the tree caching.  However, when
- * profiling, it can be useful to force a cache to build when you know
- * it will be built in a later function so that you can figure out how
- * much time is being spent building the cache vs. in the function
- * that causes the cache to be built.
- */
-void build_lg_cache(System *system);
-void build_g_cache(System *system);
-void build_g_dq_cache(System *system);
-void build_g_dqdq_cache(System *system);
-void build_g_dqdqdq_cache(System *system);
-void build_g_dqdqdqdq_cache(System *system);
-void build_g_inv_cache(System *system);
-void build_g_inv_dq_cache(System *system);
-void build_g_inv_dqdq_cache(System *system);
-void build_vb_cache(System *system);
-void build_vb_dq_cache(System *system);
-void build_vb_dqdq_cache(System *system);
-void build_vb_dqdqdq_cache(System *system);
-void build_vb_ddq_cache(System *system);
-void build_vb_ddqdq_cache(System *system);
-void build_vb_ddqdqdq_cache(System *system);
-void build_vb_ddqdqdqdq_cache(System *system);
 
 /*******************************************************************************
  * Spline Objects
@@ -722,9 +664,7 @@ struct Spline_s {
     PyArrayObject *coeffs;  
 };
 
-double Spline_y(Spline *self, double x);
-double Spline_dy(Spline *self, double x);
-double Spline_ddy(Spline *self, double x);
+
 
 /*******************************************************************************
  * FrameSequence Objects
@@ -736,12 +676,74 @@ struct FrameSequence_s {
     PyTupleObject *frames;
 };
 
-double FrameSequence_length(FrameSequence *self);
-double FrameSequence_length_dq(FrameSequence *self, Config *q1);
-double FrameSequence_length_dqdq(FrameSequence *self, Config *q1, Config *q2);
-double FrameSequence_length_dqdqdq(FrameSequence *self, Config *q1, Config *q2, Config *q3);
+
+/* Functions to safely retrieve configuration/velocity information
+ * from a Frame.
+ */
+PYEXPORT mat4x4* Frame_lg(Frame *frame);
+PYEXPORT mat4x4* Frame_lg_inv(Frame *frame);
+PYEXPORT mat4x4* Frame_lg_dq(Frame *frame);
+PYEXPORT mat4x4* Frame_lg_inv_dq(Frame *frame);
+PYEXPORT mat4x4* Frame_lg_dqdq(Frame *frame);
+PYEXPORT mat4x4* Frame_lg_inv_dqdq(Frame *frame);
+PYEXPORT mat4x4* Frame_lg_dqdqdq(Frame *frame);
+PYEXPORT mat4x4* Frame_lg_inv_dqdqdq(Frame *frame);
+PYEXPORT mat4x4* Frame_lg_dqdqdqdq(Frame *frame);
+PYEXPORT mat4x4* Frame_lg_inv_dqdqdqdq(Frame *frame);
+PYEXPORT mat4x4* Frame_twist_hat(Frame *frame);
+PYEXPORT mat4x4* Frame_g(Frame *frame);
+PYEXPORT mat4x4* Frame_g_dq(Frame *frame, Config *q1);
+PYEXPORT mat4x4* Frame_g_dqdq(Frame *frame, Config *q1, Config *q2);
+PYEXPORT mat4x4* Frame_g_dqdqdq(Frame *frame, Config *q1, Config *q2, Config *q3);
+PYEXPORT mat4x4* Frame_g_dqdqdqdq(Frame *frame, Config *q1, Config *q2, Config *q3, Config *q4);
+PYEXPORT mat4x4* Frame_g_inv(Frame *frame);
+PYEXPORT mat4x4* Frame_g_inv_dq(Frame *frame, Config *q1);
+PYEXPORT mat4x4* Frame_g_inv_dqdq(Frame *frame, Config *q1, Config *q2);
+PYEXPORT vec4* Frame_p(Frame *frame);
+PYEXPORT vec4* Frame_p_dq(Frame *frame, Config *q1);
+PYEXPORT vec4* Frame_p_dqdq(Frame *frame, Config *q1, Config *q2);
+PYEXPORT vec4* Frame_p_dqdqdq(Frame *frame, Config *q1, Config *q2, Config *q3);
+PYEXPORT vec4* Frame_p_dqdqdqdq(Frame *frame, Config *q1, Config *q2, Config *q3, Config *q4);
+PYEXPORT mat4x4* Frame_vb(Frame *frame);
+PYEXPORT mat4x4* Frame_vb_dq(Frame *frame, Config *q1);
+PYEXPORT mat4x4* Frame_vb_dqdq(Frame *frame, Config *q1, Config *q2);
+PYEXPORT mat4x4* Frame_vb_dqdqdq(Frame *frame, Config *q1, Config *q2, Config *q3);
+PYEXPORT mat4x4* Frame_vb_ddq(Frame *frame, Config *dq1);
+PYEXPORT mat4x4* Frame_vb_ddqdq(Frame *frame, Config *dq1, Config *q2);
+PYEXPORT mat4x4* Frame_vb_ddqdqdq(Frame *frame, Config *dq1, Config *q2, Config *q3);
+PYEXPORT mat4x4* Frame_vb_ddqdqdqdq(Frame *frame, Config *dq1, Config *q2, Config *q3, Config *q4);
 
 
+PYEXPORT void copy_vec4(vec4 dest, vec4 src);
+PYEXPORT void set_vec4(vec4 dest, double x, double y, double z, double w);
+PYEXPORT void clear_vec4(vec4 dest);
+PYEXPORT double dot_vec4(vec4 op1, vec4 op2);
+PYEXPORT void sub_vec4(vec4 dest, vec4 op1, vec4 op2);
+PYEXPORT void mul_mm4(mat4x4 dest, mat4x4 op1, mat4x4 op2);
+PYEXPORT void mul_mv4(vec4 dest, mat4x4 m, vec4 v);
+PYEXPORT void mul_dm4(mat4x4 dest, double op1, mat4x4 op2);
+PYEXPORT void add_mm4(mat4x4 dest, mat4x4 op1, mat4x4 op2);
+PYEXPORT void sub_mm4(mat4x4 dest, mat4x4 op1, mat4x4 op2);
+PYEXPORT void copy_mat4x4(mat4x4 dest, mat4x4 src);
+PYEXPORT void eye_mat4x4(mat4x4 mat);
+PYEXPORT void clear_mat4x4(mat4x4 mat);
+PYEXPORT void invert_se3(mat4x4 dest, mat4x4 src);
+PYEXPORT void unhat(vec6 dest, mat4x4 src);
+
+PYEXPORT PyObject* array_from_mat4x4(mat4x4 mat);
+PYEXPORT PyObject* array_from_vec4(vec4 vec);
+
+
+
+PYEXPORT double Spline_y(Spline *self, double x);
+PYEXPORT double Spline_dy(Spline *self, double x);
+PYEXPORT double Spline_ddy(Spline *self, double x);
+
+
+PYEXPORT double FrameSequence_length(FrameSequence *self);
+PYEXPORT double FrameSequence_length_dq(FrameSequence *self, Config *q1);
+PYEXPORT double FrameSequence_length_dqdq(FrameSequence *self, Config *q1, Config *q2);
+PYEXPORT double FrameSequence_length_dqdqdq(FrameSequence *self, Config *q1, Config *q2, Config *q3);
 
 
 /*******************************************************************************
@@ -749,43 +751,6 @@ double FrameSequence_length_dqdqdq(FrameSequence *self, Config *q1, Config *q2, 
  */
 
 #define DOT_VEC3(a, b) ((a)[0]*(b)[0] + (a)[1]*(b)[1]+(a)[2]*(b)[2])
-
-void copy_vec4(vec4 dest, vec4 src);
-void set_vec4(vec4 dest, double x, double y, double z, double w);
-void clear_vec4(vec4 dest);
-double dot_vec4(vec4 op1, vec4 op2);
-void sub_vec4(vec4 dest, vec4 op1, vec4 op2);
-void mul_mm4(mat4x4 dest, mat4x4 op1, mat4x4 op2);
-void mul_mv4(vec4 dest, mat4x4 m, vec4 v);
-void mul_dm4(mat4x4 dest, double op1, mat4x4 op2);
-void add_mm4(mat4x4 dest, mat4x4 op1, mat4x4 op2);
-void sub_mm4(mat4x4 dest, mat4x4 op1, mat4x4 op2);
-void copy_mat4x4(mat4x4 dest, mat4x4 src);
-void eye_mat4x4(mat4x4 mat);
-void clear_mat4x4(mat4x4 mat);
-void invert_se3(mat4x4 dest, mat4x4 src);
-
-PyObject* array_from_mat4x4(mat4x4 mat);
-PyObject* array_from_vec4(vec4 vec);
-
-/* Linear Algebra Stuff - Matrix & Vector Operations */
-void copy_np_matrix(PyArrayObject *dest, PyArrayObject *src, int rows, int cols);
-void transpose_np_matrix(PyArrayObject *dest, PyArrayObject *src);
-void copy_vector(double  *dest, double  *src, int length);
-void transpose_matrix(double **dest, double **src, int rows, int cols);
-double norm_vector(double *vec, int length);
-int LU_decomp(PyArrayObject *A, int n, PyArrayObject *index, double tolerance);
-void LU_solve_vec(PyArrayObject *A, int n, PyArrayObject *index, double *b);
-void LU_solve_mat(PyArrayObject *A, int n, PyArrayObject *index, PyArrayObject *b, int m);
-void unhat(vec6 dest, mat4x4 src);
-/* Used to return zero values */
-extern mat4x4  zero_mat4x4;
-extern vec4  zero_vec4;
-
-// Transitional functions
-void mul_matvec_c_np_c(double *dest, int length, PyArrayObject *op1, double *op2, int inner);
-void mul_matmat_np_np_np(PyArrayObject *dest, int rows, int cols, PyArrayObject *op1,
-                         PyArrayObject *op2, int inner);
 
 
 /**********************************************************************
@@ -925,7 +890,99 @@ static void* IDX4(PyArrayObject *array, int i1, int i2, int i3, int i4)  {
 #define F_IDX4_DBL(LOCAL_NAME, i1, i2, i3, i4) (*(double*)F_IDX4(LOCAL_NAME, i1, i2, i3, i4))
 
 
+/*******************************************************************************
+ *******************************************************************************
+ *******************************************************************************
+ * These are private definitions that are not exported in the C API.
+ */
 
-#endif /* _TREP_H_*/
+#ifdef TREP_MODULE
+
+// Default doc string to indicate internal use.  Defined in _trep.c
+extern char trep_internal_doc[];
+
+extern PyObject *ConvergenceError;
+
+
+/* These never need to be called outside of frame-c.c because they are
+ * handled automatically by the tree caching.  However, when
+ * profiling, it can be useful to force a cache to build when you know
+ * it will be built in a later function so that you can figure out how
+ * much time is being spent building the cache vs. in the function
+ * that causes the cache to be built.
+ */
+void build_lg_cache(System *system);
+void build_g_cache(System *system);
+void build_g_dq_cache(System *system);
+void build_g_dqdq_cache(System *system);
+void build_g_dqdqdq_cache(System *system);
+void build_g_dqdqdqdq_cache(System *system);
+void build_g_inv_cache(System *system);
+void build_g_inv_dq_cache(System *system);
+void build_g_inv_dqdq_cache(System *system);
+void build_vb_cache(System *system);
+void build_vb_dq_cache(System *system);
+void build_vb_dqdq_cache(System *system);
+void build_vb_dqdqdq_cache(System *system);
+void build_vb_ddq_cache(System *system);
+void build_vb_ddqdq_cache(System *system);
+void build_vb_ddqdqdq_cache(System *system);
+void build_vb_ddqdqdqdq_cache(System *system);
+
+
+/* Updates caching/performance values in the system. */
+double System_total_energy(System *system);
+double System_L(System *system);
+double System_L_dq(System *system, Config *q1);
+double System_L_dqdq(System *system, Config *q1, Config *q2);
+double System_L_dqdqdq(System *system, Config *q1, Config *q2, Config *q3);
+double System_L_ddq(System *system, Config *dq1);
+double System_L_ddqdq(System *system, Config *dq1, Config *q2);
+double System_L_ddqdqdq(System *system, Config *dq1, Config *q2, Config *q3);
+double System_L_ddqdqdqdq(System *system, Config *dq1, Config *q2, Config *q3, Config *q4);
+double System_L_ddqddq(System *system, Config *dq1, Config *dq2);
+double System_L_ddqddqdq(System *system, Config *dq1, Config *dq2, Config *q3);
+double System_L_ddqddqdqdq(System *system, Config *dq1, Config *dq2, Config *q3, Config *q4);
+/* Calculate the current external forcing on 'q' */
+double System_F(System *system, Config *q);
+double System_F_dq(System *system, Config *q, Config *q1);
+double System_F_ddq(System *system, Config *q, Config *dq1);
+double System_F_du(System *system, Config *q, Input *u1);
+double System_F_dqdq(System *system, Config *q, Config *q1, Config *q2);
+double System_F_ddqdq(System *system, Config *q, Config *dq1, Config *q2);
+double System_F_ddqddq(System *system, Config *q, Config *dq1, Config *dq2);
+double System_F_dudq(System *system, Config *q, Input *u1, Config *q2);
+double System_F_duddq(System *system, Config *q, Input *u1, Config *dq2);
+double System_F_dudu(System *system, Config *q, Input *u1, Input *u2);
+
+/* Linear Algebra Stuff - Matrix & Vector Operations */
+void copy_np_matrix(PyArrayObject *dest, PyArrayObject *src, int rows, int cols);
+void transpose_np_matrix(PyArrayObject *dest, PyArrayObject *src);
+void copy_vector(double  *dest, double  *src, int length);
+void transpose_matrix(double **dest, double **src, int rows, int cols);
+double norm_vector(double *vec, int length);
+int LU_decomp(PyArrayObject *A, int n, PyArrayObject *index, double tolerance);
+void LU_solve_vec(PyArrayObject *A, int n, PyArrayObject *index, double *b);
+void LU_solve_mat(PyArrayObject *A, int n, PyArrayObject *index, PyArrayObject *b, int m);
+/* Used to return zero values */
+extern mat4x4  zero_mat4x4;
+extern vec4  zero_vec4;
+
+// Transitional functions
+void mul_matvec_c_np_c(double *dest, int length, PyArrayObject *op1, double *op2, int inner);
+void mul_matmat_np_np_np(PyArrayObject *dest, int rows, int cols, PyArrayObject *op1,
+                         PyArrayObject *op2, int inner);
+
+
+#endif /* TREP_MODULE defined */
+
+
+/* If we're not building trep, include the C-API */
+#ifndef TREP_MODULE 
+#include "c_api.h"
+#endif 
+
+
+#endif /* _TREP_INTERNAL_H_*/
 
 

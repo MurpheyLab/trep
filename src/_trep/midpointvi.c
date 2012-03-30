@@ -1,7 +1,8 @@
 #include <Python.h>
 #include "structmember.h"
 #include <pthread.h>
-#include "trep_internal.h"
+#define TREP_MODULE
+#include "trep.h"
 
 #define LU_tolerance 1.0e-20
 

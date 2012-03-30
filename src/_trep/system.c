@@ -1,6 +1,7 @@
 #include <Python.h>
 #include "structmember.h"
-#include "trep_internal.h"
+#define TREP_MODULE
+#include "trep.h"
 
 #define LU_tolerance 1.0e-20
 
@@ -886,7 +887,7 @@ static void calc_f(System *sys)
 	System_DYN_CONFIG(sys, i1)->ddq = F(i1);
 }    
 
-int System_calc_dynamics(System *sys)
+static int calc_dynamics(System *sys)
 {
     if(sys->cache & SYSTEM_CACHE_DYNAMICS)
 	return 0;
@@ -1274,11 +1275,11 @@ static void calc_f_du(System *sys)
     }
 }    
 
-int System_calc_dynamics_deriv1(System *sys)
+static int calc_dynamics_deriv1(System *sys)
 {
     if(sys->cache & SYSTEM_CACHE_DYNAMICS_DERIV1)
 	return 0;
-    if(!(sys->cache & SYSTEM_CACHE_DYNAMICS) && System_calc_dynamics(sys))
+    if(!(sys->cache & SYSTEM_CACHE_DYNAMICS) && calc_dynamics(sys))
 	    return -1;
     calc_M_dq(sys);
     if(calc_D_deriv1(sys))
@@ -1987,11 +1988,11 @@ static void calc_f_dudu(System *sys)
 }    
 
 
-int System_calc_dynamics_deriv2(System *sys)
+int calc_dynamics_deriv2(System *sys)
 {
     if(sys->cache & SYSTEM_CACHE_DYNAMICS_DERIV2)
 	return 0;
-    if(!(sys->cache & SYSTEM_CACHE_DYNAMICS_DERIV1) && System_calc_dynamics_deriv1(sys))
+    if(!(sys->cache & SYSTEM_CACHE_DYNAMICS_DERIV1) && calc_dynamics_deriv1(sys))
 	    return -1;
     calc_M_dqdq(sys);
     if(calc_D_deriv2(sys))
@@ -2293,11 +2294,11 @@ static PyObject* update_cache(System *sys, PyObject *args)
     if(flags & SYSTEM_CACHE_VB_DDQDQDQDQ)
         build_vb_ddqdqdqdq_cache(sys);
     if(flags & SYSTEM_CACHE_DYNAMICS)
-        System_calc_dynamics(sys);
+        calc_dynamics(sys);
     if(flags & SYSTEM_CACHE_DYNAMICS_DERIV1)
-        System_calc_dynamics_deriv1(sys);
+        calc_dynamics_deriv1(sys);
     if(flags & SYSTEM_CACHE_DYNAMICS_DERIV2)
-        System_calc_dynamics_deriv2(sys);
+        calc_dynamics_deriv2(sys);
     Py_RETURN_NONE;
 }
 

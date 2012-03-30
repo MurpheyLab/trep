@@ -1,5 +1,6 @@
 #include <Python.h>
-#include "trep_internal.h"
+#define TREP_MODULE
+#include "trep.h"
 #include "structmember.h"
 
 

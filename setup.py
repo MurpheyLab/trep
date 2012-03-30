@@ -167,7 +167,8 @@ _trep = Extension('trep._trep',
                       'src/_trep/forces/pistonexample.c',
                       ],
                   depends=[
-                      'src/_trep/trep_internal.h'
+                      'src/_trep/trep.h',
+                      'src/_trep/c_api.h'
                       ])
 
 ## _polyobject = Extension('_polyobject',
@@ -199,4 +200,8 @@ setup (name = 'trep',
                       #_polyobject
                       ],
        cmdclass=cmd_class,
-       command_options=cmd_options)
+       command_options=cmd_options,
+       headers=[
+           'src/_trep/trep.h',
+           'src/_trep/c_api.h'
+           ])

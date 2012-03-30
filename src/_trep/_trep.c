@@ -1,6 +1,7 @@
 #include <Python.h>
 #define IMPORT_ARRAY // need to import numpy array interface.
-#include "trep_internal.h"
+#define TREP_MODULE
+#include "trep.h"
 
 PyObject *ConvergenceError; // Exception when MVI step fails to converge.
 char trep_internal_doc[] = "Internal use only - see trep developer documentation for more information.";
@@ -39,6 +40,9 @@ extern PyTypeObject PistonExampleForceType;
 
 void initialize_transform_types(PyObject *module);
 
+// Declare the c api
+#include "c_api.h"
+
 static PyMethodDef CTrepMethods[] = {
     {NULL, NULL, 0, NULL}
 };
@@ -49,7 +53,8 @@ static PyMethodDef CTrepMethods[] = {
 PyMODINIT_FUNC __attribute__((visibility("default"))) init_trep(void) 
 {
     int i;
-    PyObject* m;
+    PyObject *m;
+    PyObject *api;
 
     struct {
         char* name;
@@ -132,6 +137,11 @@ PyMODINIT_FUNC __attribute__((visibility("default"))) init_trep(void)
     // Create exceptions
     ConvergenceError = PyErr_NewException("_trep.ConvergenceError", PyExc_StandardError, NULL);
     PyModule_AddObject(m, "ConvergenceError", ConvergenceError);
+
+    // Publish the C API
+    api = export_trep();
+    if (api != NULL)
+        PyModule_AddObject(m, "_C_API", api);
 
 }
 

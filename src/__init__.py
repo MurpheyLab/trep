@@ -3,6 +3,7 @@ from __version__ import __version__
 import _trep
 from _trep import WORLD, TX, TY, TZ, RX, RY, RZ, CONST_SE3
 from _trep import ConvergenceError
+from _trep import _C_API
 
 from system import System
 from config import Config

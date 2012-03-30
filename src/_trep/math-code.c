@@ -1,5 +1,6 @@
 #include <Python.h>
-#include "trep_internal.h"
+#define TREP_MODULE
+#include "trep.h"
 
 // Used to return zero values
 mat4x4 zero_mat4x4 = {
