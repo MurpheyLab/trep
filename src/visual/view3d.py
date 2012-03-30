@@ -220,7 +220,6 @@ class View3D(QGLWidget):
         if event.button() == Qt.LeftButton:
             self._oldPos = event.pos()
             self.releaseKeyboard()
-            self._moving = [0,0,0]
             self.stopMoving()
 
 
