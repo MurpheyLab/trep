@@ -91,6 +91,16 @@ def get_version():
         pass
     return '<unknown>'
 
+def get_approx_version():
+    # Removes the extra information from the version to just get the
+    # most recent tag and a '-dev' suffix if appropriate.  This is to
+    # keep distutils from creating .eggs for every minor version
+    # during development.
+    version = get_version()
+    if '-' in version:
+        version = version[:version.index('-')] + '-dev'
+    return version
+        
 
 update_version_file()
 
@@ -179,7 +189,7 @@ _trep = Extension('trep._trep',
 
 
 setup (name = 'trep',
-       version = get_version(),
+       version = get_approx_version(),
        description = 'trep is used to simulate mechanical systems.',
        author = ['Elliot Johnson'],
        author_email = 'elliot.r.johnson@gmail.com',
