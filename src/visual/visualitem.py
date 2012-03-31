@@ -9,7 +9,12 @@ from OpenGL.GLU import *
 __all__ = ['VisualItem', 'VisualItem2D', 'VisualItem3D']
 
 class VisualItem(object):
-    def __init__(self, system, time=[], q=[], u=[]):
+    def __init__(self, system, time=None, q=None, u=None):
+
+        if time is None: time = []
+        if q is None: q = []
+        if u is None: u = []
+        
         self._system = system
         self._time = np.array(time)
         self._q = np.array(q)
