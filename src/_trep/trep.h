@@ -562,6 +562,11 @@ struct System_s {
      */
     unsigned long cache;
 
+    /* This is incrmented every time the system's state changes, so
+     * objects can use this to implement their own caching.
+     */
+    int state_counter;
+    
     /* configs is a tuple of all configuration variables in the
      * system.  The Python layer is supposed to make sure that it is
      * always ordered as (dyn_configs + kin_configs).  It managed by
@@ -947,6 +952,7 @@ void build_vb_ddqdqdqdq_cache(System *system);
 
 
 /* Updates caching/performance values in the system. */
+void System_state_changed(System *system);
 double System_total_energy(System *system);
 double System_L(System *system);
 double System_L_dq(System *system, Config *q1);

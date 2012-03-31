@@ -408,8 +408,8 @@ static void MidpointVI_set_state(MidpointVI *mvi, int k)
     DECLARE_F_IDX1(mvi->q1, __q1);
     DECLARE_F_IDX1(mvi->q2, __q2);
     DECLARE_F_IDX1(mvi->u1, __u1);                      
-    
-    mvi->system->cache = SYSTEM_CACHE_NONE;
+
+    System_state_changed(mvi->system);
     if(k == 1) {
         mvi->system->time = mvi->t1;
         state = &Q1(0);
@@ -443,7 +443,7 @@ static void MidpointVI_set_midpoint(MidpointVI *mvi)
     DECLARE_F_IDX1(mvi->q2, __q2);
     DECLARE_F_IDX1(mvi->u1, __u1);                      
     
-    mvi->system->cache = SYSTEM_CACHE_NONE;
+    System_state_changed(mvi->system);
     mvi->system->time = 0.5* (mvi->t2 + mvi->t1);
     for(i = 0; i < System_CONFIGS(mvi->system); i++) {
 	q = System_CONFIG(mvi->system, i);

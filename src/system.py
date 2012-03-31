@@ -475,6 +475,7 @@ class System(_System):
     def _clear_cache(self):
         """Clear the system cache."""
         self._cache = 0
+        self._state_counter += 1
 
 
     def _get_object(self, identifier, objtype, array):

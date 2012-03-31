@@ -69,6 +69,11 @@
 #define M_DQDQ(i1, i2, i3, i4)     (*(double*)IDX4(sys->M_dqdq, i1, i2, i3, i4))
 
 
+void System_state_changed(System *sys)
+{
+    sys->cache = SYSTEM_CACHE_NONE;
+}
+
 double System_total_energy(System *sys)
 {
     int m;
@@ -2337,6 +2342,7 @@ static PyMemberDef members_list[] = {
     {"_masses", T_OBJECT_EX, offsetof(System, masses), 0, trep_internal_doc},
     {"_time", T_DOUBLE, offsetof(System, time), 0, trep_internal_doc},
     {"_cache", T_ULONG, offsetof(System, cache), 0, trep_internal_doc},
+    {"_state_counter", T_INT, offsetof(System, state_counter), 0, trep_internal_doc},
 
     {"_f", T_OBJECT_EX, offsetof(System, f), 0, trep_internal_doc},
     {"_lambda", T_OBJECT_EX, offsetof(System, lambda), 0, trep_internal_doc},
