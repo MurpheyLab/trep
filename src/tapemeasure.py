@@ -64,14 +64,13 @@ class TapeMeasure(_TapeMeasure):
         return self._velocity_ddqdq(dq1, q2)
 
     if _opengl:
-        def opengl_draw(width=1, color=(1,1,1)):
+        def opengl_draw(self, width=1, color=(1,1,1)):
             glPushAttrib(GL_CURRENT_BIT | GL_LINE_BIT | GL_LIGHTING_BIT)
             glDisable(GL_LIGHTING)
-
             glColor3f(*color)
             glLineWidth(width)
             glBegin(GL_LINE_STRIP)
-            for f in self.sequence.frames:
+            for f in self._frames:
                 glVertex3f(*f.p()[:3])
             glEnd()
             glPopAttrib()

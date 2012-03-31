@@ -127,10 +127,12 @@ class VisualItem2D(VisualItem):
 
 class VisualItem3D(VisualItem):
     def __init__(self, *args, **kwds):
+        self.density = kwds.setdefault('density', 50)
+        del kwds['density']
+
         super(VisualItem3D, self).__init__(*args, **kwds)
 
         self.setOrientation(forward=[1,0,0], up=[0,0,1])
-        self.density = 50
 
         
     def setOrientation(self, forward, up):
@@ -185,10 +187,10 @@ class VisualItem3D(VisualItem):
                 glPushAttrib(GL_LIGHTING_BIT )
                 glDisable(GL_LIGHTING)
                 glBegin(GL_LINES)
-                glVertex3f(parent_g[0][3],
+                glVertex3d(parent_g[0][3],
                            parent_g[1][3],
                            parent_g[2][3])
-                glVertex3f(frame_g[0][3],
+                glVertex3d(frame_g[0][3],
                            frame_g[1][3],
                            frame_g[2][3])    
                 glEnd()
