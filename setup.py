@@ -24,11 +24,9 @@ if not os.path.exists(os.path.join(get_python_inc(), "numpy", "arrayobject.h")):
     include_dirs += [numpy.get_include()]
 
 
-# Fast indexing results in significant speed ups for second
-# derivatives.  Turning it off will force fast index accesses to use
-# the normal indexing functions where the array can be tested for the
-# correct dimensions for debugging and development.
-define_macros += [("TREP_FAST_INDEXING", None)]
+# Use safe indexing to force bounds and type checks in our numpy array
+# acceses.
+#define_macros += [("TREP_SAFE_INDEXING", None)]
 
 
 

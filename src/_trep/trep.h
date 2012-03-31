@@ -753,6 +753,8 @@ PYEXPORT double TapeMeasure_length_dqdqdq(TapeMeasure *self, Config *q1, Config 
 #define DOT_VEC3(a, b) ((a)[0]*(b)[0] + (a)[1]*(b)[1]+(a)[2]*(b)[2])
 
 
+#define ATTRIBUTE_UNUSED __attribute__ ((unused))
+
 /**********************************************************************
  * Functions/Macros fro accessing the data in Numpy arrays.
  *********************************************************************/ 
@@ -772,12 +774,12 @@ PYEXPORT double TapeMeasure_length_dqdqdq(TapeMeasure *self, Config *q1, Config 
  * these accesses by knowing that the stride data is not changing.  In
  * second derivatives, this can improve the speed by 2x.
  *
- * If TREP_FAST_INDEXING is not declared, the fast indexing will fall
- * back to the normal indexing.  This is useful for debugging because
- * you can force checks on the array bounds with each access.
+ * If TREP_SAFE_INDEXING is declared, all indexing methods go through
+ * functions that perform bounds checking and sanity checks.
  */
 
-#define ATTRIBUTE_UNUSED __attribute__ ((unused))
+
+#ifdef TREP_SAFE_INDEXING
 
 ATTRIBUTE_UNUSED 
 static void* IDX1(PyArrayObject *array, int i1) {
@@ -817,9 +819,23 @@ static void* IDX4(PyArrayObject *array, int i1, int i2, int i3, int i4)  {
     return PyArray_GETPTR4(array, i1, i2, i3, i4);
 }
 
+#define DECLARE_F_IDX1(VARIABLE, LOCAL_NAME) PyArrayObject* LOCAL_NAME = VARIABLE;                         
+#define DECLARE_F_IDX2(VARIABLE, LOCAL_NAME) PyArrayObject* LOCAL_NAME = VARIABLE;                         
+#define DECLARE_F_IDX3(VARIABLE, LOCAL_NAME) PyArrayObject* LOCAL_NAME = VARIABLE;                         
+#define DECLARE_F_IDX4(VARIABLE, LOCAL_NAME) PyArrayObject* LOCAL_NAME = VARIABLE;                         
 
+#define F_IDX1(LOCAL_NAME, i1)             IDX1(LOCAL_NAME, i1)
+#define F_IDX2(LOCAL_NAME, i1, i2)         IDX2(LOCAL_NAME, i1, i2)
+#define F_IDX3(LOCAL_NAME, i1, i2, i3)     IDX3(LOCAL_NAME, i1, i2, i3)
+#define F_IDX4(LOCAL_NAME, i1, i2, i3, i4) IDX4(LOCAL_NAME, i1, i2, i3, i4)
 
-#ifdef TREP_FAST_INDEXING
+#else  /* TREP_SAFE_INDEXING */
+/* Use fast indexing */
+
+#define IDX1(array, i1)             PyArray_GETPTR1(array, i1)
+#define IDX2(array, i1, i2)         PyArray_GETPTR2(array, i1, i2)
+#define IDX3(array, i1, i2, i3)     PyArray_GETPTR3(array, i1, i2, i3)
+#define IDX4(array, i1, i2, i3, i4) PyArray_GETPTR4(array, i1, i2, i3, i4)
 
 #define DECLARE_F_IDX1(VARIABLE, LOCAL_NAME)                     \
     char* LOCAL_NAME = PyArray_DATA(VARIABLE);                    \
@@ -865,19 +881,8 @@ static void* IDX4(PyArrayObject *array, int i1, int i2, int i3, int i4)  {
                                             (i3)*LOCAL_NAME##_strides[2] + \
                                             (i4)*LOCAL_NAME##_strides[3])
 
-#else /* TREP_FAST_INDEXING */
+#endif /* !TREP_SAFE_INDEXING */
 
-#define DECLARE_F_IDX1(VARIABLE, LOCAL_NAME) PyArrayObject* LOCAL_NAME = VARIABLE;                         
-#define DECLARE_F_IDX2(VARIABLE, LOCAL_NAME) PyArrayObject* LOCAL_NAME = VARIABLE;                         
-#define DECLARE_F_IDX3(VARIABLE, LOCAL_NAME) PyArrayObject* LOCAL_NAME = VARIABLE;                         
-#define DECLARE_F_IDX4(VARIABLE, LOCAL_NAME) PyArrayObject* LOCAL_NAME = VARIABLE;                         
-
-#define F_IDX1(LOCAL_NAME, i1)             IDX1(LOCAL_NAME, i1)
-#define F_IDX2(LOCAL_NAME, i1, i2)         IDX2(LOCAL_NAME, i1, i2)
-#define F_IDX3(LOCAL_NAME, i1, i2, i3)     IDX3(LOCAL_NAME, i1, i2, i3)
-#define F_IDX4(LOCAL_NAME, i1, i2, i3, i4) IDX4(LOCAL_NAME, i1, i2, i3, i4)
-
-#endif /* TREP_FAST_INDEXING */
 
 #define IDX1_DBL(array, i1) (*(double*)IDX1(array, i1))
 #define IDX2_DBL(array, i1, i2) (*(double*)IDX2(array, i1, i2))
