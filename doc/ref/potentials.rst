@@ -1,9 +1,12 @@
 .. _builtin_potential_energies:
 
-Potential Energies
-==================
+:mod:`trep.potentials` - Potential Energies
+===========================================
 
-.. currentmodule:: trep.potentials
+.. module:: trep.potentials
+   :platform: Linux, Mac
+   :synopsis: Built in potential energy types.
+
 
 
 Conservative forces are best modeled in :mod:`trep` as potential

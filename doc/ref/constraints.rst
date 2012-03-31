@@ -7,6 +7,7 @@
    :platform: Linux, Mac
    :synopsis: Built in holonomic constraint types.
 
+
 This module contains the built in types of holonomic constraints.
 
 These are the types of constraints currently built in to :mod:`trep`.

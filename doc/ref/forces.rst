@@ -1,9 +1,12 @@
 .. _builtin_forces:
 
-Forces
-======
+:mod:`trep.forces` - Forces
+===========================
 
-.. currentmodule:: trep.forces
+.. module:: trep.forces
+   :platform: Linux, Mac
+   :synopsis: Built in non-conservative force types.
+
 
 Non-conservative forces are modeled in trep by deriving from the
 :class:`Force` type.  These types of forces include damping and
