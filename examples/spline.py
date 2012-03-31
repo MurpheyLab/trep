@@ -1,9 +1,5 @@
 import trep
 
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
-
-
 data1 = [
     ( -65.000000,  50.000000, None, 0.0),
     ( -50.000000,   5.000000),
@@ -55,9 +51,6 @@ data2b = [
     ( 10.0, 345.0, 0.0, 0.0)
     ]
 
+from trep.visual.splineplotter import plot_spline
 
-app = QApplication([])
-spline1 = trep.Spline(data2b)#, [0,1,2], [0,1])
-plotter = trep.spline.SplinePlotter(spline1, points=1000)
-plotter.show()
-app.exec_()
+plot_spline(trep.Spline(data2b))
