@@ -8,6 +8,13 @@ from distutils.sysconfig import get_python_inc, get_config_var
 import os.path
 import numpy
 
+# Not sure if this is entirely portable.  It seems like it could
+# return a list of directories?
+
+def has_header(path):
+    INCLUDE = get_config_var('INCLUDEDIR')
+    return os.path.exists(os.path.join(INCLUDE, *path))
+
 
 include_dirs = []
 cflags=[]
@@ -29,6 +36,11 @@ if not os.path.exists(os.path.join(get_python_inc(), "numpy", "arrayobject.h")):
 #define_macros += [("TREP_SAFE_INDEXING", None)]
 
 
+# If this is a debug build and the valgrind headers are available,
+# enable calls to start and stop callgrind instrumentation.
+if get_config_var('Py_DEBUG') and has_header(['valgrind', 'callgrind.h']):
+    define_macros += [("USE_CALLGRIND", None)]
+        
 
 ################################################################################
 # Version management
@@ -186,7 +198,7 @@ ext_modules += [_trep]
 
 # Check for OpenGL headers.  If we can't find anything, just don't
 # build _polyobject.  There is a python implementation to fallback on.
-if os.path.exists(os.path.join(get_config_var('INCLUDEDIR'), "GL", "gl.h")):
+if has_header(['GL', 'gl.h']):
     _polyobject = Extension('trep.visual._polyobject',
                             extra_compile_args=[],
                             extra_link_args=['-lGL'],

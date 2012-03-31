@@ -38,6 +38,17 @@
 #endif
 
 
+
+#ifdef USE_CALLGRIND
+#include <valgrind/callgrind.h>
+#else
+/* Remove START/STOP instrumentation macros when callgrind isn't
+ * included. */
+#define CALLGRIND_START_INSTRUMENTATION
+#define CALLGRIND_STOP_INSTRUMENTATION
+#endif
+
+
 /*******************************************************************************
  * Types
  */

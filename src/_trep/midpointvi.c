@@ -2671,21 +2671,30 @@ static PyObject* set_midpoint(MidpointVI *mvi, PyObject *args)
 
 static PyObject* calc_f_wrap(MidpointVI *mvi)
 {
-    if(MidpointVI_calc_f(mvi))
+    CALLGRIND_START_INSTRUMENTATION;
+    int error = MidpointVI_calc_f(mvi);
+    CALLGRIND_STOP_INSTRUMENTATION;    
+    if(error)
 	return NULL;
     Py_RETURN_NONE;
 }
 
 static PyObject* calc_deriv1_wrap(MidpointVI *mvi)
 {
-    if(MidpointVI_calc_deriv1(mvi))
+    CALLGRIND_START_INSTRUMENTATION;
+    int error = MidpointVI_calc_deriv1(mvi);
+    CALLGRIND_STOP_INSTRUMENTATION;
+    if(error)
 	return NULL;
     Py_RETURN_NONE;
 }
 
 static PyObject* calc_deriv2_wrap(MidpointVI *mvi)
 {
-    if(MidpointVI_calc_deriv2(mvi))
+    CALLGRIND_START_INSTRUMENTATION;
+    int error = MidpointVI_calc_deriv2(mvi);
+    CALLGRIND_STOP_INSTRUMENTATION;    
+    if(error)
 	return NULL;
     Py_RETURN_NONE;
 }
@@ -2724,7 +2733,9 @@ static PyObject *solve_DEL(MidpointVI *mvi, PyObject *args)
 
     if(!PyArg_ParseTuple(args, "i", &max_iterations))
         return NULL;
+    CALLGRIND_START_INSTRUMENTATION;
     steps = MidpointVI_solve_DEL(mvi, max_iterations);    
+    CALLGRIND_STOP_INSTRUMENTATION;
     if(steps == -1)
 	return NULL;
     return PyInt_FromLong(steps);
