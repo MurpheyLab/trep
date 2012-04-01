@@ -92,7 +92,9 @@ class TapeMeasure(_TapeMeasure):
         ## columns from left to right with indices of the correct
         ## segments.
 
-        table = np.ones( (self.system.nQ, len(self._frames)-1), dtype=np.int32) * -1
+        # This has to be one longer than the length of segments so we
+        # can have -1 to indicate the end even if all segments depend on q.        
+        table = np.ones( (self.system.nQ, len(self._frames)), dtype=np.int32) * -1
 
         for qi,q in enumerate(self.system.configs):
             segments = []
@@ -106,13 +108,14 @@ class TapeMeasure(_TapeMeasure):
                     continue
                 if frame1.uses_config(q) and frame2.uses_config(q):
                     continue
-                segments.append(i)
+                segments.append(i)                
             # Save the list to the table
             for i,seg in enumerate(segments):
                 table[qi, i] = seg
-
-        # Save it for the C code to use.
-        self._seg_table = table
+        # Save it for the C code to use.  Make a copy to ensure
+        # correct ordering and type (this bit me earlier when numpy
+        # decided to change it between np.ones() and here.
+        self._seg_table = np.array(table, dtype=np.int32, order='C')
             
         
 
