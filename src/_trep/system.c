@@ -72,6 +72,7 @@
 void System_state_changed(System *sys)
 {
     sys->cache = SYSTEM_CACHE_NONE;
+    sys->state_counter += 1;
 }
 
 double System_total_energy(System *sys)
