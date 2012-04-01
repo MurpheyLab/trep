@@ -15,6 +15,11 @@ class TapeMeasure(_TapeMeasure):
     def __init__(self, system, frames):
         self._system = system
         self._frames = tuple([system.get_frame(f) for f in frames])
+        # Update the seg table.
+        self._system.add_structure_changed_func(self._update_structure)
+        # Trigger a system change so our update gets called.  Don't
+        # call it directly in case there is a hold in progres right now.
+        self._system._structure_changed()
 
     @property
     def system(self):
@@ -74,6 +79,42 @@ class TapeMeasure(_TapeMeasure):
                 glVertex3f(*f.p()[:3])
             glEnd()
             glPopAttrib()
+
+    def _update_structure(self):
+
+        ## We are going to create a table that maps configuration
+        ## variables with a list of segments where only one frame
+        ## depends on that configuration variable.  We could do this
+        ## with a simple list of lists, but to avoid writing any more
+        ## C than we have to, we'll save it to a 2D numpy array of
+        ## integers.  It will be [nQ x num_segments] initialized to
+        ## -1.  Each row corresponds to one config.  Then we fill the
+        ## columns from left to right with indices of the correct
+        ## segments.
+
+        table = np.ones( (self.system.nQ, len(self._frames)-1), dtype=np.int32) * -1
+
+        for qi,q in enumerate(self.system.configs):
+            segments = []
+
+            for i in range(len(self._frames)-1):
+                frame1 = self._frames[i]
+                frame2 = self._frames[i+1]
+
+                # Looking for segments where only one frame depends on q
+                if not frame1.uses_config(q) and not frame2.uses_config(q):
+                    continue
+                if frame1.uses_config(q) and frame2.uses_config(q):
+                    continue
+                segments.append(i)
+            # Save the list to the table
+            for i,seg in enumerate(segments):
+                table[qi, i] = seg
+
+        # Save it for the C code to use.
+        self._seg_table = table
+            
+        
 
     ############################################################################
     # Functions to test derivatives (may move to unit tests)

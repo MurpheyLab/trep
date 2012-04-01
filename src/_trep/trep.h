@@ -690,7 +690,10 @@ struct TapeMeasure_s {
 
     System *system;
     PyTupleObject *frames;
+    PyArrayObject *seg_table;
 };
+
+#define TapeMeasure_USES_CONFIG(self, q) ( ((int*)IDX1(self->seg_table, q->index))[0] != -1)
 
 
 /* Functions to safely retrieve configuration/velocity information

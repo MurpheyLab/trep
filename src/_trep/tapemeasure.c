@@ -26,6 +26,7 @@ double TapeMeasure_length(TapeMeasure *self)
 
 double TapeMeasure_length_dq(TapeMeasure *self, Config *q1)
 {
+    int *segments = (int*)IDX1(self->seg_table, q1->index);
     double xk = 0.0;  // Length of one segment
     double xk_dq1 = 0.0; // Derivative of one segment
     double x_dq1 = 0.0; // Derivative of total length 
@@ -35,13 +36,10 @@ double TapeMeasure_length_dq(TapeMeasure *self, Config *q1)
     Frame *frame2 = NULL;
     int k;
 
-    for(k = 0; k < PyTuple_GET_SIZE(self->frames)-1; k++) {
-        frame1 = (Frame*)PyTuple_GET_ITEM(self->frames, k);
-        frame2 = (Frame*)PyTuple_GET_ITEM(self->frames, k+1);
+    for(k = 0; segments[k] != -1; k++) {
+        frame1 = (Frame*)PyTuple_GET_ITEM(self->frames, segments[k]);
+        frame2 = (Frame*)PyTuple_GET_ITEM(self->frames, segments[k]+1);
 
-        if(!Frame_USES_CONFIG(frame1, q1) && !Frame_USES_CONFIG(frame2, q1))
-            continue;
-        
         sub_vec4(v, *Frame_p(frame1), *Frame_p(frame2));
         sub_vec4(v_dq1, *Frame_p_dq(frame1, q1), *Frame_p_dq(frame2, q1));
         xk = sqrt(v[0]*v[0] + v[1]*v[1] + v[2]*v[2]);
@@ -58,9 +56,6 @@ double TapeMeasure_length_dqdq(TapeMeasure *self, Config *q1, Config *q2)
     double xk_dq1 = 0.0; // 1st Derivative of one segment
     double xk_dq2 = 0.0; // 1st Derivative of one segment
     double xk_dq1dq2 = 0.0; // 2nd Derivative of one segment
-    double x = 0.0;   // Total length
-    double x_dq1 = 0.0; // 1st Derivative of total length 
-    double x_dq2 = 0.0; // 1st Derivative of total length
     double x_dq1dq2 = 0.0; // 2nd Derivative of total length
     vec4 v;           // Vector between two points
     vec4 v_dq1;       // 1st Derivative of vector between two points.
@@ -70,13 +65,16 @@ double TapeMeasure_length_dqdq(TapeMeasure *self, Config *q1, Config *q2)
     Frame *frame2 = NULL;
     int k;
 
-    for(k = 0; k < PyTuple_GET_SIZE(self->frames)-1; k++) {
-        frame1 = (Frame*)PyTuple_GET_ITEM(self->frames, k);
-        frame2 = (Frame*)PyTuple_GET_ITEM(self->frames, k+1);
+    int *segments = (int*)IDX1(self->seg_table, q1->index);
+    
+    for(k = 0; segments[k] != -1; k++) {
+        frame1 = (Frame*)PyTuple_GET_ITEM(self->frames, segments[k]);
+        frame2 = (Frame*)PyTuple_GET_ITEM(self->frames, segments[k]+1);
 
-        if(!Frame_USES_CONFIG(frame1, q1) && !Frame_USES_CONFIG(frame2, q1))
-            continue;
+        /* Only need to work on segments where only one frame depends on q2 */
         if(!Frame_USES_CONFIG(frame1, q2) && !Frame_USES_CONFIG(frame2, q2))
+            continue;
+        if(Frame_USES_CONFIG(frame1, q2) && Frame_USES_CONFIG(frame2, q2))
             continue;
 
         sub_vec4(v, *Frame_p(frame1), *Frame_p(frame2));
@@ -92,9 +90,6 @@ double TapeMeasure_length_dqdq(TapeMeasure *self, Config *q1, Config *q2)
             - (v[0]*v_dq1dq2[0] + v[1]*v_dq1dq2[1] + v[2]*v_dq1dq2[2]);
         xk_dq1dq2 = -1.0/xk * xk_dq1dq2;
 
-        x += xk;
-        x_dq1 += xk_dq1;
-        x_dq2 += xk_dq2;
         x_dq1dq2 += xk_dq1dq2;
     }
     return x_dq1dq2;
@@ -234,6 +229,7 @@ static void dealloc(TapeMeasure *self)
 {
     Py_CLEAR(self->system);
     Py_CLEAR(self->frames);
+    Py_CLEAR(self->seg_table);
     self->ob_type->tp_free((PyObject*)self);
 }
 
@@ -363,6 +359,7 @@ static PyMethodDef methods_list[] = {
 static PyMemberDef members_list[] = {
     {"_system", T_OBJECT_EX, offsetof(TapeMeasure, system), 0, trep_internal_doc},
     {"_frames", T_OBJECT_EX, offsetof(TapeMeasure, frames), 0, trep_internal_doc},
+    {"_seg_table", T_OBJECT_EX, offsetof(TapeMeasure, seg_table), 0, trep_internal_doc},
     {NULL}  /* Sentinel */
 };
 
