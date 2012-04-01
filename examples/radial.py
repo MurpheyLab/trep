@@ -154,8 +154,8 @@ class PistonVisual(visual.VisualItem3D):
         super(PistonVisual, self).__init__(*args, **kwds)
         self.density = 5000
 
-# No we can show the simulation using the builtin basic visualizer.
-#visual.visualize_3d([PistonVisual(system, t, q)])
+# Now we can show the simulation using the builtin basic visualizer.
+visual.visualize_3d([PistonVisual(system, t, q)])
 
 
 
