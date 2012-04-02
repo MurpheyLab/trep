@@ -1,4 +1,4 @@
-#define TREP_C_API_VERSION 1
+#define TREP_C_API_VERSION 2
 
 
 /* Please increment TREP_C_API_VERSION whenever anything in this file
@@ -116,10 +116,38 @@ static FrameTransform *TREP_CONST_SE3;
 static int import_trep(void)
 {
     trep_API_def_t *trep_api;
-    
+
+#if 1   // 2.6 compatibility for Todd
+    PyObject *trep_api_object;
+    PyObject *module;
+
+    module = PyImport_ImportModule("trep");
+    if (module == NULL) {
+        PyErr_Format(PyExc_ImportError, "Could not import trep");
+        return -1;
+    }
+
+    trep_api_object = PyObject_GetAttrString(module, "_C_API");
+    if (trep_api_object == NULL) {
+        PyErr_Format(PyExc_ImportError, "Could not import trep._C_API");
+        Py_DECREF(module);
+        return -1;
+    }
+    if(!PyCObject_Check(trep_api_object)) {
+        PyErr_Format(PyExc_ImportError, "trep._C_API is not a CObject.");
+        Py_DECREF(module);
+        Py_DECREF(trep_api_object);
+        return -1;
+    }
+    trep_api = (trep_API_def_t*)PyCObject_AsVoidPtr(trep_api_object);
+
+    Py_DECREF(trep_api_object);
+    Py_DECREF(module);
+#else      
     trep_api = (trep_API_def_t*)PyCapsule_Import("trep._C_API", 0);
     if(trep_api == NULL)
         return -1;
+#endif
 
     if(trep_api->size != capi_size) {
         PyErr_Format(PyExc_ImportError, "trep API has unexpected size %d (expected %d)",
@@ -598,7 +626,8 @@ static PyObject* export_trep(void)
     trep_API_def.API = trep_API;
     
     /* Create a Capsule containing the API pointer array's address */
-    return PyCapsule_New((void *)&trep_API_def, "trep._C_API", NULL);
+    //return PyCapsule_New((void *)&trep_API_def, "trep._C_API", NULL);
+    return PyCObject_FromVoidPtr((void *)&trep_API_def, NULL);
 }
 
 
