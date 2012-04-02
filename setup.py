@@ -1,5 +1,6 @@
 #!/usr/bin/python
 
+import sys
 import subprocess
 from distutils.util import convert_path
 from distutils.core import setup
@@ -198,12 +199,21 @@ ext_modules += [_trep]
 
 # Check for OpenGL headers.  If we can't find anything, just don't
 # build _polyobject.  There is a python implementation to fallback on.
-if has_header(['GL', 'gl.h']):
-    _polyobject = Extension('trep.visual._polyobject',
-                            extra_compile_args=[],
-                            extra_link_args=['-lGL'],
-                            sources = ['src/visual/_polyobject.c'])
-    ext_modules += [_polyobject]
+if sys.platform == 'darwin':
+    if has_header(['OpenGL', 'gl.h']):
+        _polyobject = Extension('trep.visual._polyobject',
+                                extra_compile_args=[],
+                                extra_link_args=['-framework OpenGL'],
+                                sources = ['src/visual/_polyobject.c'])
+        ext_modules += [_polyobject]
+
+else:
+    if has_header(['GL', 'gl.h']):
+        _polyobject = Extension('trep.visual._polyobject',
+                                extra_compile_args=[],
+                                extra_link_args=['-lGL'],
+                                sources = ['src/visual/_polyobject.c'])
+        ext_modules += [_polyobject]
 
 
 setup (name = 'trep',

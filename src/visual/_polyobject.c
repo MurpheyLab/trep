@@ -1,7 +1,12 @@
 #include <Python.h>
 #include "structmember.h"
-#include <GL/gl.h>
 #include <numpy/arrayobject.h>
+
+#ifdef __APPLE__
+#include <OpenGL/glu.h>
+#else
+#include <GL/gl.h>
+#endif
 
 
 
