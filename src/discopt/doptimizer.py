@@ -1,3 +1,4 @@
+import time
 import datetime
 import numpy as np
 
@@ -105,24 +106,29 @@ class DOptimizerDefaultMonitor(DOptimizerMonitor):
         self.start_cost = 0
         self.start_dcost = 0
         self.method = ''
+        self.start_time = None
 
         self.cost_history = {}
         self.dcost_history = {}
 
 
     def msg(self, msg):
-        print "%s %3d: %s" % (
-            datetime.datetime.now().strftime('[%H:%M:%S]'),
-            self.iteration, msg)
-
+        if self.start_time is not None:
+            delta = datetime.datetime.now() - self.start_time
+            timestamp = time.strftime("+[%H:%M:%S]",time.gmtime(delta.seconds))            
+        else:
+            timestamp = datetime.datetime.now().strftime('[%H:%M:%S]')
+        print "%s %3d: %s" % (timestamp, self.iteration, msg)
 
     def optimize_begin(self, X, U):
         self.cost_history = {}
         self.dcost_history = {}
+        self.start_time = datetime.datetime.now()
 
 
     def optimize_end(self, converged, X, U, cost):
         print ""
+        self.start_time = None
 
 
     def step_begin(self, iteration):
@@ -139,7 +145,7 @@ class DOptimizerDefaultMonitor(DOptimizerMonitor):
 
     def step_method_failure(self, method, cost, dcost, fallback_method):
         self.msg("Descent method %r failed (dcost=%s), fallbacking to %s" % (
-            original_method, dcost, fallback_method))
+            self.method, dcost, fallback_method))
 
 
     def step_termination(self, cost, dcost):
@@ -149,7 +155,6 @@ class DOptimizerDefaultMonitor(DOptimizerMonitor):
     def step_completed(self, method, cost, nX, nU):
         self.msg("cost=(%s => %s)  dcost=%s method=%s  armijo=%d" % (
             self.start_cost, cost, self.start_dcost, method, self.armijo))
-
 
     def armijo_simulation_failure(self, armijo_iteration, nX, nU, bX, bU):
         self.msg("  Armijo simulation (%d) failed after %d steps." % (
@@ -162,6 +167,34 @@ class DOptimizerDefaultMonitor(DOptimizerMonitor):
     
     def armijo_evaluation(self, armijo_iteration, nX, nU, bX, bU, cost, max_cost):
         self.armijo = armijo_iteration
+
+
+class DOptimizerVerboseMonitor(DOptimizerDefaultMonitor):
+    """
+    The verbose DOptimizer Monitor prints more information.
+    """
+   
+    def optimize_begin(self, X, U):
+        self.msg("Optimization starting at %s" % datetime.datetime.now().strftime('[%H:%M:%S]'))
+        super(DOptimizerVerboseMonitor, self).optimize_begin(X, U)
+
+
+    def optimize_end(self, converged, X, U, cost):
+        self.msg("Optimization completed at %s" % datetime.datetime.now().strftime('[%H:%M:%S]'))
+        super(DOptimizerVerboseMonitor, self).optimize_end(X, U, cost)
+
+
+    def step_info(self, method, cost, dcost, X, U, dX, dU, Kproj):
+        self.msg("Current Trajectory cost: %f, dcost: %f, method=%s" % (cost, dcost, method))
+        super(DOptimizerVerboseMonitor, self).step_info(method, cost, dcost, X, U, dX, dU, Kproj)
+
+    
+    def armijo_evaluation(self, armijo_iteration, nX, nU, bX, bU, cost, max_cost):
+        if cost >= max_cost:
+            self.msg("  Armijo evaluation (%d) is too expensive (%f >= %f)" % (
+                armijo_iteration, cost, max_cost))
+        super(DOptimizerVerboseMonitor, self).armijo_evaluation(
+            armijo_iteration, nX, nU, bX, bU, cost, max_cost)
 
 
 class DOptimizer(object):
