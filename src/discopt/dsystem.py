@@ -44,6 +44,8 @@ class DSystem(object):
 
         # Slices of the components in the appropriate vector
         self._slice_Q = slice(0, self._nQ)
+        self._slice_Qd = slice(0, self._np)
+        self._slice_Qk = slice(self._np, self._nQ)
         self._slice_p = slice(self._nQ, self._nQ + self._np)
         self._slice_v = slice(self._nQ + self._np, self._nX)
         self._slice_u = slice(0, self._nu)
@@ -279,11 +281,13 @@ class DSystem(object):
         # Initialize with diagonal matrix of -1/dt to get dv/dv block.
         # The other diagonal terms will be overwritten.
         dt = self._time[self._k+1] - self._time[self._k+0]
-        fdx = np.diag(np.ones(self._nX) * -1.0/dt)
-        fdx[self._slice_Q, self._slice_Q] = self.varint.q2_dq1()
-        fdx[self._slice_Q, self._slice_p] = self.varint.q2_dp1()
+        fdx = np.zeros((self._nX, self._nX))
+        fdx[self._slice_Qd, self._slice_Q] = self.varint.q2_dq1()
+        fdx[self._slice_Qd, self._slice_p] = self.varint.q2_dp1()
+        # Qk derivatives are all zero
         fdx[self._slice_p, self._slice_Q] = self.varint.p2_dq1()
         fdx[self._slice_p, self._slice_p] = self.varint.p2_dp1()
+        fdx[self._slice_v, self._slice_Qk] = np.diag(np.ones(self._nv) * -1.0/dt)
         return fdx
 
 
@@ -295,8 +299,9 @@ class DSystem(object):
         
         dt = self._time[self._k+1] - self._time[self._k+0]
         fdu = np.zeros((self._nX, self._nU))
-        fdu[self._slice_Q, self._slice_u] = self.varint.q2_du1()
-        fdu[self._slice_Q, self._slice_rho] = self.varint.q2_dk2()
+        fdu[self._slice_Qd, self._slice_u] = self.varint.q2_du1()
+        fdu[self._slice_Qd, self._slice_rho] = self.varint.q2_dk2()
+        fdu[self._slice_Qk, self._slice_rho] = np.eye(self._nrho)
         fdu[self._slice_p, self._slice_u] = self.varint.p2_du1()
         fdu[self._slice_p, self._slice_rho] = self.varint.p2_dk2()
         fdu[self._slice_v, self._slice_rho] = np.diag(np.ones(self._nrho) * 1.0/dt)
@@ -310,19 +315,19 @@ class DSystem(object):
         array.
         """
 
-        zQ = z[self._slice_Q]
+        zQd = z[self._slice_Qd]
         zp = z[self._slice_p]
-        # Don't care about zv, because second derivative is always zero.
+        # Don't care about zv or zQk because second derivative is always zero.
 
         fdxdx = np.zeros((self._nX, self._nX))
-        fdxdx[self._slice_Q, self._slice_Q] = (np.inner(zQ, self.varint.q2_dq1dq1()) +
-                                               np.inner(zp, self.varint.p2_dq1dq1()))            
-        fdxdx[self._slice_Q, self._slice_p] = (np.inner(zQ, self.varint.q2_dq1dp1()) +
-                                               np.inner(zp, self.varint.p2_dq1dp1()))
+        fdxdx[self._slice_Q, self._slice_Q] = (np.inner(zQd, self.varint.q2_dq1dq1()) +
+                                               np.inner( zp, self.varint.p2_dq1dq1()))            
+        fdxdx[self._slice_Q, self._slice_p] = (np.inner(zQd, self.varint.q2_dq1dp1()) +
+                                               np.inner( zp, self.varint.p2_dq1dp1()))
         fdxdx[self._slice_p, self._slice_Q] = fdxdx[self._slice_Q, self._slice_p].T
 
-        fdxdx[self._slice_p, self._slice_p] = (np.inner(zQ, self.varint.q2_dp1dp1()) +
-                                               np.inner(zp, self.varint.p2_dp1dp1()))
+        fdxdx[self._slice_p, self._slice_p] = (np.inner(zQd, self.varint.q2_dp1dp1()) +
+                                               np.inner( zp, self.varint.p2_dp1dp1()))
         return fdxdx
 
         
@@ -333,20 +338,20 @@ class DSystem(object):
         x nU] numpy array.
         """        
 
-        zQ = z[self._slice_Q]
+        zQd = z[self._slice_Qd]
         zp = z[self._slice_p]
-        # Don't care about zv, because second derivative is always
+        # Don't care about zv or zQk because second derivative is always
         # zero.
 
         fdxdu = np.zeros((self._nX, self._nU))
-        fdxdu[self._slice_Q, self._slice_u]   = (np.inner(zQ, self.varint.q2_dq1du1()) +
-                                                 np.inner(zp, self.varint.p2_dq1du1()))
-        fdxdu[self._slice_Q, self._slice_rho] = (np.inner(zQ, self.varint.q2_dq1dk2()) +
-                                                 np.inner(zp, self.varint.p2_dq1dk2()))
-        fdxdu[self._slice_p, self._slice_u]   = (np.inner(zQ, self.varint.q2_dp1du1()) +
-                                                 np.inner(zp, self.varint.p2_dp1du1()))
-        fdxdu[self._slice_p, self._slice_rho] = (np.inner(zQ, self.varint.q2_dp1dk2()) +
-                                                 np.inner(zp, self.varint.p2_dp1dk2()))
+        fdxdu[self._slice_Q, self._slice_u]   = (np.inner(zQd, self.varint.q2_dq1du1()) +
+                                                 np.inner( zp, self.varint.p2_dq1du1()))
+        fdxdu[self._slice_Q, self._slice_rho] = (np.inner(zQd, self.varint.q2_dq1dk2()) +
+                                                 np.inner( zp, self.varint.p2_dq1dk2()))
+        fdxdu[self._slice_p, self._slice_u]   = (np.inner(zQd, self.varint.q2_dp1du1()) +
+                                                 np.inner( zp, self.varint.p2_dp1du1()))
+        fdxdu[self._slice_p, self._slice_rho] = (np.inner(zQd, self.varint.q2_dp1dk2()) +
+                                                 np.inner( zp, self.varint.p2_dp1dk2()))
         return fdxdu
 
 
@@ -357,18 +362,18 @@ class DSystem(object):
         array.
         """
 
-        zQ = z[self._slice_Q]
+        zQd = z[self._slice_Qd]
         zp = z[self._slice_p]
-        # Don't care about zv, because second derivative is always zero.
+        # Don't care about zv or zQk because second derivative is always zero.
 
         fdudu = np.zeros((self._nU, self._nU))
-        fdudu[self._slice_u, self._slice_u]   = (np.inner(zQ, self.varint.q2_du1du1()) +
-                                                 np.inner(zp, self.varint.p2_du1du1()))
-        fdudu[self._slice_u, self._slice_rho] = (np.inner(zQ, self.varint.q2_du1dk2()) +
-                                                 np.inner(zp, self.varint.p2_du1dk2()))
+        fdudu[self._slice_u, self._slice_u]   = (np.inner(zQd, self.varint.q2_du1du1()) +
+                                                 np.inner( zp, self.varint.p2_du1du1()))
+        fdudu[self._slice_u, self._slice_rho] = (np.inner(zQd, self.varint.q2_du1dk2()) +
+                                                 np.inner( zp, self.varint.p2_du1dk2()))
         fdudu[self._slice_rho, self._slice_u]   = fdudu[self._slice_u, self._slice_rho].T
-        fdudu[self._slice_rho, self._slice_rho] = (np.inner(zQ, self.varint.q2_dk2dk2()) +
-                                                   np.inner(zp, self.varint.p2_dk2dk2()))
+        fdudu[self._slice_rho, self._slice_rho] = (np.inner(zQd, self.varint.q2_dk2dk2()) +
+                                                   np.inner( zp, self.varint.p2_dk2dk2()))
         return fdudu
     
 
