@@ -71,6 +71,10 @@ class BasicViewer(QMainWindow):
         
         self.playAct = QAction("&Play/Pause", self, shortcut="Ctrl+P",
                                  statusTip="Play or Pause", triggered=self.playpause)
+
+        self.getCameraAct = QAction("Camera Position", self,
+                                    statusTip="Display the Camera position/location",
+                                    triggered=self.show_camera_pos)
         
         self.aboutAct = QAction("&About trep", self,
                 statusTip="Information about trep",
@@ -92,6 +96,9 @@ class BasicViewer(QMainWindow):
         self.playMenu.addAction(self.rewindAct)
         self.playMenu.addAction(self.playAct)
 
+        self.viewMenu = self.menuBar().addMenu("&View")
+        self.viewMenu.addAction(self.getCameraAct)
+
         self.helpMenu = self.menuBar().addMenu("&Help")
         self.helpMenu.addAction(self.aboutAct)
         self.helpMenu.addAction(self.aboutQtAct)
@@ -102,7 +109,13 @@ class BasicViewer(QMainWindow):
 
     def playpause(self):
         self.scene.togglePlay()
-        
+
+    def show_camera_pos(self):
+        info = ""
+        info += "position=%r<br>" % (self.view.camera._pos,)
+        info += "angles=%r" % (self.view.camera._ang, )
+        QMessageBox.about(self, "Camera Position", info)
+
     def about(self):
         QMessageBox.about(self, "About trep",
                 "trep %s<br><Br>" 
@@ -152,11 +165,16 @@ def visualize_2d(items, argv=[]):
     return app.exec_()
 
 
-def visualize_3d(items, argv=[]):
+def visualize_3d(items, argv=[], camera_pos=None, camera_ang=None):
     app = QApplication(argv)
     viewer = BasicViewer()
 
     viewer.setSceneView(View3D())
+
+    if camera_ang is not None:
+        viewer.view.camera._ang = np.array(camera_ang)
+    if camera_pos is not None:
+        viewer.view.camera._pos = np.array(camera_pos)
       
     for item in items:
         viewer.scene.addItem(item)
