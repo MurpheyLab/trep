@@ -194,8 +194,11 @@ class MidpointVI(_MidpointVI):
         if q2_hint is not None:
             self._q2[:self.nd] = q2_hint[:self.nd]
         if lambda1_hint is not None:
-            self.lambda1 = lambda1_hint        
-        return self._solve_DEL(max_iterations)
+            self.lambda1 = lambda1_hint
+        try:
+            return self._solve_DEL(max_iterations)
+        except ValueError:  # Catch singular derivatives.
+            raise trep.ConvergenceError("Singular derivative of DEL at t=%s" % t2)
     
     def calc_f(self):
         """
