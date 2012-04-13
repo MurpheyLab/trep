@@ -10,15 +10,19 @@ class DCost(object):
     l(x,u,k) = (x - x_d[k]).T * Q * (x - x_d[k]) +
                (u - u_d[k]).T * R * (u - u_d[k])
 
-    m(xf) = (xf - x_d[kf]).T * Q * (xf - x_d[kf])
+    m(xf) = (xf - x_d[kf]).T * Qf * (xf - x_d[kf])
     """
     
-    def __init__(self, xd, ud, Q, R):
+    def __init__(self, xd, ud, Q, R, Qf=None):
         """ Create a new DCost instance. """
         
         self.xd = xd.copy()
         self.ud = ud.copy()
         self.Q = Q
+        if Qf is None:
+            self.Qf = self.Q
+        else:
+            self.Qf = Qf
         self.R = R
         nX = Q.shape[0]
         nU = R.shape[0]
@@ -41,7 +45,7 @@ class DCost(object):
     def m(self, xkf):
         """Calculate the terminal cost for the given state."""
         dx = xkf - self.xd[-1]
-        return 0.5 * dot(dot(dx, self.Q), dx)
+        return 0.5 * dot(dot(dx, self.Qf), dx)
 
     def l_dx(self, xk, uk, k):
         """
@@ -62,7 +66,7 @@ class DCost(object):
     def m_dx(self, xkf):
         """Calculate the derivative of the terminal cost."""
         dx = xkf - self.xd[-1]
-        return dot(dx, self.Q)
+        return dot(dx, self.Qf)
 
     def l_dxdx(self, xk, uk, k):
         """
@@ -87,5 +91,5 @@ class DCost(object):
     
     def m_dxdx(self, xkf):
         """Calculate the second derivative of the terminal cost."""
-        return self.Q.copy()
+        return self.Qf.copy()
         
