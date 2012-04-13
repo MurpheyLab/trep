@@ -322,6 +322,12 @@ class MidpointVI(_MidpointVI):
         self._cache = 0
         self._t2 = t
 
+    @property
+    def v2(self):
+        """Discrete kinematic velocity for k=2 (q2k-q1k/t2-t1)"""
+        v2 = (self.q2 - self.q1)/(self.t2 - self.t1)
+        return v2[self.nd:]
+      
 
     # Derivatives of q2
 

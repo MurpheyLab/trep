@@ -267,9 +267,7 @@ class DSystem(object):
         """
         Get the next state of the system.
         """
-        v2 = (self.varint.q2 - self.varint.q1)/(self.varint.t2 - self.varint.t1)
-        v2 = v2[self.varint.nd:]
-        return self.build_state(self.varint.q2, self.varint.p2, v2)
+        return self.build_state(self.varint.q2, self.varint.p2, self.varint.v2)
 
 
     def fdx(self):
