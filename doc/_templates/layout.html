@@ -1,7 +1,11 @@
 {% extends "!layout.html" %}
-{% block document %}
+{% block extrahead %}
     <script type="math/tex">
     {{ math_commands }}
     </script>
     {{ super() }}
+{% endblock %}
+
+{% block sidebarlogo %}
+    <h2><a href="http://trep.googlecode.com/">Project Website</a></h2>
 {% endblock %}
