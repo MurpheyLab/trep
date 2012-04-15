@@ -1,6 +1,11 @@
 
-Core Components
-===============
+:mod:`trep` - Core Components
+=============================
+
+.. module:: trep
+   :platform: Linux, Mac
+   :synopsis: Dynamics and Optimal Control Tools
+
 
 .. toctree::
    :maxdepth: 1

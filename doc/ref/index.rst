@@ -1,17 +1,13 @@
-:mod:`trep` Reference
-=====================
+.. _api reference:
 
-.. module:: trep
-   :platform: Linux, Mac
-   :synopsis: Dynamics and Optimal Control Tools
+API Reference
+=============
 
 :mod:`trep` is a Python module for simulation and trajectory
 optimization of mechanical systems in generalized coordinates.  
 
-
 The dynamics can be modeled in continuous time as a traditional ODE,
 or in discrete time using variational integrators.
-
 
 The central component of :mod:`trep` is the :class:`System`
 class. A :class:`System` is a collection of coordinate frames,

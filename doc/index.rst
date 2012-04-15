@@ -10,25 +10,19 @@ Trep: Dynamic Simulation and Optimal Control
 :Date: |today|
 
 Trep is a Python module for modeling rigid body mechanical systems in
-generalized coordinates.  Trep is designed to be fast, easy to use,
-and easy to extend.  Trep currently features:
+generalized coordinates.  It provides tools for calculating continuous
+and discrete dynamics (based on a midpoint variational integrator),
+and the first and second derivatives of both.  Tools for trajectory
+optimization and other basic optimal control methods are also available.
 
-- Concise System Definitions
-- Conservative Forces (Potential Energies)
-- Non-Conservative forces
-- Holonomic Constraints
-- Continuous Dynamics
-- Exact 1\ :sup:`st` and 2\ :sup:`nd` derivatives of continuous dynamics
-- Discrete Dynamics using Variational Integrators
-- Exact 1\ :sup:`st` and 2\ :sup:`nd` derivatives of discrete dynamics
-- Projection-based Trajectory Optimization in discrete time
-- Automatic Visualization Tools
-- Excellent Scalability
+We're still getting all of this documentation together.  You can find
+detailed `installation instructions
+<http://code.google.com/p/trep/wiki/Installation>`_ on our website.
+Many examples are included with the source code (`browse online
+<http://code.google.com/p/trep/source/browse/#git%2Fexamples>`_).
 
-We're still getting all of this documentation together.  For now,
-check out the :ref:`installation` page to get setup using :mod:`trep`
-and checkout the :mod:`module reference <trep>`.
-
+The :ref:`api reference` has detailed documentation for each part of
+:mod:`trep`.
 
 If you have any questions or suggestions, please head over to our
 `project page <http://trep.googlecode.com/>`_.
@@ -39,12 +33,14 @@ Contents:
 .. toctree::
    :maxdepth: 2
 
-   overview
-   installation
-   user_guide/index
    ref/index
-   
+
+.. toctree:: 
+   :hidden:
+
+   user_guide/index
    placeholders
+   internal/tapemeasure
 
 Indices and tables
 ==================
