@@ -25,7 +25,7 @@ on variational integrators.  You would need to define a compatible
 DOptimizer Objects
 ------------------
 
-.. class:: DOptimizer(dsys, cost, lower_order_iterations=5, monitor=None)
+.. class:: DOptimizer(dsys, cost, first_method_iterations=10, monitor=None)
 
    You should create a new optimizer for each new system or cost, but
    for a given combination you can optimize as many different
@@ -274,12 +274,27 @@ Optimizing a Trajectory
       * *X,U* is the improved trajectory.
 
 
-.. attribute:: DOptimizer.lower_order_iterations 
+.. attribute:: DOptimizer.first_method_iterations 
 
-   Number of lower order steps taken in :meth:`optimize` before
-   switching to Newton's method.  See :meth:`select_method` for more
-   information on controlling the step method.
-        
+   Number of steps to take using :attr:`first_method` before switching
+   to :attr:`second_method` for the remaining steps.  See
+   :meth:`select_method` for more information on controlling the step
+   method.
+
+   *Default: 10*
+
+.. attribute:: DOptimizer.first_method        
+               
+   Descent method to use for the first iterations of the optimization.
+
+   *Default: "quasi"*
+
+.. attribute:: DOptimizer.second_metho
+
+   Descent method to use for the optimzation after
+   :attr:`first_method_iterations` iterations have been taken.
+
+   *Default: "netwon"*
 
 .. method:: DOptimizer.select_method(iteration)
         
@@ -296,7 +311,7 @@ Optimizing a Trajectory
 
 .. method:: DOptimizer.select_fallback_method(iteration, current_method)
         
-   When :meth:step finds a bad descent direction (e.g, positive cost
+   When :meth:`step` finds a bad descent direction (e.g, positive cost
    derivative), this method is called to figure out what descent
    direction it should try next.
 

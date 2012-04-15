@@ -199,7 +199,7 @@ class DOptimizerVerboseMonitor(DOptimizerDefaultMonitor):
 
 class DOptimizer(object):
     def __init__(self, dsys, cost,
-                 lower_order_iterations=5,
+                 first_method_iterations=10,
                  monitor=None):
         self.dsys = dsys
         self.cost = cost
@@ -224,7 +224,9 @@ class DOptimizer(object):
         self.descent_tolerance = 1e-6
 
         # Number of first order iterations to do at the start of an optimization
-        self.lower_order_iterations = 10
+        self.first_method_iterations = first_method_iterations
+        self.first_method = 'quasi'
+        self.second_method = 'newton'
 
 
     def calc_cost(self, X, U):
@@ -492,14 +494,14 @@ class DOptimizer(object):
         Select a descent direction method for the specified iteration.
 
         This is called by optimize() to choose a descent direction
-        method for each step.  The default implementation takes a
-        pre-determined number (self.lower_order_iterations) of 'quasi'
-        steps and then switches to 'newton'.
+        method for each step.  The default implementation takes
+        'self.first_method_iterations' steps of 'self.first_method'
+        and then switches to 'self.second_method' steps.
         """
-        if iteration < self.lower_order_iterations:
-            method = 'quasi'
+        if iteration < self.first_method_iterations:
+            method = self.first_method
         else:
-            method = 'newton'
+            method = self.second_method
         return method
 
 

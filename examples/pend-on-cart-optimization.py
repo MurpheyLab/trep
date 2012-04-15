@@ -113,12 +113,12 @@ cost = discopt.DCost(Xd, Ud, Qcost, Rcost)
 optimizer = discopt.DOptimizer(dsys_a, cost)
 
 # Perform the first optimization
-optimizer.first_order_iterations = 4
+optimizer.first_method_iterations = 4
 finished, X, U = optimizer.optimize(X, U, max_steps=40)
 
 # Increase the cost of the torque input
 cost.R = make_input_cost(dsys_a, 0.01, 0.01, 100.0)
-optimizer.first_order_iterations = 4
+optimizer.first_method_iterations = 4
 finished, X, U = optimizer.optimize(X, U, max_steps=40)
 
 # We could print a converge plot here if we wanted to.
@@ -129,7 +129,7 @@ finished, X, U = optimizer.optimize(X, U, max_steps=40)
 
 # Increase the cost of the torque input
 cost.R = make_input_cost(dsys_a, 0.01, 0.01, 1000000.0)
-optimizer.first_order_iterations = 4
+optimizer.first_method_iterations = 4
 finished, X, U = optimizer.optimize(X, U, max_steps=40)
 
 
@@ -163,7 +163,7 @@ cost = discopt.DCost(Xd, Ud, Qcost, Rcost)
 optimizer = discopt.DOptimizer(dsys_b, cost)
 
 # Perform the optimization on the real system
-optimizer.first_order_iterations = 4
+optimizer.first_method_iterations = 4
 finished, X, U = optimizer.optimize(X, U, max_steps=40)
 
 
