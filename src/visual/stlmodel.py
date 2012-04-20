@@ -111,6 +111,7 @@ class stlmodel(PolyObject):
         """
         Draw the model in the current OpenGL context.
         """
+        glPushMatrix()
         glPushAttrib(GL_POLYGON_BIT | GL_CURRENT_BIT)
         if self._wireframe:
             glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
@@ -119,8 +120,10 @@ class stlmodel(PolyObject):
 
         if self._color:
             glColor3fv(self._color)
+        glScalef(*self._scale)
         PolyObject.draw(self)
         glPopAttrib()
+        glPopMatrix()
             
 
         

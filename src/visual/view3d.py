@@ -158,13 +158,16 @@ class View3D(QGLWidget):
     def initializeGL(self):
         glClearColor(0.4, 0.4, 0.6, 1.0)
 
-        lightPos = (5.0, 5.0, 10.0, 1.0)
+        lightPos = (5.0, 8.0, 2.0, 1.0)
 
         glLightfv(GL_LIGHT0, GL_POSITION, lightPos)
+        glLightfv(GL_LIGHT0, GL_DIFFUSE, (0.7, 0.7, 0.7, 1.0))
         glEnable(GL_LIGHTING)
         glEnable(GL_LIGHT0)
         glEnable(GL_DEPTH_TEST)
         glEnable(GL_NORMALIZE)
+        glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE)
+        glEnable(GL_COLOR_MATERIAL)
 
 
     def startMoving(self):
