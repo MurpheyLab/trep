@@ -168,6 +168,13 @@ class DOptimizerDefaultMonitor(DOptimizerMonitor):
     def armijo_evaluation(self, armijo_iteration, nX, nU, bX, bU, cost, max_cost):
         self.armijo = armijo_iteration
 
+    def get_costs(self):
+        return [self.cost_history[x] for x in sorted(self.cost_history.keys())]
+
+    def get_dcosts(self):
+        return [self.dcost_history[x] for x in sorted(self.dcost_history.keys())]
+    
+
 
 class DOptimizerVerboseMonitor(DOptimizerDefaultMonitor):
     """
@@ -181,7 +188,7 @@ class DOptimizerVerboseMonitor(DOptimizerDefaultMonitor):
 
     def optimize_end(self, converged, X, U, cost):
         self.msg("Optimization completed at %s" % datetime.datetime.now().strftime('[%H:%M:%S]'))
-        super(DOptimizerVerboseMonitor, self).optimize_end(X, U, cost)
+        super(DOptimizerVerboseMonitor, self).optimize_end(converged, X, U, cost)
 
 
     def step_info(self, method, cost, dcost, X, U, dX, dU, Kproj):
