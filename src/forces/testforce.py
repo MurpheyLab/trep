@@ -1,8 +1,5 @@
 import trep
 
-import trep.visual
-from OpenGL.GL import *
-
 __all__ = ["TestForce"]
 
 class TestForce(trep.Force):
