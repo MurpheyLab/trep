@@ -202,6 +202,7 @@ ext_modules += [_trep]
 if sys.platform == 'darwin':
     if has_header(['OpenGL', 'gl.h']):
         _polyobject = Extension('trep.visual._polyobject',
+                                include_dirs=include_dirs,
                                 extra_compile_args=[],
                                 extra_link_args=['-framework OpenGL'],
                                 sources = ['src/visual/_polyobject.c'])
@@ -210,6 +211,7 @@ if sys.platform == 'darwin':
 else:
     if has_header(['GL', 'gl.h']):
         _polyobject = Extension('trep.visual._polyobject',
+                                include_dirs=include_dirs,
                                 extra_compile_args=[],
                                 extra_link_args=['-lGL'],
                                 sources = ['src/visual/_polyobject.c'])
