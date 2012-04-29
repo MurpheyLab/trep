@@ -289,7 +289,7 @@ Optimizing a Trajectory
 
    *Default: "quasi"*
 
-.. attribute:: DOptimizer.second_metho
+.. attribute:: DOptimizer.second_method
 
    Descent method to use for the optimzation after
    :attr:`first_method_iterations` iterations have been taken.
