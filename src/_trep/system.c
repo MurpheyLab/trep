@@ -2265,6 +2265,7 @@ static PyObject* update_cache(System *sys, PyObject *args)
     unsigned long flags;
     if(!PyArg_ParseTuple(args, "k", &flags))
         return NULL;
+    CALLGRIND_START_INSTRUMENTATION;
     if(flags & SYSTEM_CACHE_LG)
         build_lg_cache(sys);
     if(flags & SYSTEM_CACHE_G)
@@ -2305,6 +2306,7 @@ static PyObject* update_cache(System *sys, PyObject *args)
         calc_dynamics_deriv1(sys);
     if(flags & SYSTEM_CACHE_DYNAMICS_DERIV2)
         calc_dynamics_deriv2(sys);
+    CALLGRIND_STOP_INSTRUMENTATION;
     Py_RETURN_NONE;
 }
 
