@@ -38,8 +38,9 @@ inputs and the future state of the kinematic configurations:
    U(k) = \begin{bmatrix} u(k) \\ \rho(k) \end{bmatrix}
 
 where the kinematic inputs are denoted by :math:`\rho` thoughout this
-code.  Additionally, the state input *U* is always capitalized to
-distinguish it from the force input *u* which is always lower case.
+code (i.e, :math:`q_k(k+1) = \rho(k)`).  Additionally, the state input
+*U* is always capitalized to distinguish it from the force input *u*
+which is always lower case.
 
 :class:`DSystem` provides methods for converting between trajectories
 for the discrete system and trajectories for the variational

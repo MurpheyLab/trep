@@ -437,7 +437,7 @@ Dynamics
 
    .. math::
 
-      z-T \derivII[f]{q}{\dq}
+      z^T \derivII[f]{q}{\dq}
 
    can be calculated as::
 
