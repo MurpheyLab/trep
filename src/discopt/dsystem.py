@@ -134,7 +134,7 @@ class DSystem(object):
         dsys.build_trajectory() -> all zero state and input trajectories
         """
 
-        def bad_arguments(self, reason):
+        def bad_arguments(reason):
             string = reason + "\n"
             string += "Arguments: \n"
             for name, value in [ ('Q',Q), ('p',p), ('v',v), ('u',u), ('rho', rho) ]:
