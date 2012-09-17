@@ -135,6 +135,9 @@ class VisualItem3D(VisualItem):
         self.density = kwds.setdefault('density', 50)
         del kwds['density']
 
+        self.offset = kwds.setdefault('offset', None)
+        del kwds['offset']
+
         super(VisualItem3D, self).__init__(*args, **kwds)
 
         self.setOrientation(forward=[1,0,0], up=[0,0,1])
@@ -164,6 +167,10 @@ class VisualItem3D(VisualItem):
     
     def draw(self):
 
+        glPushMatrix()
+        if self.offset is not None:
+            glTranslate(*self.offset)
+
         glMultMatrixf(self._orientation.flatten('F'))
 
         if len(self._draw_funcs) > 0:
@@ -178,6 +185,8 @@ class VisualItem3D(VisualItem):
                     func()
         else:
             self.auto_draw()
+
+        glPopMatrix()
 
 
     def auto_draw(self):
