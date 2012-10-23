@@ -1158,11 +1158,11 @@ def load_trajectory(filename, system=None):
     u_in = data.get('u', None)
     rho_in = data.get('rho', None)
 
-    Q_index = [str(s[0][0]).strip() for s in data['Q_index']]
-    p_index = [str(s[0][0]).strip() for s in data['p_index']]
-    v_index = [str(s[0][0]).strip() for s in data['v_index']]
-    u_index = [str(s[0][0]).strip() for s in data['u_index']]
-    rho_index = [str(s[0][0]).strip() for s in data['rho_index']]
+    Q_index = [str(s[0]).strip() for s in data['Q_index'].ravel()]
+    p_index = [str(s[0]).strip() for s in data['p_index'].ravel()]
+    v_index = [str(s[0]).strip() for s in data['v_index'].ravel()]
+    u_index = [str(s[0]).strip() for s in data['u_index'].ravel()]
+    rho_index = [str(s[0]).strip() for s in data['rho_index'].ravel()]
 
     # If no system was given, just return the data as it was along
     # with the indices.

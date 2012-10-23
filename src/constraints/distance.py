@@ -31,14 +31,14 @@ class Distance(_DistanceConstraint, Constraint):
         
     def __repr__(self):
         if self.config:
-            return "<DistanceConstraint '%s'-%s-'%s'>" % (
+            return "<DistanceConstraint '%s' '%s' '%s'>" % (
                 self.frame1.name,
                 self.config.name,
                 self.frame2.name)
         else:
-            return "<DistanceConstraint '%s'-%f-'%s'>" % (
+            return "<DistanceConstraint '%s' %f '%s'>" % (
                 self.frame1.name,
-                self.get_distance(),
+                self.distance,
                 self.frame2.name)        
 
     @property
