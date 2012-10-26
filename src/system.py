@@ -4,7 +4,7 @@ import numpy as np
 import numpy.linalg as linalg
 import scipy as sp
 import scipy.optimize
-import scipy.io 
+import scipy.io
 from itertools import product
 
 import trep
@@ -23,7 +23,7 @@ class System(_System):
     """
     The System class represents a complete mechanical system
     comprising coordinate frames, configuration variables, potential
-    energies, constraints, and forces.  
+    energies, constraints, and forces.
     """
     def __init__(self):
         """
@@ -40,7 +40,7 @@ class System(_System):
         self._inputs = tuple()
         self._constraints = tuple()
         self._masses = tuple()
-        
+
         self._hold_structure_changes = 0
         self._structure_changed_funcs = []
 
@@ -64,22 +64,22 @@ class System(_System):
     def nQ(self):
         """Number of configuration variables in the system."""
         return len(self.configs)
-    
+
     @property
     def nQd(self):
         """Number of dynamic configuration variables in the system."""
         return len(self.dyn_configs)
-    
-    @property    
+
+    @property
     def nQk(self):
         """Number of kinematic configuration variables in the system."""
         return len(self.kin_configs)
-    
+
     @property
     def nu(self):
         """Number of inputs in the system."""
         return len(self.inputs)
-    
+
     @property
     def nc(self):
         """Number of constraints in the system."""
@@ -89,12 +89,12 @@ class System(_System):
     def t(self):
         """Current time of the system."""
         return self._time
-    
+
     @t.setter
     def t(self, value):
         self._clear_cache()
         self._time = value
-    
+
     def get_frame(self, identifier):
         """
         get_frame(identifier) -> Frame,None
@@ -104,7 +104,7 @@ class System(_System):
         Raise an exception if no match is found.
         """
         return self._get_object(identifier, Frame, self.frames)
-                        
+
     def get_config(self, identifier):
         """
         get_config(identifier) -> Config,None
@@ -155,16 +155,39 @@ class System(_System):
         """
         return self._get_object(identifier, Input, self.inputs)
 
-    def satisfy_constraints(self, tolerance=1e-10, verbose=False):
+    def satisfy_constraints(self, tolerance=1e-10, verbose=False,
+                            keep_kinematic=False, constant_q_list=None):
         """
         Modify the current configuration to satisfy the system
         constraints.
 
         The configuration velocity (ie, config.dq) is simply set to
         zero.  This should be fixed in the future.
+
+        Passing True to keep_kinematic will not allow method to modify
+        kinematic configuration variables.
+
+        Passing a list (or tuple) of configurations to constant_q_list
+        will keep all elements in list constant.  The method uses
+        trep.System.get_config so the list may contain configuration
+        objects, indices in Q, or names.  Passing anything for
+        constant_list_q will overwrite value for keep_kinematic.
         """
         self.dq = 0
-        q0 = self.q
+        if keep_kinematic:
+            names = [q.name for q in self.dyn_configs]
+            q0 = self.qd
+        else:
+            names = [q.name for q in self.configs]
+            q0 = self.q
+        if constant_q_list:
+            connames = [self.get_config(q).name for q in constant_q_list]
+            names = []
+            for q in self.configs:
+                if q.name not in connames:
+                    names.append(q.name)
+            q0 = np.array([self.q[self.get_config(name).index] for name in names])
+
         def func(q):
             v = (q - q0)
             return np.dot(v,v)
@@ -173,12 +196,12 @@ class System(_System):
             return 2*(q-q0)
 
         def f_eqcons(q):
-            self.q = q
+            self.q = dict(zip(names,q))
             return np.array([c.h() for c in self.constraints])
 
         def fprime_eqcons(q):
-            self.q = q
-            return np.array([[c.h_dq(q) for q in self.configs] for c in self.constraints])
+            self.q = dict(zip(names,q))
+            return np.array([[c.h_dq(self.get_config(q)) for q in names] for c in self.constraints])
 
         (q_opt, fx, its, imode, smode) = sp.optimize.fmin_slsqp(func, q0, f_eqcons=f_eqcons,
                                                                 fprime=fprime, fprime_eqcons=fprime_eqcons,
@@ -186,9 +209,69 @@ class System(_System):
                                                                 iprint=0, full_output=True)
         if imode != 0:
             raise StandardError("Minimization failed: %s" % smode)
-        self.q = q_opt
-        return q_opt
-        
+        self.q = dict(zip(names,q_opt))
+        return self.q
+
+    def minimize_potential_energy(self, tolerance=1e-10, verbose=False,
+                                  keep_kinematic=False, constant_q_list=None):
+        """
+        Find a nearby configuration where the potential energy is
+        minimized.  Useful for finding nearby equilibrium points.
+        If minimum is found, all constraints will be found as well
+
+        The configuration velocity (ie, config.dq) is set to
+        zero which ensures the kinetic energy is zero.
+
+        Passing True to keep_kinematic will not allow method to modify
+        kinematic configuration variables.
+
+        Passing a list (or tuple) of configurations to constant_q_list
+        will keep all elements in list constant.  The method uses
+        trep.System.get_config so the list may contain configuration
+        objects, indices in Q, or names.  Passing anything for
+        constant_list_q will overwrite value for keep_kinematic.
+        """
+        self.dq = 0
+        if keep_kinematic:
+            names = [q.name for q in self.dyn_configs]
+            q0 = self.qd
+        else:
+            names = [q.name for q in self.configs]
+            q0 = self.q
+        if constant_q_list:
+            connames = [self.get_config(q).name for q in constant_q_list]
+            names = []
+            for q in self.configs:
+                if q.name not in connames:
+                    names.append(q.name)
+            q0 = np.array([self.q[self.get_config(name).index] for name in names])
+
+
+        def func(q):
+            self.q = dict(zip(names,q))
+            return -self.L()
+
+        def fprime(q):
+            return [-self.L_dq(self.get_config(name)) for name in names]
+
+        def f_eqcons(q):
+            self.q = dict(zip(names,q))
+            return np.array([c.h() for c in self.constraints])
+
+        def fprime_eqcons(q):
+            self.q = dict(zip(names,q))
+            return np.array([[c.h_dq(self.get_config(q)) for q in names] for c in self.constraints])
+
+        (q_opt, fx, its, imode, smode) = sp.optimize.fmin_slsqp(func, q0, f_eqcons=f_eqcons,
+                                                                fprime=fprime, fprime_eqcons=fprime_eqcons,
+                                                                acc=tolerance, iter=100*self.nQ,
+                                                                iprint=0, full_output=True)
+        if imode != 0:
+            raise StandardError("Minimization failed: %s" % smode)
+        self.q = dict(zip(names,q_opt))
+        return self.q
+
+
     def set_state(self, q=None, dq=None, u=None, ddqk=None, t=None):
         """
         Set the current state of the system, not including the "output" ddqd.
@@ -209,7 +292,7 @@ class System(_System):
     def export_frames(self, system_name='system', frames_name='frames', tab_size=4):
         """
         Create python source code to define this system's frames.
-        """    
+        """
         txt = ''
         txt += '#'*80 + '\n'
         txt += '# Frame tree definition generated by System.%s()\n\n' % inspect.stack()[0][3]
@@ -316,7 +399,7 @@ class System(_System):
             for q,v in zip(self.dyn_configs, value):
                 q.dq = v
 
-                
+
     @property
     def ddqd(self):
         """Dynamic part of the system's current configuration acceleration."""
@@ -335,7 +418,7 @@ class System(_System):
             for q,v in zip(self.dyn_configs, value):
                 q.ddq = v
 
-                
+
     @property
     def qk(self):
         """Kinematic part of the system's current configuration."""
@@ -353,7 +436,7 @@ class System(_System):
         else:
             for q,v in zip(self.kin_configs, value):
                 q.q = v
-        
+
 
     @property
     def dqk(self):
@@ -392,7 +475,7 @@ class System(_System):
             for q,v in zip(self.kin_configs, value):
                 q.ddq = v
 
-                
+
     @property
     def u(self):
         """Current input vector of the system."""
@@ -509,7 +592,7 @@ class System(_System):
         else:
             raise TypeError()
 
-        
+
     def _add_kin_config(self, config):
         """
         _add_kin_config(config) -> Append config to the kin_configs
@@ -522,10 +605,10 @@ class System(_System):
         """
         _add_dyn_config(config) -> Append config to the dyn_configs
             tuple.
-        """        
+        """
         assert isinstance(config, trep.Config)
         self._dyn_configs += (config,)
-        
+
     def _add_constraint(self, constraint):
         """
         _add_constraint(constraint) -> Append constraint to the
@@ -533,7 +616,7 @@ class System(_System):
         """
         assert isinstance(constraint, trep.Constraint)
         self._constraints += (constraint,)
-        
+
     def _add_potential(self, potential):
         """
         _add_potential(potential) -> Append potential to the
@@ -541,21 +624,21 @@ class System(_System):
         """
         assert isinstance(potential, trep.Potential)
         self._potentials += (potential,)
-        
+
     def _add_input(self, finput):
         """
         _add_input(finput) -> Append input to the inputs tuple.
         """
         assert isinstance(finput, trep.Input)
         self._inputs += (finput,)
-        
+
     def _add_force(self, force):
         """
         _add_force(force) -> Append force to the forces tuple.
         """
         assert isinstance(force, trep.Force)
         self._forces += (force,)
-        
+
     def add_structure_changed_func(self, function):
         """
         Register a function to call whenever the system structure
@@ -571,7 +654,7 @@ class System(_System):
         needlessly allocating and deallocating memory.
         """
         self._hold_structure_changes += 1
-        
+
     def resume_structure_changes(self):
         """
         Stop preventing the system from calling
@@ -585,7 +668,7 @@ class System(_System):
         self._hold_structure_changes -= 1
         if self._hold_structure_changes == 0:
             self._structure_changed()
-    
+
     def _structure_changed(self):
         """
         Updates variables so that System is internally consistent.
@@ -622,7 +705,7 @@ class System(_System):
         frame.cache_index - Built for each frame by descending up the
           tree and collecting every configuration variable that is
           encountered.  This is set in Frame._structure_changed()
-          
+
         config.masses - Built for each config by looking at each frame
           in self.masses and collecting those that depend on the config.
 
@@ -655,7 +738,7 @@ class System(_System):
         # frame transformations will retain this value
         for config in self.configs:
             config._config_gen = len(self._configs)
-        
+
         def update_config_gen(frame, index):
             if frame.config != None:
                 frame.config._config_gen = index;
@@ -728,7 +811,7 @@ class System(_System):
         self._D_dudq = np.zeros( (self.nu, self.nQ, self.nQd), np.double, 'C')
         self._D_duddq = np.zeros( (self.nu, self.nQ, self.nQd), np.double, 'C')
         self._D_dudu = np.zeros( (self.nu, self.nu, self.nQd), np.double, 'C')
-        
+
         self._f_dqdq = np.zeros( (self.nQ, self.nQ, self.nQd), np.double, 'C')
         self._f_ddqdq = np.zeros( (self.nQ, self.nQ, self.nQd), np.double, 'C')
         self._f_ddqddq = np.zeros( (self.nQ, self.nQ, self.nQd), np.double, 'C')
@@ -750,20 +833,20 @@ class System(_System):
 
         self._M_dq = np.zeros( (self.nQ, self.nQ, self.nQ), np.double, 'C')
         self._M_dqdq = np.zeros( (self.nQ, self.nQ, self.nQ, self.nQ), np.double, 'C')
-        
+
         for func in self._structure_changed_funcs:
             func()
 
 
-    
+
     def total_energy(self):
         """Calculate the total energy in the current state."""
         return self._total_energy()
-    
+
     def L(self):
         """Calculate the Lagrangian at the current state."""
         return self._L()
-    
+
     def L_dq(self, q1):
         """
         Calculate the derivative of the Lagrangian with respect to the
@@ -780,7 +863,7 @@ class System(_System):
         assert isinstance(q1, _trep._Config)
         assert isinstance(q2, _trep._Config)
         return self._L_dqdq(q1, q2)
-    
+
     def L_dqdqdq(self, q1, q2, q3):
         """
         Calculate the third derivative of the Lagrangian with respect
@@ -790,7 +873,7 @@ class System(_System):
         assert isinstance(q2, _trep._Config)
         assert isinstance(q3, _trep._Config)
         return self._L_dqdqdq(q1, q2, q3)
-    
+
     def L_ddq(self, dq1):
         """
         Calculate the derivative of the Lagrangian with respect
@@ -798,7 +881,7 @@ class System(_System):
         """
         assert isinstance(dq1, _trep._Config)
         return self._L_ddq(dq1)
-    
+
     def L_ddqdq(self, dq1, q2):
         """
         Calculate the second derivative of the Lagrangian with respect
@@ -807,7 +890,7 @@ class System(_System):
         assert isinstance(dq1, _trep._Config)
         assert isinstance(q2,  _trep._Config)
         return self._L_ddqdq(dq1, q2)
-    
+
     def L_ddqdqdq(self, dq1, q2, q3):
         """
         Calculate the third derivative of the Lagrangian with respect
@@ -815,9 +898,9 @@ class System(_System):
         """
         assert isinstance(dq1, _trep._Config)
         assert isinstance(q2,  _trep._Config)
-        assert isinstance(q3,  _trep._Config)        
+        assert isinstance(q3,  _trep._Config)
         return self._L_ddqdqdq(dq1, q2, q3)
-    
+
     def L_ddqdqdqdq(self, dq1, q2, q3, q4):
         """
         Calculate the fourth derivative of the Lagrangian with respect
@@ -829,7 +912,7 @@ class System(_System):
         assert isinstance(q3, _trep._Config)
         assert isinstance(q4, _trep._Config)
         return self._L_ddqdqdqdq(dq1, q2, q3, q4)
-    
+
     def L_ddqddq(self, dq1, dq2):
         """
         Calculate the second derivative of the Lagrangian with respect
@@ -838,7 +921,7 @@ class System(_System):
         assert isinstance(dq1, _trep._Config)
         assert isinstance(dq2, _trep._Config)
         return self._L_ddqddq(dq1, dq2)
-    
+
     def L_ddqddqdq(self, dq1, dq2, q3):
         """
         Calculate the third derivative of the Lagrangian with respect
@@ -849,7 +932,7 @@ class System(_System):
         assert isinstance(dq2, _trep._Config)
         assert isinstance( q3, _trep._Config)
         return self._L_ddqddqdq(dq1, dq2, q3)
-    
+
     def L_ddqddqdqdq(self, dq1, dq2, q3, q4):
         """
         Calculate the fourth derivative of the Lagrangian with respect
@@ -877,12 +960,12 @@ class System(_System):
     def f_dq(self, q=None, q1=None):
         self._update_cache(_trep.SYSTEM_CACHE_DYNAMICS_DERIV1)
         return self._f_dq[q1, q].T.copy()
-    
+
     @dynamics_indexing_decorator('dq')
     def f_ddq(self, q=None, dq1=None):
         self._update_cache(_trep.SYSTEM_CACHE_DYNAMICS_DERIV1)
         return self._f_ddq[dq1, q].T.copy()
-    
+
     @dynamics_indexing_decorator('dk')
     def f_dddk(self, q=None, k1=None):
         self._update_cache(_trep.SYSTEM_CACHE_DYNAMICS_DERIV1)
@@ -897,33 +980,33 @@ class System(_System):
     def f_dqdq(self, q=None, q1=None, q2=None):
         self._update_cache(_trep.SYSTEM_CACHE_DYNAMICS_DERIV2)
         return self._f_dqdq[q1, q2, q].copy()
-    
-    @dynamics_indexing_decorator('dqq')    
+
+    @dynamics_indexing_decorator('dqq')
     def f_ddqdq(self, q=None, dq1=None, q2=None):
         self._update_cache(_trep.SYSTEM_CACHE_DYNAMICS_DERIV2)
         return self._f_ddqdq[dq1, q2, q].copy()
-    
-    @dynamics_indexing_decorator('dqq')    
+
+    @dynamics_indexing_decorator('dqq')
     def f_ddqddq(self, q=None, dq1=None, dq2=None):
         self._update_cache(_trep.SYSTEM_CACHE_DYNAMICS_DERIV2)
         return self._f_ddqddq[dq1, dq2, q].copy()
-        
-    @dynamics_indexing_decorator('dkq')    
+
+    @dynamics_indexing_decorator('dkq')
     def f_dddkdq(self, q=None, k1=None, q2=None):
         self._update_cache(_trep.SYSTEM_CACHE_DYNAMICS_DERIV2)
         return self._f_dkdq[k1, q2, q].copy()
-    
-    @dynamics_indexing_decorator('duq')    
+
+    @dynamics_indexing_decorator('duq')
     def f_dudq(self, q=None, u1=None, q2=None):
         self._update_cache(_trep.SYSTEM_CACHE_DYNAMICS_DERIV2)
         return self._f_dudq[u1, q2, q].copy()
-    
-    @dynamics_indexing_decorator('duq')    
+
+    @dynamics_indexing_decorator('duq')
     def f_duddq(self, q=None, u1=None, dq2=None):
         self._update_cache(_trep.SYSTEM_CACHE_DYNAMICS_DERIV2)
         return self._f_duddq[u1, dq2, q].copy()
-    
-    @dynamics_indexing_decorator('duu')    
+
+    @dynamics_indexing_decorator('duu')
     def f_dudu(self, q=None, u1=None, u2=None):
         self._update_cache(_trep.SYSTEM_CACHE_DYNAMICS_DERIV2)
         return self._f_dudu[u1, u2, q].copy()
@@ -936,12 +1019,12 @@ class System(_System):
         """
         self._update_cache(_trep.SYSTEM_CACHE_DYNAMICS)
         return self._lambda[constraint].copy()
-    
+
     @dynamics_indexing_decorator('cq')
     def lambda_dq(self, constraint=None, q1=None):
         self._update_cache(_trep.SYSTEM_CACHE_DYNAMICS_DERIV1)
         return self._lambda_dq[q1, constraint].T.copy()
-    
+
     @dynamics_indexing_decorator('cq')
     def lambda_ddq(self, constraint=None, dq1=None):
         self._update_cache(_trep.SYSTEM_CACHE_DYNAMICS_DERIV1)
@@ -951,42 +1034,42 @@ class System(_System):
     def lambda_dddk(self, constraint=None, k1=None):
         self._update_cache(_trep.SYSTEM_CACHE_DYNAMICS_DERIV1)
         return self._lambda_dk[k1, constraint].T.copy()
-    
+
     @dynamics_indexing_decorator('cu')
     def lambda_du(self, constraint=None, u1=None):
         self._update_cache(_trep.SYSTEM_CACHE_DYNAMICS_DERIV1)
         return self._lambda_du[u1, constraint].T.copy()
-    
+
     @dynamics_indexing_decorator('cqq')
     def lambda_dqdq(self, constraint=None, q1=None, q2=None):
         self._update_cache(_trep.SYSTEM_CACHE_DYNAMICS_DERIV2)
         return self._lambda_dqdq[q1, q2, constraint].copy()
-    
+
     @dynamics_indexing_decorator('cqq')
     def lambda_ddqdq(self, constraint=None, dq1=None, q2=None):
         self._update_cache(_trep.SYSTEM_CACHE_DYNAMICS_DERIV2)
         return self._lambda_ddqdq[dq1, q2, constraint].copy()
-    
+
     @dynamics_indexing_decorator('cqq')
     def lambda_ddqddq(self, constraint=None, dq1=None, dq2=None):
         self._update_cache(_trep.SYSTEM_CACHE_DYNAMICS_DERIV2)
         return self._lambda_ddqddq[dq1, dq2, constraint].copy()
-    
+
     @dynamics_indexing_decorator('ckq')
     def lambda_dddkdq(self, constraint=None, k1=None, q2=None):
         self._update_cache(_trep.SYSTEM_CACHE_DYNAMICS_DERIV2)
         return self._lambda_dkdq[k1, q2, constraint].copy()
-    
+
     @dynamics_indexing_decorator('cuq')
     def lambda_dudq(self, constraint=None, u1=None, q2=None):
         self._update_cache(_trep.SYSTEM_CACHE_DYNAMICS_DERIV2)
         return self._lambda_dudq[u1, q2, constraint].copy()
-    
+
     @dynamics_indexing_decorator('cuq')
     def lambda_duddq(self, constraint=None, u1=None, dq2=None):
         self._update_cache(_trep.SYSTEM_CACHE_DYNAMICS_DERIV2)
         return self._lambda_duddq[u1, dq2, constraint].copy()
-    
+
     @dynamics_indexing_decorator('cuu')
     def lambda_dudu(self, constraint=None, u1=None, u2=None):
         self._update_cache(_trep.SYSTEM_CACHE_DYNAMICS_DERIV2)
@@ -1000,7 +1083,7 @@ class System(_System):
         approximation.
 
         func -> Callable taking no arguments and returning float or np.array
-        
+
         func_dq -> Callable taking one configuration variable argument
                    and returning a float or np.array.
 
@@ -1013,7 +1096,7 @@ class System(_System):
 
         tests_total = 0
         tests_failed = 0
-        
+
         for q in self.configs:
             self.q = q0
             dy_exact = func_dq(q)
@@ -1025,7 +1108,7 @@ class System(_System):
 
             delta_q = q0.copy()
             delta_q[q.index] += delta
-            self.q = delta_q 
+            self.q = delta_q
             y1 = func()
 
             dy_approx = (y1 - y0)/(2*delta)
@@ -1039,7 +1122,7 @@ class System(_System):
                     print "  Error: %f > %f" % (error, tolerance)
                     print "  Approx dy: %s" % dy_approx
                     print "   Exact dy: %s" % dy_exact
-                    
+
         if verbose:
             if tests_failed == 0:
                 print "%d tests passing." % tests_total
@@ -1058,7 +1141,7 @@ class System(_System):
         approximation.
 
         func -> Callable taking no arguments and returning float or np.array
-        
+
         func_ddq -> Callable taking one configuration variable argument
                    and returning a float or np.array.
 
@@ -1079,9 +1162,9 @@ class System(_System):
 
         tests_total = 0
         tests_failed = 0
-        
+
         for q in self.configs:
-            self.dq = dq0 
+            self.dq = dq0
             dy_exact = func_ddq(q)
 
             delta_dq = dq0.copy()
@@ -1105,7 +1188,7 @@ class System(_System):
                     print "  Error: %f > %f" % (error, tolerance)
                     print "  Approx dy: %f" % dy_approx
                     print "   Exact dy: %f" % dy_exact
-                    
+
         if verbose:
             if tests_failed == 0:
                 print "%d tests passing." % tests_total
@@ -1127,7 +1210,7 @@ def save_trajectory(filename, system, t, Q=None, p=None, v=None, u=None, rho=Non
     # dimensions or None
 
     t = np.array(t)
-    
+
     data = { 'time' : np.array(t) }
     if Q is not None: data['Q'] = np.array(Q)
     if p is not None: data['p'] = np.array(p)
@@ -1146,7 +1229,7 @@ def save_trajectory(filename, system, t, Q=None, p=None, v=None, u=None, rho=Non
 
 
 def load_trajectory(filename, system=None):
-    
+
     data = sp.io.loadmat(filename)
 
     # Load time as a 1D array
@@ -1178,12 +1261,12 @@ def load_trajectory(filename, system=None):
         # system's layout.
         if Q_in is not None:
             Q = np.zeros((len(t), system.nQ))
-            for config in system.configs:                
+            for config in system.configs:
                 if config.name in Q_index:
                     Q[:,config.index] = Q_in[:, Q_index.index(config.name)]
         else:
             Q = None
-        
+
         if p_in is not None:
             p = np.zeros((len(t), system.nQd))
             for config in system.dyn_configs:
@@ -1207,7 +1290,7 @@ def load_trajectory(filename, system=None):
                     u[:,finput.index] = u_in[:, u_index.index(finput.name)]
         else:
             u = None
-            
+
         if rho_in is not None:
             rho = np.zeros((len(t)-1, system.nQk))
             for config in system.kin_configs:

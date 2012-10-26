@@ -109,6 +109,8 @@ System Components
    *(read only)*
     
 
+.. _finding_specific_components:
+
 Finding Specific Components
 ---------------------------
 
@@ -255,7 +257,8 @@ The values can be set with three different methods:
 Constraints
 -----------
 
-.. method:: System.satisfy_constraints(tolerance=1e-10, verbose=False)
+.. method:: System.satisfy_constraints(tolerance=1e-10, verbose=False, \
+				keep_kinematic=False, constant_q_list=None)
 
    Modify the current configuration to satisfy the system constraints.
    Letting :math:`q_0` be the system's current configuration, this
@@ -263,7 +266,7 @@ Constraints
 
    .. math::
       
-      q = \arg\min_q  |q-q_0|-2 \quad \mathrm{s.t.}\quad  h(q) = 0
+      q = \arg\min_q  |q-q_0|^2 \quad \mathrm{s.t.}\quad  h(q) = 0
 
    The new configuration will be set in the system and returned.  If
    the optimization fails, a :exc:`StandardError` exception is raised.
@@ -271,6 +274,47 @@ Constraints
    Setting *verbose* to :data:`True` will make the optimization print
    out information to the console while it is running.
 
+   Setting *keep_kinematic* to :data:`True` will modify above optimization
+   to optimize over :math:`q_d` instead of :math:`q`; thus all kinematic
+   configuration variables will be kept constant.  Passing a list (or 
+   tuple) of configurations to *constant_q_list* will define an
+   arbitrary set of configurations to hold constant during
+   optimization.  Internally this method uses 
+   :meth:`System.get_config` thus, any valid *identifier* mentioned
+   in :ref:`Finding Specific Components
+   <finding_specific_components>` section will work.
+
+.. method:: System.minimize_potential_energy(tolerance=1e-10, verbose=False, \
+				keep_kinematic=False, constant_q_list=None)
+
+   Modify the current configuration to satisfy the system constraints while also
+   minimizing potential energy.  The system velocity is set to zero, and thus
+   the kinetic energy is zero.  Therefore, the actual optimization that is
+   solved is given by
+
+   .. math::
+      
+      q = \arg\min_q \; (-L(q,\dot{q}=0))\quad \mathrm{s.t.}\quad h(q) = 0
+
+   The new configuration will be set in the system and returned. If
+   the optimization fails, a :exc:`StandardError` exception is raised.  This
+   function may be useful for finding nearby equilibrium points that
+   satisfy the system constraints.
+
+   Setting *verbose* to :data:`True` will make the optimization print
+   out information to the console while it is running.
+
+   Setting *keep_kinematic* to :data:`True` will modify above optimization
+   to optimize over :math:`q_d` instead of :math:`q`; thus all kinematic
+   configuration variables will be kept constant.  Passing a list (or 
+   tuple) of configurations to *constant_q_list* will define an
+   arbitrary set of configurations to hold constant during
+   optimization.  Internally this method uses 
+   :meth:`System.get_config` thus, any valid *identifier* mentioned
+   in :ref:`Finding Specific Components
+   <finding_specific_components>` section will work.
+
+   
 
 Lagrangian Calculations
 -----------------------
