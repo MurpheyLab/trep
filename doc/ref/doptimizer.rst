@@ -240,7 +240,7 @@ Optimizing a Trajectory
 
    If the specified method fails to find an acceptable descent
    direction, :meth:`step` will try again with the method returned
-   by :meth:select_fallback_method.
+   by :meth:`select_fallback_method`.
 
    *iteration* is an integer that is used by
    :meth:`select_fallback_method` and passed to the
