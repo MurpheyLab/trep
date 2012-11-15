@@ -11,11 +11,11 @@ two coordinate frames in 3D space:
 
    x = ||p_1 - p_2||
 
-   V(q) = -k(x - x0)^2
+   V(q) = -k(x - x_0)^2
 
 
 where :math:`p_1` and :math:`p_2` are the origins of two coordinate
-frames, :math:`k` is the spring stiffness and :math:`q_0` is the
+frames, :math:`k` is the spring stiffness and :math:`x_0` is the
 natural length of the spring.
 
 
@@ -32,13 +32,10 @@ natural length of the spring.
 
 .. warning::
    
-   The current implementation will fail if :math:`p_1` equals
-   :math:`p_2` because of a divide by zero problem.  This problem will
-   be corrected in the future for cases when :math:`x_0` is zero, but
-   for now it should be avoided.  
+   The current implementation will fail if :math:`p_1` equals :math:`p_2` and
+   :math:`x_0` is nonzero because of a divide by zero problem.
 
-   However, it cannot be corrected for the cases where :math:`x_0` is
-   not zero.  If the two points are equal but :math:`x_0` is not zero,
+   If the two points are equal and :math:`x_0` is not zero,
    there should be a force.  But since there is no vector between the
    two points, the direction of this force is undefined.  When the
    natural length is zero, this problem can be corrected because the

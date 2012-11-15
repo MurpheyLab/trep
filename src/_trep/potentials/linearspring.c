@@ -38,6 +38,8 @@ static double V_dq(LinearSpringPotential *self, Config *q1)
 	     *Frame_p_dq(self->frame2, q1));
     x = sqrt(v[0]*v[0] + v[1]*v[1] + v[2]*v[2]);
     dx = (1.0/x)*(v[0]*dv[0] + v[1]*dv[1] + v[2]*dv[2]);
+    if (isnan(dx) && (self->x0 == 0))
+	return 0;
     return self->k * (x - self->x0) * dx;
 }
 
