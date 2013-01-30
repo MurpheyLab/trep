@@ -153,7 +153,7 @@ Dynamics
 ^^^^^^^^
         
 .. method:: MidpointVI.step(t2, u1=tuple(), k2=tuple(), max_iterations=200, 
-                            lambda1=None, q2=None)
+                            lambda1_hint=None, q2_hint=None)
 
    Step the integrator forward to time t2 .  This advances the time
    and solves the DEL equation.  The current state will become the
