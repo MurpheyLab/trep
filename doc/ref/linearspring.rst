@@ -11,11 +11,11 @@ two coordinate frames in 3D space:
 
    x = ||p_1 - p_2||
 
-   V(q) = -k(x - x0)^2
+   V(q) = -k(x - x_0)^2
 
 
 where :math:`p_1` and :math:`p_2` are the origins of two coordinate
-frames, :math:`k` is the spring stiffness and :math:`q_0` is the
+frames, :math:`k` is the spring stiffness and :math:`x_0` is the
 natural length of the spring.
 
 
