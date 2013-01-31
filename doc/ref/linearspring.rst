@@ -32,13 +32,10 @@ natural length of the spring.
 
 .. warning::
    
-   The current implementation will fail if :math:`p_1` equals
-   :math:`p_2` because of a divide by zero problem.  This problem will
-   be corrected in the future for cases when :math:`x_0` is zero, but
-   for now it should be avoided.  
+   The current implementation will fail if :math:`p_1` equals :math:`p_2` and
+   :math:`x_0` is nonzero because of a divide by zero problem.
 
-   However, it cannot be corrected for the cases where :math:`x_0` is
-   not zero.  If the two points are equal but :math:`x_0` is not zero,
+   If the two points are equal and :math:`x_0` is not zero,
    there should be a force.  But since there is no vector between the
    two points, the direction of this force is undefined.  When the
    natural length is zero, this problem can be corrected because the
