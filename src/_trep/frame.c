@@ -1174,6 +1174,29 @@ static void build_g_dqdq_cache_int(Frame *frame)
     Config *q1 = NULL;
     Config *q2 = NULL;
 
+    if (PyArray_DIM(frame->g_dqdq, 0) != Frame_CACHE_SIZE(frame))
+    {
+      Py_DECREF(frame->g_dqdq);
+      Py_DECREF(frame->p_dqdq);
+      
+      npy_intp dims[] = {
+        Frame_CACHE_SIZE(frame),
+        Frame_CACHE_SIZE(frame),
+        4,
+        4
+      };
+      frame->g_dqdq = (PyArrayObject*)PyArray_ZEROS(
+        sizeof(dims)/sizeof(npy_intp),
+        dims,
+        NPY_DOUBLE,
+        0);
+      frame->p_dqdq = (PyArrayObject*)PyArray_ZEROS(
+        sizeof(dims)/sizeof(npy_intp) - 1,
+        dims,
+        NPY_DOUBLE,
+        0);
+    }
+
     for(i1 = 0; i1 < Frame_CACHE_SIZE(frame); i1++) {
 	q1 = Frame_CACHE(frame, i1);
 	for(i2 = i1; i2 < Frame_CACHE_SIZE(frame); i2++) {
@@ -1230,6 +1253,30 @@ static void build_g_dqdqdq_cache_int(Frame *frame)
     Config *q1 = NULL;
     Config *q2 = NULL;
     Config *q3 = NULL;
+
+    if (PyArray_DIM(frame->g_dqdqdq, 0) != Frame_CACHE_SIZE(frame))
+    {
+      Py_DECREF(frame->g_dqdqdq);
+      Py_DECREF(frame->p_dqdqdq);
+      
+      npy_intp dims[] = {
+        Frame_CACHE_SIZE(frame),
+        Frame_CACHE_SIZE(frame),
+        Frame_CACHE_SIZE(frame),
+        4,
+        4
+      };
+      frame->g_dqdqdq = (PyArrayObject*)PyArray_ZEROS(
+        sizeof(dims)/sizeof(npy_intp),
+        dims,
+        NPY_DOUBLE,
+        0);
+      frame->p_dqdqdq = (PyArrayObject*)PyArray_ZEROS(
+        sizeof(dims)/sizeof(npy_intp) - 1,
+        dims,
+        NPY_DOUBLE,
+        0);
+    }
 
     for(i = 0; i < Frame_CACHE_SIZE(frame); i++) {
 	q1 = Frame_CACHE(frame, i);
@@ -1334,6 +1381,31 @@ static void build_g_dqdqdqdq_cache_int(Frame *frame)
     Config *q2 = NULL;
     Config *q3 = NULL;
     Config *q4 = NULL;
+
+    if (PyArray_DIM(frame->g_dqdqdqdq, 0) != Frame_CACHE_SIZE(frame))
+    {
+      Py_DECREF(frame->g_dqdqdqdq);
+      Py_DECREF(frame->p_dqdqdqdq);
+      
+      npy_intp dims[] = {
+        Frame_CACHE_SIZE(frame),
+        Frame_CACHE_SIZE(frame),
+        Frame_CACHE_SIZE(frame),
+        Frame_CACHE_SIZE(frame),
+        4,
+        4
+      };
+      frame->g_dqdqdqdq = (PyArrayObject*)PyArray_ZEROS(
+        sizeof(dims)/sizeof(npy_intp),
+        dims,
+        NPY_DOUBLE,
+        0);
+      frame->p_dqdqdqdq = (PyArrayObject*)PyArray_ZEROS(
+        sizeof(dims)/sizeof(npy_intp) - 1,
+        dims,
+        NPY_DOUBLE,
+        0);
+    }
 
     for(i1 = 0; i1 < Frame_CACHE_SIZE(frame); i1++) {
 	q1 = Frame_CACHE(frame, i1);
@@ -1682,6 +1754,23 @@ static void build_vb_dqdq_cache_int(Frame *frame)
     Config *q1 = NULL;
     Config *q2 = NULL;
     
+    if (PyArray_DIM(frame->vb_dqdq, 0) != Frame_CACHE_SIZE(frame))
+    {
+      Py_DECREF(frame->vb_dqdq);
+      
+      npy_intp dims[] = {
+        Frame_CACHE_SIZE(frame),
+        Frame_CACHE_SIZE(frame),
+        4,
+        4
+      };
+      frame->vb_dqdq = (PyArrayObject*)PyArray_ZEROS(
+        sizeof(dims)/sizeof(npy_intp),
+        dims,
+        NPY_DOUBLE,
+        0);
+    }
+
     for(i = 0; i < Frame_CACHE_SIZE(frame); i++) {
 	q1 = Frame_CACHE(frame, i);
 	for(j = i; j < Frame_CACHE_SIZE(frame); j++) {
@@ -1737,6 +1826,24 @@ static void build_vb_dqdqdq_cache_int(Frame *frame)
     Config *q2 = NULL;
     Config *q3 = NULL;
     
+    if (PyArray_DIM(frame->vb_dqdqdq, 0) != Frame_CACHE_SIZE(frame))
+    {
+      Py_DECREF(frame->vb_dqdqdq);
+      
+      npy_intp dims[] = {
+        Frame_CACHE_SIZE(frame),
+        Frame_CACHE_SIZE(frame),
+        Frame_CACHE_SIZE(frame),
+        4,
+        4
+      };
+      frame->vb_dqdqdq = (PyArrayObject*)PyArray_ZEROS(
+        sizeof(dims)/sizeof(npy_intp),
+        dims,
+        NPY_DOUBLE,
+        0);
+    }
+
     for(i = 0; i < Frame_CACHE_SIZE(frame); i++) {
 	q1 = Frame_CACHE(frame, i);
 	for(j = i; j < Frame_CACHE_SIZE(frame); j++) {
@@ -1869,6 +1976,23 @@ static void build_vb_ddqdq_cache_int(Frame *frame)
     Config *dq1 = NULL;
     Config *q2 = NULL;
 
+    if (PyArray_DIM(frame->vb_ddqdq, 0) != Frame_CACHE_SIZE(frame))
+    {
+      Py_DECREF(frame->vb_ddqdq);
+      
+      npy_intp dims[] = {
+        Frame_CACHE_SIZE(frame),
+        Frame_CACHE_SIZE(frame),
+        4,
+        4
+      };
+      frame->vb_ddqdq = (PyArrayObject*)PyArray_ZEROS(
+        sizeof(dims)/sizeof(npy_intp),
+        dims,
+        NPY_DOUBLE,
+        0);
+    }
+
     for(i = 0; i < Frame_CACHE_SIZE(frame); i++) {
 	dq1 = Frame_CACHE(frame, i);
 	for(j = 0; j < Frame_CACHE_SIZE(frame); j++) {
@@ -1911,6 +2035,24 @@ static void build_vb_ddqdqdq_cache_int(Frame *frame)
     Config *dq1 = NULL;
     Config *q2 = NULL;
     Config *q3 = NULL;
+
+    if (PyArray_DIM(frame->vb_ddqdqdq, 0) != Frame_CACHE_SIZE(frame))
+    {
+      Py_DECREF(frame->vb_ddqdqdq);
+      
+      npy_intp dims[] = {
+        Frame_CACHE_SIZE(frame),
+        Frame_CACHE_SIZE(frame),
+        Frame_CACHE_SIZE(frame),
+        4,
+        4
+      };
+      frame->vb_ddqdqdq = (PyArrayObject*)PyArray_ZEROS(
+        sizeof(dims)/sizeof(npy_intp),
+        dims,
+        NPY_DOUBLE,
+        0);
+    }
 
     for(i = 0; i < Frame_CACHE_SIZE(frame); i++) {
 	dq1 = Frame_CACHE(frame, i);
@@ -1973,6 +2115,25 @@ static void build_vb_ddqdqdqdq_cache_int(Frame *frame)
     Config *q2 = NULL;
     Config *q3 = NULL;
     Config *q4 = NULL;
+
+    if (PyArray_DIM(frame->vb_ddqdqdqdq, 0) != Frame_CACHE_SIZE(frame))
+    {
+      Py_DECREF(frame->vb_ddqdqdqdq);
+      
+      npy_intp dims[] = {
+        Frame_CACHE_SIZE(frame),
+        Frame_CACHE_SIZE(frame),
+        Frame_CACHE_SIZE(frame),
+        Frame_CACHE_SIZE(frame),
+        4,
+        4
+      };
+      frame->vb_ddqdqdqdq = (PyArrayObject*)PyArray_ZEROS(
+        sizeof(dims)/sizeof(npy_intp),
+        dims,
+        NPY_DOUBLE,
+        0);
+    }
 
     for(i = 0; i < Frame_CACHE_SIZE(frame); i++) {
 	dq1 = Frame_CACHE(frame, i);

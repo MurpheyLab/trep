@@ -1,4 +1,4 @@
-
+.. _trep_dlqr:
 
 Discrete LQ Problems
 ====================

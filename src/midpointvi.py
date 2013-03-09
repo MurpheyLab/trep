@@ -25,7 +25,7 @@ class MidpointVI(_MidpointVI):
         self.system.add_structure_changed_func(self._structure_updated)
         self.tolerance = tolerance
         self._structure_updated()
-        
+
         if num_threads is None and Py_DEBUG:
             print """
             GMVI: Detected debug build, disabling multithreading by
@@ -50,13 +50,13 @@ class MidpointVI(_MidpointVI):
         self._f = np.zeros((self.nd+self.nc), np.double, 'C')
         self._Df = np.zeros((self.nd+self.nc, self.nd+self.nc), np.double, 'C')
         self._Df_index = np.zeros((self.nd+self.nc,), np.int, 'C')
-        
+
         self._DDh1T = np.zeros((self.nq, self.nq, self.nc), np.double, 'C')
         self._M2_lu = np.zeros((self.nd, self.nd), np.double, 'C')
         self._M2_lu_index = np.zeros((self.nd,), np.int, 'C')
         self._proj_lu = np.zeros((self.nc, self.nc), np.double, 'C')
         self._proj_lu_index = np.zeros((self.nc,), np.int, 'C')
-        
+
         self._q2_dq1 = np.zeros((self.nq, self.nd), np.double, 'C')
         self._q2_dp1 = np.zeros((self.nd, self.nd), np.double, 'C')
         self._q2_du1 = np.zeros((self.nu, self.nd), np.double, 'C')
@@ -69,7 +69,7 @@ class MidpointVI(_MidpointVI):
         self._l1_dp1 = np.zeros((self.nd, self.nc), np.double, 'C')
         self._l1_du1 = np.zeros((self.nu, self.nc), np.double, 'C')
         self._l1_dk2 = np.zeros((self.nk, self.nc), np.double, 'C')
-        
+
         self._q2_dq1dq1 = np.zeros((self.nq, self.nq, self.nd), np.double, 'C')
         self._q2_dq1dp1 = np.zeros((self.nq, self.nd, self.nd), np.double, 'C')
         self._q2_dq1du1 = np.zeros((self.nq, self.nu, self.nd), np.double, 'C')
@@ -80,18 +80,18 @@ class MidpointVI(_MidpointVI):
         self._q2_du1du1 = np.zeros((self.nu, self.nu, self.nd), np.double, 'C')
         self._q2_du1dk2 = np.zeros((self.nu, self.nk, self.nd), np.double, 'C')
         self._q2_dk2dk2 = np.zeros((self.nk, self.nk, self.nd), np.double, 'C')
-        
+
         self._p2_dq1dq1 = np.zeros((self.nq, self.nq, self.nd), np.double, 'C')
         self._p2_dq1dp1 = np.zeros((self.nq, self.nd, self.nd), np.double, 'C')
         self._p2_dq1du1 = np.zeros((self.nq, self.nu, self.nd), np.double, 'C')
         self._p2_dq1dk2 = np.zeros((self.nq, self.nk, self.nd), np.double, 'C')
-        self._p2_dp1dp1 = np.zeros((self.nd, self.nd, self.nd), np.double, 'C') 
+        self._p2_dp1dp1 = np.zeros((self.nd, self.nd, self.nd), np.double, 'C')
         self._p2_dp1du1 = np.zeros((self.nd, self.nu, self.nd), np.double, 'C')
         self._p2_dp1dk2 = np.zeros((self.nd, self.nk, self.nd), np.double, 'C')
         self._p2_du1du1 = np.zeros((self.nu, self.nu, self.nd), np.double, 'C')
         self._p2_du1dk2 = np.zeros((self.nu, self.nk, self.nd), np.double, 'C')
         self._p2_dk2dk2 = np.zeros((self.nk, self.nk, self.nd), np.double, 'C')
-        
+
         self._l1_dq1dq1 = np.zeros((self.nq, self.nq, self.nc), np.double, 'C')
         self._l1_dq1dp1 = np.zeros((self.nq, self.nd, self.nc), np.double, 'C')
         self._l1_dq1du1 = np.zeros((self.nq, self.nu, self.nc), np.double, 'C')
@@ -102,11 +102,11 @@ class MidpointVI(_MidpointVI):
         self._l1_du1du1 = np.zeros((self.nu, self.nu, self.nc), np.double, 'C')
         self._l1_du1dk2 = np.zeros((self.nu, self.nk, self.nc), np.double, 'C')
         self._l1_dk2dk2 = np.zeros((self.nk, self.nk, self.nc), np.double, 'C')
-        
+
         self._DDDh1T = np.zeros((self.nq, self.nq, self.nq, self.nc), np.double, 'C')
-        self._DDh2 = np.zeros((self.nc, self.nq, self.nq), np.double, 'C')        
+        self._DDh2 = np.zeros((self.nc, self.nq, self.nq), np.double, 'C')
         self._temp_ndnc = np.zeros((self.nd, self.nc), np.double, 'C')
-        
+
         self._D1D1L2_D1fm2 = np.zeros((self.nq, self.nd), np.double, 'C')
         self._D2D1L2_D2fm2 = np.zeros((self.nq, self.nd), np.double, 'C')
         self._D1D2L2 = np.zeros((self.nq, self.nd), np.double, 'C')
@@ -121,27 +121,27 @@ class MidpointVI(_MidpointVI):
         self._D1D3fm2 = np.zeros((self.nq, self.nu, self.nd), np.double, 'C')
         self._D2D3fm2 = np.zeros((self.nq, self.nu, self.nd), np.double, 'C')
         self._D3D3fm2 = np.zeros((self.nu, self.nu, self.nd), np.double, 'C')
-        
+
         self._dp2_dq1_op = np.zeros((self.nd, self.nq, self.nd), np.double, 'C')
         self._dl1_dq1_op = np.zeros((self.nc, self.nq, self.nd), np.double, 'C')
         self._dq2_dq1_op = np.zeros((self.nd, self.nq, self.nd), np.double, 'C')
         self._dq2_dp1_op = np.zeros((self.nd, self.nd, self.nd), np.double, 'C')
         self._dl1_dp1_op = np.zeros((self.nc, self.nd, self.nd), np.double, 'C')
-        self._dp2_dp1_op = np.zeros((self.nd, self.nd, self.nd), np.double, 'C')    
+        self._dp2_dp1_op = np.zeros((self.nd, self.nd, self.nd), np.double, 'C')
         self._dq2_du1_op = np.zeros((self.nd, self.nu, self.nd), np.double, 'C')
         self._dl1_du1_op = np.zeros((self.nc, self.nu, self.nd), np.double, 'C')
-        self._dp2_du1_op = np.zeros((self.nd, self.nu, self.nd), np.double, 'C')    
+        self._dp2_du1_op = np.zeros((self.nd, self.nu, self.nd), np.double, 'C')
         self._dq2_dk2_op = np.zeros((self.nd, self.nk, self.nd), np.double, 'C')
         self._dl1_dk2_op = np.zeros((self.nc, self.nk, self.nd), np.double, 'C')
         self._dp2_dk2_op = np.zeros((self.nd, self.nk, self.nd), np.double, 'C')
-        
+
     def initialize_from_state(self, t1, q1, p1, lambda1=None):
         """
         Initialize the integrator from a known state (time,
-        configuration, and momentum).
+        configuration, and momentum.)
 
         lambda1 can optionally be specified.
-        """        
+        """
         self.t1 = t1
         self.q1 = q1
         self.p1 = p1
@@ -183,7 +183,7 @@ class MidpointVI(_MidpointVI):
         k2 = np.array(k2)
         assert u1.shape == (self.system.nu,)
         assert k2.shape == (self.nk,)
-        
+
         # Advance the integrator
         self.q1 = self.q2
         self.p1 = self.p2
@@ -199,20 +199,20 @@ class MidpointVI(_MidpointVI):
             return self._solve_DEL(max_iterations)
         except ValueError:  # Catch singular derivatives.
             raise trep.ConvergenceError("Singular derivative of DEL at t=%s" % t2)
-    
+
     def calc_f(self):
         """
         Evaluate the DEL equation at the current
         states.  For dynamically consistent states, this should be
         zero.  Otherwise it is the remainder of the DEL.
-        """        
+        """
         self._calc_f()
         return self._f.copy()
 
     @property
     def system(self):
         return self._system
-            
+
     def __repr__(self):
         return "<MidpointVI t1=%f t2=%f nd=%d nk=%d nc=%d nu=%d>" % (
             self.t1, self.t2, self.nd, self.nk, self.nc, self.nu)
@@ -221,7 +221,7 @@ class MidpointVI(_MidpointVI):
     def nq(self):
         """Number of configuration variables in the system."""
         return self._system.nQ
-    
+
     @property
     def nd(self):
         """Number of dynamic configuration variables in the system."""
@@ -256,7 +256,7 @@ class MidpointVI(_MidpointVI):
     def q2(self):
         """Configuration at k=2  (ie, 'current' configuration)"""
         return self._q2.copy()
-    
+
     @q2.setter
     def q2(self, value):
         self._cache = 0
@@ -306,7 +306,7 @@ class MidpointVI(_MidpointVI):
     def t1(self):
         """Time for k=1 (ie, 'previous' time)"""
         return self._t1
-    
+
     @t1.setter
     def t1(self, t):
         self._cache = 0
@@ -316,7 +316,7 @@ class MidpointVI(_MidpointVI):
     def t2(self):
         """Time for k=2 (ie, 'current' time)"""
         return self._t2
-    
+
     @t2.setter
     def t2(self, t):
         self._cache = 0
@@ -325,9 +325,12 @@ class MidpointVI(_MidpointVI):
     @property
     def v2(self):
         """Discrete kinematic velocity for k=2 (q2k-q1k/t2-t1)"""
-        v2 = (self.q2 - self.q1)/(self.t2 - self.t1)
-        return v2[self.nd:]
-      
+        if self.t2 != self.t1:
+            v2 = (self.q2 - self.q1)/(self.t2 - self.t1)
+            return v2[self.nd:]
+        else:
+            return None
+
 
     # Derivatives of q2
 
@@ -339,7 +342,7 @@ class MidpointVI(_MidpointVI):
         """
         self._calc_deriv1()
         return self._q2_dq1[q1, q].T.copy()
-  
+
     @dynamics_indexing_decorator('dq')
     def q2_dp1(self, q=None, p1=None):
         """
@@ -357,7 +360,7 @@ class MidpointVI(_MidpointVI):
         """
         self._calc_deriv1()
         return self._q2_du1[u1, q].T.copy()
-    
+
     @dynamics_indexing_decorator('dk')
     def q2_dk2(self, q=None, k2=None):
         """
@@ -384,7 +387,7 @@ class MidpointVI(_MidpointVI):
         """
         self._calc_deriv2()
         return self._q2_dq1dp1[q1, p1, q].copy()
-    
+
     @dynamics_indexing_decorator('ddd')
     def q2_dp1dp1(self, q=None, p1_1=None, p1_2=None):
         """
@@ -393,7 +396,7 @@ class MidpointVI(_MidpointVI):
         """
         self._calc_deriv2()
         return self._q2_dp1dp1[p1_1, p1_2, q].copy()
-    
+
     @dynamics_indexing_decorator('dqu')
     def q2_dq1du1(self, q=None, q1=None, u1=None):
         """
@@ -402,7 +405,7 @@ class MidpointVI(_MidpointVI):
         """
         self._calc_deriv2()
         return self._q2_dq1du1[q1, u1, q].copy()
-    
+
     @dynamics_indexing_decorator('ddu')
     def q2_dp1du1(self, q=None, p1=None, u1=None):
         """
@@ -411,7 +414,7 @@ class MidpointVI(_MidpointVI):
         """
         self._calc_deriv2()
         return self._q2_dp1du1[p1, u1, q].copy()
-    
+
     @dynamics_indexing_decorator('duu')
     def q2_du1du1(self, q=None, u1_1=None, u1_2=None):
         """
@@ -420,7 +423,7 @@ class MidpointVI(_MidpointVI):
         """
         self._calc_deriv2()
         return self._q2_du1du1[u1_1, u1_2, q].copy()
-    
+
     @dynamics_indexing_decorator('dqk')
     def q2_dq1dk2(self, q=None, q1=None, k2=None):
         """
@@ -431,7 +434,7 @@ class MidpointVI(_MidpointVI):
         """
         self._calc_deriv2()
         return self._q2_dq1dk2[q1, k2, q].copy()
-    
+
     @dynamics_indexing_decorator('ddk')
     def q2_dp1dk2(self, q=None, p1=None, k2=None):
         """
@@ -442,7 +445,7 @@ class MidpointVI(_MidpointVI):
         """
         self._calc_deriv2()
         return self._q2_dp1dk2[p1, k2, q].copy()
-    
+
     @dynamics_indexing_decorator('duk')
     def q2_du1dk2(self, q=None, u1=None, k2=None):
         """
@@ -453,7 +456,7 @@ class MidpointVI(_MidpointVI):
         """
         self._calc_deriv2()
         return self._q2_du1dk2[u1, k2, q].copy()
-    
+
     @dynamics_indexing_decorator('dkk')
     def q2_dk2dk2(self, q=None, k2_1=None, k2_2=None):
         """
@@ -465,9 +468,9 @@ class MidpointVI(_MidpointVI):
         self._calc_deriv2()
         return self._q2_dk2dk2[k2_1, k2_2, q].copy()
 
-    
+
     # Derivatives of p2
-    
+
     @dynamics_indexing_decorator('dq')
     def p2_dq1(self, p=None, q1=None):
         """
@@ -475,7 +478,7 @@ class MidpointVI(_MidpointVI):
         """
         self._calc_deriv1()
         return self._p2_dq1[q1, p].T.copy()
-    
+
     @dynamics_indexing_decorator('dd')
     def p2_dp1(self, p=None, p1=None):
         """
@@ -483,7 +486,7 @@ class MidpointVI(_MidpointVI):
         """
         self._calc_deriv1()
         return self._p2_dp1[p1, p].T.copy()
-    
+
     @dynamics_indexing_decorator('du')
     def p2_du1(self, p=None, u1=None):
         """
@@ -491,13 +494,13 @@ class MidpointVI(_MidpointVI):
         """
         self._calc_deriv1()
         return self._p2_du1[u1, p].T.copy()
-    
+
     @dynamics_indexing_decorator('dk')
     def p2_dk2(self, p=None, k2=None):
         """
         Calculate the derivative of p2 with respect to k.
 
-        (k2 is the kinematic part of the configuration at k=2)    
+        (k2 is the kinematic part of the configuration at k=2)
         """
         self._calc_deriv1()
         return self._p2_dk2[k2, p].T.copy()
@@ -509,7 +512,7 @@ class MidpointVI(_MidpointVI):
         """
         self._calc_deriv2()
         return self._p2_dq1dq1[q1_1, q1_2, p].copy()
-    
+
     @dynamics_indexing_decorator('dqd')
     def p2_dq1dp1(self, p=None, q1=None, p1=None):
         """
@@ -518,7 +521,7 @@ class MidpointVI(_MidpointVI):
         """
         self._calc_deriv2()
         return self._p2_dq1dp1[q1, p1, p].copy()
-    
+
     @dynamics_indexing_decorator('ddd')
     def p2_dp1dp1(self, p=None, p1_1=None, p1_2=None):
         """
@@ -526,7 +529,7 @@ class MidpointVI(_MidpointVI):
         """
         self._calc_deriv2()
         return self._p2_dp1dp1[p1_1, p1_2, p].copy()
-    
+
     @dynamics_indexing_decorator('dqu')
     def p2_dq1du1(self, p=None, q1=None, u1=None):
         """
@@ -535,7 +538,7 @@ class MidpointVI(_MidpointVI):
         """
         self._calc_deriv2()
         return self._p2_dq1du1[q1, u1, p].copy()
-    
+
     @dynamics_indexing_decorator('ddu')
     def p2_dp1du1(self, p=None, p1=None, u1=None):
         """
@@ -544,7 +547,7 @@ class MidpointVI(_MidpointVI):
         """
         self._calc_deriv2()
         return self._p2_dp1du1[p1, u1, p].copy()
-    
+
     @dynamics_indexing_decorator('duu')
     def p2_du1du1(self, p=None, u1_1=None, u1_2=None):
         """
@@ -552,45 +555,45 @@ class MidpointVI(_MidpointVI):
         """
         self._calc_deriv2()
         return self._p2_du1du1[u1_1, u1_2, p].copy()
-    
+
     @dynamics_indexing_decorator('dqk')
     def p2_dq1dk2(self, p=None, q1=None, k2=None):
         """
         Calculate the second derivative of p2 with respect to k2 and
         q1.
-        
+
         (k2 is the kinematic part of the configuration at k=2)
         """
         self._calc_deriv2()
         return self._p2_dq1dk2[q1, k2, p].copy()
-    
+
     @dynamics_indexing_decorator('ddk')
     def p2_dp1dk2(self, p=None, p1=None, k2=None):
         """
         Calculate the second derivative of p2 with respect to k2 and
         p1.
-        
+
         (k2 is the kinematic part of the configuration at k=2)
         """
         self._calc_deriv2()
         return self._p2_dp1dk2[p1, k2, p].copy()
-    
+
     @dynamics_indexing_decorator('duk')
     def p2_du1dk2(self, p=None, u1=None, k2=None):
         """
         Calculate the second derivative of p2 with respect to k2 and
         u1.
-        
+
         (k2 is the kinematic part of the configuration at k=2)
         """
         self._calc_deriv2()
         return self._p2_du1dk2[u1, k2, p].copy()
-    
+
     @dynamics_indexing_decorator('dkk')
     def p2_dk2dk2(self, p=None, k2_1=None, k2_2=None):
         """
         Calculate the second derivative of p2 with respect to k2.
-        
+
         (k2 is the kinematic part of the configuration at k=2)
         """
         self._calc_deriv2()
@@ -598,7 +601,7 @@ class MidpointVI(_MidpointVI):
 
 
     # Derivatives of lambda1
-    
+
     @dynamics_indexing_decorator('cq')
     def lambda1_dq1(self, constraint=None, q1=None):
         """
@@ -606,7 +609,7 @@ class MidpointVI(_MidpointVI):
         """
         self._calc_deriv1()
         return self._l1_dq1[q1, constraint].T.copy()
-    
+
     @dynamics_indexing_decorator('cd')
     def lambda1_dp1(self, constraint=None, p1=None):
         """
@@ -614,7 +617,7 @@ class MidpointVI(_MidpointVI):
         """
         self._calc_deriv1()
         return self._l1_dp1[p1, constraint].T.copy()
-    
+
     @dynamics_indexing_decorator('cu')
     def lambda1_du1(self, constraint=None, u1=None):
         """
@@ -622,7 +625,7 @@ class MidpointVI(_MidpointVI):
         """
         self._calc_deriv1()
         return self._l1_du1[u1, constraint].T.copy()
-    
+
     @dynamics_indexing_decorator('ck')
     def lambda1_dk2(self, constraint=None, k2=None):
         """
@@ -640,7 +643,7 @@ class MidpointVI(_MidpointVI):
         """
         self._calc_deriv2()
         return self._l1_dq1dq1[q1_1, q1_2, constraint].copy()
-    
+
     @dynamics_indexing_decorator('cqd')
     def lambda1_dq1dp1(self, constraint=None, q1=None, p1=None):
         """
@@ -649,7 +652,7 @@ class MidpointVI(_MidpointVI):
         """
         self._calc_deriv2()
         return self._l1_dq1dp1[q1, p1, constraint].copy()
-    
+
     @dynamics_indexing_decorator('cdd')
     def lambda1_dp1dp1(self, constraint=None, p1_1=None, p1_2=None):
         """
@@ -657,7 +660,7 @@ class MidpointVI(_MidpointVI):
         """
         self._calc_deriv2()
         return self._l1_dp1dp1[p1_1, p1_2, constraint].copy()
-    
+
     @dynamics_indexing_decorator('cqu')
     def lambda1_dq1du1(self, constraint=None, q1=None, u1=None):
         """
@@ -666,7 +669,7 @@ class MidpointVI(_MidpointVI):
         """
         self._calc_deriv2()
         return self._l1_dq1du1[q1, u1, constraint].copy()
-    
+
     @dynamics_indexing_decorator('cdu')
     def lambda1_dp1du1(self, constraint=None, p1=None, u1=None):
         """
@@ -675,7 +678,7 @@ class MidpointVI(_MidpointVI):
         """
         self._calc_deriv2()
         return self._l1_dp1du1[p1, u1, constraint].copy()
-    
+
     @dynamics_indexing_decorator('cuu')
     def lambda1_du1du1(self, constraint=None, u1_1=None, u1_2=None):
         """
@@ -683,7 +686,7 @@ class MidpointVI(_MidpointVI):
         """
         self._calc_deriv2()
         return self._l1_du1du1[u1_1, u1_2, constraint].copy()
-    
+
     @dynamics_indexing_decorator('cqk')
     def lambda1_dq1dk2(self, constraint=None, q1=None, k2=None):
         """
@@ -694,7 +697,7 @@ class MidpointVI(_MidpointVI):
         """
         self._calc_deriv2()
         return self._l1_dq1dk2[q1, k2, constraint].copy()
-    
+
     @dynamics_indexing_decorator('cdk')
     def lambda1_dp1dk2(self, constraint=None, p1=None, k2=None):
         """
@@ -705,7 +708,7 @@ class MidpointVI(_MidpointVI):
         """
         self._calc_deriv2()
         return self._l1_dp1dk2[p1, k2, constraint].copy()
-    
+
     @dynamics_indexing_decorator('cuk')
     def lambda1_du1dk2(self, constraint=None, u1=None, k2=None):
         """
@@ -716,7 +719,7 @@ class MidpointVI(_MidpointVI):
         """
         self._calc_deriv2()
         return self._l1_du1dk2[u1, k2, constraint].copy()
-    
+
     @dynamics_indexing_decorator('ckk')
     def lambda1_dk2dk2(self, constraint=None, k2_1=None, k2_2=None):
         """
@@ -726,9 +729,3 @@ class MidpointVI(_MidpointVI):
         """
         self._calc_deriv2()
         return self._l1_dk2dk2[k2_1, k2_2, constraint].copy()
-
-
-            
-            
-            
-        

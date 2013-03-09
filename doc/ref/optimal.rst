@@ -3,7 +3,7 @@
 =================================================
 
 .. module:: trep.discopt
-   :platform: Linux, Mac, Windows
+   :platform: Linux, Mac
    :synopsis: Discrete Optimal Control Tools
 
 
