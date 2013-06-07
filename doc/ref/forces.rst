@@ -13,8 +13,10 @@ Non-conservative forces are modeled in trep by deriving from the
 control forces/torques.  
 
 These are the types of forces currently built in to :mod:`trep`.
-:ref:`creating_forces` describes how to create a new type of force in
-Python or C.
+
+..
+   :ref:`creating_forces` describes how to create a new type of force in
+   Python or C.
 
 
 .. toctree::

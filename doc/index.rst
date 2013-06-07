@@ -22,7 +22,9 @@ Many examples are included with the source code (`browse online
 <http://code.google.com/p/trep/source/browse/#git%2Fexamples>`_).
 
 The :ref:`api reference` has detailed documentation for each part of
-:mod:`trep`.
+:mod:`trep`. We have also put together a detailed :ref:`tutorial` that gives an
+idea of the capabilities and organization of :mod:`trep` by stepping through
+several example problems.
 
 If you have any questions or suggestions, please head over to our
 `project page <http://trep.googlecode.com/>`_.
@@ -34,13 +36,13 @@ Contents:
    :maxdepth: 2
 
    ref/index
+   tutorial/index
 
 .. toctree:: 
    :hidden:
 
    user_guide/index
    placeholders
-   internal/tapemeasure
 
 Indices and tables
 ==================

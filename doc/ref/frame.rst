@@ -1,3 +1,5 @@
+.. _trep_frame:
+
 :class:`Frame` -- Coordinate Frame
 ==================================
 

@@ -1,3 +1,5 @@
+.. _trep_potential:
+
 :class:`Potential` -- Base Class for Potential Energies
 =======================================================
 

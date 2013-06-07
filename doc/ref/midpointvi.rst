@@ -112,6 +112,12 @@ stepping methods.
                
    The input vector at :math:`t_1`.  
 
+.. attribute:: MidpointVI.v2
+
+   The finite-differenced velocity of the kinematic configuration variables at
+   :math:`t_2` i.e. :math:`v_2=\frac{q_{k2}-q_{k1}}{t_2-t_1}`. If :math:`t_2=t_1`
+   the built-in Python constant :data:`None` is returned.
+
 .. attribute:: MidpointVI.lambda1
 
    The constraint force vector at :math:`t_1`.  These are the
@@ -152,8 +158,7 @@ Initialization
 Dynamics
 ^^^^^^^^
         
-.. method:: MidpointVI.step(t2, u1=tuple(), k2=tuple(), max_iterations=200, 
-                            lambda1_hint=None, q2_hint=None)
+.. method:: MidpointVI.step(t2, u1=tuple(), k2=tuple(), max_iterations=200, lambda1_hint=None, q2_hint=None)
 
    Step the integrator forward to time t2 .  This advances the time
    and solves the DEL equation.  The current state will become the
@@ -216,7 +221,7 @@ Derivatives of :math:`q_2`
      array([ 0.133, -0.017,  0.026, ..., -0.103, -0.017,  0.511])
    
    Calculating the derivative of the *j*-th new configuration with
-   respect to the *i*-th kinematic input:
+   respect to the *i*-th kinematic input::
 
      >>> q = system.configs[j]
      >>> k2 = system.kin_configs[i]

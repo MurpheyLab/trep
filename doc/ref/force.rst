@@ -1,3 +1,5 @@
+.. _trep_force:
+
 .. currentmodule:: trep
 
 :class:`Force` -- Base Class for Forces
