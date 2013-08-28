@@ -31,8 +31,7 @@ class PointOnPlane(_PointOnPlaneConstraint, Constraint):
 
     @property
     def normal(self):
-        return np.array([self._normal0, self._normal1, self._normal])
-        return self._axis
+        return np.array([self._normal0, self._normal1, self._normal2])
 
     @normal.setter
     def normal(self, normal):
