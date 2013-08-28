@@ -111,10 +111,25 @@ class BasicViewer(QMainWindow):
         self.scene.togglePlay()
 
     def show_camera_pos(self):
-        info = ""
-        info += "position=%r<br>" % (self.view.camera._pos,)
-        info += "angles=%r" % (self.view.camera._ang, )
-        QMessageBox.about(self, "Camera Position", info)
+        try:
+            info = ""
+            info = "3D camera info:<br>"
+            info += "position=%r<br>" % (self.view.camera._pos,)
+            info += "angles=%r" % (self.view.camera._ang, )
+            QMessageBox.about(self, "Camera Info", info)
+            return
+        except AttributeError:
+            pass
+        try:
+            info = ""
+            info = "2D camera info:<br>"
+            info += "xpos=%r<br>" % (self.view._center.x(),)
+            info += "ypos=%r<br>" % (self.view._center.y(),)
+            info += "scale=%r" % (self.view._scale_exponent, )
+            QMessageBox.about(self, "Camera Info", info)
+            return
+        except AttributeError:
+            pass
 
     def about(self):
         QMessageBox.about(self, "About trep",
@@ -150,11 +165,16 @@ class BasicViewer(QMainWindow):
 
     
 
-def visualize_2d(items, argv=[]):
+def visualize_2d(items, argv=[], center=None, scale=None):
     app = QApplication(argv)
     viewer = BasicViewer()
 
     viewer.setSceneView(View2D())
+
+    if center is not None:
+        viewer.view.set_center(center)
+    if scale is not None:
+        viewer.view.set_scale(scale)
       
     for item in items:
         viewer.scene.addItem(item)

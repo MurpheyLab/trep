@@ -26,6 +26,16 @@ class View2D(QWidget):
         return self._scene
 
 
+    def set_scale(self, scale):
+        self._scale_exponent = scale
+        self.update()
+
+
+    def set_center(self, center):
+        self._center = QPoint(center[0], center[1])
+        self.update()
+
+
     def wheelEvent(self, event):
         degrees = event.delta()/8.0
         self._scale_exponent += degrees/60.0
