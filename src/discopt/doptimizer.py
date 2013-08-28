@@ -594,10 +594,12 @@ class DOptimizer(object):
             armijo_max[i] = cost + self.armijo_alpha* zi * dcost
 
 
+        pyplot.hold(True)
         pyplot.plot(z, model_cost-cost, '-,', linewidth=2.0, color='blue', label='Modeled Cost')
         pyplot.plot(z, true_cost-cost, '.-', linewidth=1.0, color='black', label='True Cost')
         pyplot.plot(armijo_z, armijo_cost-cost, 'o', color='gray', label='Armijo Evaluations')
         pyplot.plot(z, armijo_max-cost, '-.', color='black', label='Required Cost Improvement')
+        pyplot.hold(False)
         if legend:
             pyplot.legend(loc=0)
 
