@@ -133,55 +133,85 @@ earlier, can be defined as:
 Since :meth:`Frame.import_frames` works recursively, we can describe
 arbitrarily complex trees.  Consider this more complicated example:
 
-.. image:: fig-pccd-multi.png
+.. image:: fig-pccd-relabeled.png
 
-The corresponding frame definition is::
+In the above image, the system is entirely 2D, and we are looking at the *x-z*
+plane of the *World* frame.  Thus the arrows of each labeled coordinate frame
+are showing the positive *x* and positive *z* axes of that frame. The
+corresponding frame definition is::
 
    import trep
    from trep import tx, ty, tz, rx, ry, rz
    
    system = trep.System()
    frames = [
-      ty(-0.5, name='Base'),
-      ty(-0.2), [
-         ry('J', name='J'), [
-            tz(-0.5, name='I', mass=1),
-            tz(-1), [
-               ty(-0.1), [
-                  ry('H', name='H'), [
-                     tz(-1, name='G', mass=1),
-                     tz(-2, name='O2')]]]]],
-      ty(-0.1), [
-         tx(-1.5), [
-            ry('K', name='K'), [
-               tz(-1, name='L', mass=1),
+       ry('H', name='H'), [
+           tz(-0.5, name='I', mass=1),
+           tz(-1), [
+               ry('J', name='J'), [
+                   tz(-1, name='K', mass=1),
+                   tz(-2, name='L')]]],
+       tx(-1.5), [
+           ry('M', name='M'), [
+               tz(-1, name='N', mass=1),
                tz(-2), [
-                  ty(0.1), [
-                     ry('M', name='M'), [
-                        tz(-0.5, name='N', mass=1),
-                        tz(-1.0, name='O')]]]]]],
-      ty(0.5), [
-         tx(1.5), [
-            ry('A', name='A'), [
+                   ry('O', name='O'), [
+                       tz(-0.5, name='P', mass=1),
+                       tz(-1.0, name='Q')]]]],
+       tx(1.5), [
+           ry('A', name='A'), [
                tz(-1, name='B', mass=1),
                tz(-2), [
-                  ty(-0.1), [
-                     ry('C', name='C'), [
-                        tz(-0.375, name='D', mass=1),
-                        tz(-0.75), [
-                           ty(-0.1), [
-                              ry('E', name='E'), [
-                                 tz(-0.5, name='F', mass=1),
-                                 tz(-1.0, name='G2')]]]]]]]]]
-      ]
+                   ry('C', name='C'), [
+                       tz(-0.375, name='D', mass=1),
+                       tz(-0.75), [
+                           ry('E', name='E'), [
+                               tz(-0.5, name='F', mass=1),
+                               tz(-1.0, name='G')
+                               ]
+                           ]
+                       ]
+                   ]
+               ]
+           ]
+       ]
    system.import_frames(frames)
    
 This is much more concise than defining the frames directly.  It is
 also easier to see the structure of the system by taking advantage of
-how most Python editors will indent the nested lists.
+how most Python editors will indent the nested lists.  Trep also
+provides the function :meth:`Frame.tree_view` for creating a visual
+representation of a system's tree structure.  For the above system we
+can view the tree with the following command::
+
+   >>> print system.get_frame('World').tree_view()
+   <Frame 'World'>
+      <Frame 'H' RY(H)>
+         <Frame 'I' TZ(-0.5) 1.000000>
+         <Frame 'None' TZ(-1.0) 0.000000>
+            <Frame 'J' RY(J)>
+               <Frame 'K' TZ(-1.0) 1.000000>
+               <Frame 'L' TZ(-2.0) 0.000000>
+      <Frame 'None' TX(-1.5) 0.000000>
+         <Frame 'M' RY(M)>
+            <Frame 'N' TZ(-1.0) 1.000000>
+            <Frame 'None' TZ(-2.0) 0.000000>
+               <Frame 'O' RY(O)>
+                  <Frame 'P' TZ(-0.5) 1.000000>
+                  <Frame 'Q' TZ(-1.0) 0.000000>
+      <Frame 'None' TX(1.5) 0.000000>
+         <Frame 'A' RY(A)>
+            <Frame 'B' TZ(-1.0) 1.000000>
+            <Frame 'None' TZ(-2.0) 0.000000>
+               <Frame 'C' RY(C)>
+                  <Frame 'D' TZ(-0.375) 1.000000>
+                  <Frame 'None' TZ(-0.75) 0.000000>
+                     <Frame 'E' RY(E)>
+                        <Frame 'F' TZ(-0.5) 1.000000>
+                        <Frame 'G' TZ(-1.0) 0.000000>
 
 
-A convenience functions is also provided to create constant SE(3)
+A convenience function is also provided to create constant SE(3)
 transformations from an angle and an axis.
 
 .. function:: rotation_matrix(theta, axis)
