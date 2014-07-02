@@ -10,10 +10,10 @@
     <title>{{ page.title }}</title>
 
     <!-- Bootstrap core CSS -->
-    <link href="/css/bootstrap.css" rel="stylesheet">
+    <link href="{{ site.baseurl }}/css/bootstrap.css" rel="stylesheet">
 
     <!-- Custom CSS for the '3 Col Portfolio' Template -->
-    <link href="/css/trep-site.css" rel="stylesheet">
+    <link href="{{ site.baseurl }}/css/trep-site.css" rel="stylesheet">
 </head>
 
 <body>
@@ -27,18 +27,18 @@
                     <span class="icon-bar"></span>
                     <span class="icon-bar"></span>
                 </button>
-                <a class="navbar-brand" href="http://murpheylab.github.io/trep"><img src="/images/test.png"></a>
+                <a class="navbar-brand" href="http://murpheylab.github.io/trep"><img src="{{ site.baseurl }}/images/test.png"></a>
             </div>
 
             <!-- Collect the nav links, forms, and other content for toggling -->
             <div class="collapse navbar-collapse navbar-ex1-collapse">
                 <ul class="nav navbar-nav">
-                    <li><a href="/install/index.html">Installation</a>
+                    <li><a href="{{ site.baseurl }}/install/index.html">Installation</a>
                     </li>
                    <li class="dropdown">
                       <a href="#" class="dropdown-toggle" data-toggle="dropdown">Documentation <span class="caret"></span></a>
                       <ul class="dropdown-menu" role="menu">
-                        <li><a href="/documentation/current/">Development</a></li>
+                        <li><a href="{{ site.baseurl }}/documentation/current/">Development</a></li>
                         <li class="divider"></li>
                         <li><a href="#">v0.92</a></li>
                         <li><a href="#">v0.91</a></li>
@@ -62,11 +62,11 @@
 
             <div class="row"">
                 <div class="col-sm-3 col-xs-3">
-                    <a href="http://www.northwestern.edu"><img src="/images/nulogo.png"></a>
+                    <a href="http://www.northwestern.edu"><img src="{{ site.baseurl }}/images/nulogo.png"></a>
                 </div>
                 <div class="col-sm-6 col-xs-6">
                     <p class="text-left">Neuroscience and Robotics Lab (NxR)<br>
-                    Trep is distributed under the GNU license.<br>
+                    Trep is released under the GPLv3 license.<br>
                     Original development by Elliot Johnson<br>
                     &copy 2014 Neuroscience and Robotics Lab, Northwestern University</p>
                 </div>
@@ -77,8 +77,8 @@
     <!-- /.container -->
 
     <!-- JavaScript -->
-    <script src="/js/jquery-1.10.2.js"></script>
-    <script src="/js/bootstrap.js"></script>
+    <script src="{{ site.baseurl }}/js/jquery-1.10.2.js"></script>
+    <script src="{{ site.baseurl }}/js/bootstrap.js"></script>
 
 </body>
 
