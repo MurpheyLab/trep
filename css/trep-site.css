@@ -1,0 +1,16 @@
+body {
+	margin-top: 0px; /* 50px is the height of the navbar - change this if the navbarn height changes */
+}
+
+.portfolio-item {
+	margin-bottom: 10px;
+}
+
+
+footer {
+  background-color: #222;
+  border-color: #080808;
+  color: #999;
+  margin-top: 50px;
+  padding: 10px;
+}

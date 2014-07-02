@@ -1,0 +1,39 @@
+---
+layout: default
+title: Trep Installation
+---
+<div class="container">
+ 
+<!-------->
+<div id="content">
+
+    <h2>Trep Installation:</h2>
+
+    <ul id="tabs" class="nav nav-pills" data-tabs="pills">
+        <li class="active"><a href="#linux" data-toggle="pill">Linux</a></li>
+        <li><a href="#mac" data-toggle="pill">Mac</a></li>
+        <li><a href="#windows" data-toggle="pill">Windows</a></li>
+    </ul>
+
+
+
+    <div id="my-tab-content" class="tab-content">
+        <div class="tab-pane active" id="linux" markdown="1">
+            <p>{% capture m %}{% include linux-install.md %}{% endcapture %}{{ m | markdownify }}</p>
+        </div>
+        <div class="tab-pane" id="mac">
+            <p>{% capture m %}{% include mac-install.md %}{% endcapture %}{{ m | markdownify }}</p>
+        </div>
+        <div class="tab-pane" id="windows">
+            <p>{% capture m %}{% include windows-install.md %}{% endcapture %}{{ m | markdownify }}</p>
+        </div>
+    </div>
+</div>
+
+
+<script type="text/javascript">
+    jQuery(document).ready(function ($) {
+        $('#tabs').tab();
+    });
+</script>    
+</div> 
