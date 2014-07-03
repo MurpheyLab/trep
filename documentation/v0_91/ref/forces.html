@@ -1,0 +1,162 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Forces &mdash; trep documenation</title>
+    
+    <link rel="stylesheet" href="../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.91',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="trep documenation" href="../index.html" />
+    <link rel="up" title="trep Reference" href="index.html" />
+    <link rel="next" title="Damping" href="damping.html" />
+    <link rel="prev" title="NonLinearConfigSpring – Non-linear spring acting on a configuration variable" href="nonlinearconfigspring.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="damping.html" title="Damping"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="nonlinearconfigspring.html" title="NonLinearConfigSpring – Non-linear spring acting on a configuration variable"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../index.html">trep documenation</a> &raquo;</li>
+          <li><a href="index.html" accesskey="U"><tt class="docutils literal docutils literal docutils literal docutils literal docutils literal docutils literal docutils literal docutils literal docutils literal docutils literal docutils literal docutils literal docutils literal docutils literal docutils literal"><span class="pre">trep</span></tt> Reference</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+    <script type="math/tex">
+    \newcommand{\deriv}[2][]{\dfrac{\partial #1}{\partial #2}}
+\newcommand{\tderiv}[2][]{\tfrac{\partial #1}{\partial #2}}
+\newcommand{\fderiv}[2][]{\dfrac{d #1}{d #2}}
+\newcommand{\derivII}[3][]{\dfrac{\partial^2 #1}{\partial #2 \partial #3}}
+\newcommand{\tderivII}[3][]{\tfrac{\partial^2 #1}{\partial #2 \partial #3}}
+\newcommand{\derivIII}[4][]{\dfrac{\partial^3 #1}{\partial #2 \partial #3 \partial #4}}
+\newcommand{\tderivIII}[4][]{\tfrac{\partial^3 #1}{\partial #2 \partial #3 \partial #4}}
+\newcommand{\derivIV}[5][]{\dfrac{\partial^4 #1}{\partial #2 \partial #3 \partial #4 \partial #5}}
+
+\newcommand{\half}{\tfrac{1}{2}}  % Macro for 1/2
+
+\newcommand{\ud}{\mathrm{d}}
+
+\newcommand{\op}{\circ}
+\newcommand{\dq}{\dot{q}}
+\newcommand{\ddq}{\ddot{q}}
+
+\newcommand{\dt}{\Delta t}
+
+
+    </script>
+    
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="forces">
+<span id="builtin-forces"></span><h1>Forces<a class="headerlink" href="#forces" title="Permalink to this headline">¶</a></h1>
+<p>Non-conservative forces are modeled in trep by deriving from the
+<tt class="xref py py-class docutils literal"><span class="pre">Force</span></tt> type.  These types of forces include damping and
+control forces/torques.</p>
+<p>These are the types of forces currently built in to <a class="reference internal" href="index.html#module-trep" title="trep: Dynamics and Optimal Control Tools (Linux, Mac, Windows)"><tt class="xref py py-mod docutils literal"><span class="pre">trep</span></tt></a>.
+<a class="reference internal" href="../user_guide/create_forces.html#creating-forces"><em>Creating Forces</em></a> describes how to create a new type of force in
+Python or C.</p>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="damping.html">Damping</a></li>
+<li class="toctree-l1"><a class="reference internal" href="jointforce.html">Joint Force</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bodywrench.html">Body Wrench</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hybridwrench.html">Hybrid Wrench</a></li>
+<li class="toctree-l1"><a class="reference internal" href="spatialwrench.html">Spatial Wrench</a></li>
+<li class="toctree-l1"><a class="reference internal" href="testforce.html">Test Force</a></li>
+</ul>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="nonlinearconfigspring.html"
+                        title="previous chapter"><tt class="docutils literal docutils literal"><span class="pre">NonLinearConfigSpring</span></tt> &#8211; Non-linear spring acting on a configuration variable</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="damping.html"
+                        title="next chapter">Damping</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="../_sources/ref/forces.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="damping.html" title="Damping"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="nonlinearconfigspring.html" title="NonLinearConfigSpring – Non-linear spring acting on a configuration variable"
+             >previous</a> |</li>
+        <li><a href="../index.html">trep documenation</a> &raquo;</li>
+          <li><a href="index.html" ><tt class="docutils literal docutils literal docutils literal docutils literal docutils literal docutils literal docutils literal docutils literal docutils literal docutils literal docutils literal docutils literal docutils literal docutils literal docutils literal"><span class="pre">trep</span></tt> Reference</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, Elliot Johnson.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.2.
+    </div>
+  </body>
+</html>

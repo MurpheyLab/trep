@@ -1,0 +1,708 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Frame – Coordinate Frame &mdash; trep documenation</title>
+    
+    <link rel="stylesheet" href="../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.91',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="trep documenation" href="../index.html" />
+    <link rel="up" title="Core Components" href="core.html" />
+    <link rel="next" title="Config – Configuration Variables" href="config.html" />
+    <link rel="prev" title="System - A Mechanical System" href="system.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="config.html" title="Config – Configuration Variables"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="system.html" title="System - A Mechanical System"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../index.html">trep documenation</a> &raquo;</li>
+          <li><a href="index.html" ><tt class="docutils literal docutils literal docutils literal docutils literal docutils literal docutils literal docutils literal docutils literal docutils literal docutils literal docutils literal docutils literal docutils literal docutils literal docutils literal docutils literal"><span class="pre">trep</span></tt> Reference</a> &raquo;</li>
+          <li><a href="core.html" accesskey="U">Core Components</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+    <script type="math/tex">
+    \newcommand{\deriv}[2][]{\dfrac{\partial #1}{\partial #2}}
+\newcommand{\tderiv}[2][]{\tfrac{\partial #1}{\partial #2}}
+\newcommand{\fderiv}[2][]{\dfrac{d #1}{d #2}}
+\newcommand{\derivII}[3][]{\dfrac{\partial^2 #1}{\partial #2 \partial #3}}
+\newcommand{\tderivII}[3][]{\tfrac{\partial^2 #1}{\partial #2 \partial #3}}
+\newcommand{\derivIII}[4][]{\dfrac{\partial^3 #1}{\partial #2 \partial #3 \partial #4}}
+\newcommand{\tderivIII}[4][]{\tfrac{\partial^3 #1}{\partial #2 \partial #3 \partial #4}}
+\newcommand{\derivIV}[5][]{\dfrac{\partial^4 #1}{\partial #2 \partial #3 \partial #4 \partial #5}}
+
+\newcommand{\half}{\tfrac{1}{2}}  % Macro for 1/2
+
+\newcommand{\ud}{\mathrm{d}}
+
+\newcommand{\op}{\circ}
+\newcommand{\dq}{\dot{q}}
+\newcommand{\ddq}{\ddot{q}}
+
+\newcommand{\dt}{\Delta t}
+
+
+    </script>
+    
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="frame-coordinate-frame">
+<h1><tt class="xref py py-class docutils literal"><span class="pre">Frame</span></tt> &#8211; Coordinate Frame<a class="headerlink" href="#frame-coordinate-frame" title="Permalink to this headline">¶</a></h1>
+<p>The basic geometry of a mechanical system is defined by tree of
+coordinate frames in <a class="reference internal" href="index.html#module-trep" title="trep: Dynamics and Optimal Control Tools (Linux, Mac, Windows)"><tt class="xref py py-mod docutils literal"><span class="pre">trep</span></tt></a>.  The root of the tree is the fixed
+<a class="reference internal" href="system.html#trep.System.world_frame" title="trep.System.world_frame"><tt class="xref py py-attr docutils literal"><span class="pre">System.world_frame</span></tt></a>.  Every other coordinate frame is defined by
+a coordinate transformation relative to its parent.  The coordinate
+transformations are either fixed or parameterized by a single
+configuration variable.  For example, a rotational joint is modeled as
+a rotation transformation where the angle is controlled by a
+configuration variable.</p>
+<p>Coordinate frames also define the masses in the system.  For every
+mass, a coordinate frame must be placed with the origin at the center
+of mass and the axes aligned with the principle axes of the rotational
+inertia.  Coordinate frames can also be mass-less, or have a mass but
+no rotational inertia to model point masses.</p>
+<p>A <tt class="xref py py-mod docutils literal"><span class="pre">Frame</span></tt> object can calculate its global position and body
+velocity, and their derivatives.</p>
+<div class="contents local topic" id="contents">
+<ul class="simple">
+<li><a class="reference internal" href="#frame-transformation-types" id="id1">Frame Transformation Types</a></li>
+<li><a class="reference internal" href="#defining-the-frames" id="id2">Defining the Frames</a></li>
+<li><a class="reference internal" href="#frame-objects" id="id3">Frame Objects</a><ul>
+<li><a class="reference internal" href="#importing-and-exporting-frames" id="id4">Importing and Exporting Frames</a></li>
+<li><a class="reference internal" href="#transform-information" id="id5">Transform Information</a></li>
+<li><a class="reference internal" href="#inertial-properties" id="id6">Inertial Properties</a></li>
+<li><a class="reference internal" href="#local-frame-transformations" id="id7">Local Frame Transformations</a></li>
+<li><a class="reference internal" href="#global-frame-transformations" id="id8">Global Frame Transformations</a></li>
+<li><a class="reference internal" href="#body-velocity-calculations" id="id9">Body Velocity Calculations</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="section" id="frame-transformation-types">
+<span id="transform-types"></span><h2><a class="toc-backref" href="#id1">Frame Transformation Types</a><a class="headerlink" href="#frame-transformation-types" title="Permalink to this headline">¶</a></h2>
+<p>There are a fixed set of coordinate transformations to define each
+frame:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="31%" />
+<col width="69%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Constant</th>
+<th class="head">Description</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td><dl class="first last data">
+<dt id="trep.RX">
+<tt class="descclassname">trep.</tt><tt class="descname">RX</tt><a class="headerlink" href="#trep.RX" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</td>
+<td>Rotation about the parent&#8217;s X axis.</td>
+</tr>
+<tr class="row-odd"><td><dl class="first last data">
+<dt id="trep.RY">
+<tt class="descclassname">trep.</tt><tt class="descname">RY</tt><a class="headerlink" href="#trep.RY" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</td>
+<td>Rotation about the parent&#8217;s Y axis.</td>
+</tr>
+<tr class="row-even"><td><dl class="first last data">
+<dt id="trep.RZ">
+<tt class="descclassname">trep.</tt><tt class="descname">RZ</tt><a class="headerlink" href="#trep.RZ" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</td>
+<td>Rotation about the parent&#8217;s Z axis.</td>
+</tr>
+<tr class="row-odd"><td><dl class="first last data">
+<dt id="trep.TX">
+<tt class="descclassname">trep.</tt><tt class="descname">TX</tt><a class="headerlink" href="#trep.TX" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</td>
+<td>Translation about the parent&#8217;s X axis.</td>
+</tr>
+<tr class="row-even"><td><dl class="first last data">
+<dt id="trep.TY">
+<tt class="descclassname">trep.</tt><tt class="descname">TY</tt><a class="headerlink" href="#trep.TY" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</td>
+<td>Translation about the parent&#8217;s Y axis.</td>
+</tr>
+<tr class="row-odd"><td><dl class="first last data">
+<dt id="trep.TZ">
+<tt class="descclassname">trep.</tt><tt class="descname">TZ</tt><a class="headerlink" href="#trep.TZ" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</td>
+<td>Translation about the parent&#8217;s Z axis.</td>
+</tr>
+<tr class="row-even"><td><dl class="first last data">
+<dt id="trep.CONST_SE3">
+<tt class="descclassname">trep.</tt><tt class="descname">CONST_SE3</tt><a class="headerlink" href="#trep.CONST_SE3" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</td>
+<td>Constant SE(3) transformation from parent.</td>
+</tr>
+<tr class="row-odd"><td><dl class="first last data">
+<dt id="trep.WORLD">
+<tt class="descclassname">trep.</tt><tt class="descname">WORLD</tt><a class="headerlink" href="#trep.WORLD" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</td>
+<td>Unique World Frame.</td>
+</tr>
+</tbody>
+</table>
+<p>The first six transformations can either be parameterized by a fixed
+constant or a configuration variable.  The <a class="reference internal" href="#trep.CONST_SE3" title="trep.CONST_SE3"><tt class="xref py py-data docutils literal"><span class="pre">CONST_SE3</span></tt></a>
+transformation can only be fixed.</p>
+<p>The <a class="reference internal" href="#trep.WORLD" title="trep.WORLD"><tt class="xref py py-data docutils literal"><span class="pre">WORLD</span></tt></a> transformation is reserved for the system&#8217;s
+<a class="reference internal" href="system.html#trep.System.world_frame" title="trep.System.world_frame"><tt class="xref py py-attr docutils literal"><span class="pre">world_frame</span></tt></a>.</p>
+</div>
+<div class="section" id="defining-the-frames">
+<span id="frame-definitions"></span><h2><a class="toc-backref" href="#id2">Defining the Frames</a><a class="headerlink" href="#defining-the-frames" title="Permalink to this headline">¶</a></h2>
+<p>New coordinate frames can be directly defined using the <a class="reference internal" href="#trep.Frame" title="trep.Frame"><tt class="xref py py-class docutils literal"><span class="pre">Frame</span></tt></a>
+constructor.  For example, this will create a simple pendulum:</p>
+<div class="highlight-python" id="frame-pendulum-example1"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">trep</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">system</span> <span class="o">=</span> <span class="n">trep</span><span class="o">.</span><span class="n">System</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">frame1</span> <span class="o">=</span> <span class="n">trep</span><span class="o">.</span><span class="n">Frame</span><span class="p">(</span><span class="n">system</span><span class="o">.</span><span class="n">world_frame</span><span class="p">,</span> <span class="n">trep</span><span class="o">.</span><span class="n">RX</span><span class="p">,</span> <span class="s">&quot;theta&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">frame2</span> <span class="o">=</span> <span class="n">trep</span><span class="o">.</span><span class="n">Frame</span><span class="p">(</span><span class="n">frame1</span><span class="p">,</span> <span class="n">trep</span><span class="o">.</span><span class="n">TZ</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">mass</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>This gets tedious and makes it difficult to see the mechanical
+structure, so <a class="reference internal" href="index.html#module-trep" title="trep: Dynamics and Optimal Control Tools (Linux, Mac, Windows)"><tt class="xref py py-mod docutils literal"><span class="pre">trep</span></tt></a> provides an alternate method to declare
+frames using <a class="reference internal" href="#trep.Frame.import_frames" title="trep.Frame.import_frames"><tt class="xref py py-meth docutils literal"><span class="pre">Frame.import_frames()</span></tt></a> and a few extra functions:</p>
+<dl class="function">
+<dt id="trep.tx">
+<tt class="descclassname">trep.</tt><tt class="descname">tx</tt><big>(</big><em>param</em>, <em>name=None</em>, <em>kinematic=False</em>, <em>mass=0.0</em><big>)</big><a class="headerlink" href="#trep.tx" title="Permalink to this definition">¶</a></dt>
+<dt id="trep.ty">
+<tt class="descclassname">trep.</tt><tt class="descname">ty</tt><big>(</big><em>param</em>, <em>name=None</em>, <em>kinematic=False</em>, <em>mass=0.0</em><big>)</big><a class="headerlink" href="#trep.ty" title="Permalink to this definition">¶</a></dt>
+<dt id="trep.tz">
+<tt class="descclassname">trep.</tt><tt class="descname">tz</tt><big>(</big><em>param</em>, <em>name=None</em>, <em>kinematic=False</em>, <em>mass=0.0</em><big>)</big><a class="headerlink" href="#trep.tz" title="Permalink to this definition">¶</a></dt>
+<dt id="trep.rx">
+<tt class="descclassname">trep.</tt><tt class="descname">rx</tt><big>(</big><em>param</em>, <em>name=None</em>, <em>kinematic=False</em>, <em>mass=0.0</em><big>)</big><a class="headerlink" href="#trep.rx" title="Permalink to this definition">¶</a></dt>
+<dt id="trep.ry">
+<tt class="descclassname">trep.</tt><tt class="descname">ry</tt><big>(</big><em>param</em>, <em>name=None</em>, <em>kinematic=False</em>, <em>mass=0.0</em><big>)</big><a class="headerlink" href="#trep.ry" title="Permalink to this definition">¶</a></dt>
+<dt id="trep.rz">
+<tt class="descclassname">trep.</tt><tt class="descname">rz</tt><big>(</big><em>param</em>, <em>name=None</em>, <em>kinematic=False</em>, <em>mass=0.0</em><big>)</big><a class="headerlink" href="#trep.rz" title="Permalink to this definition">¶</a></dt>
+<dt id="trep.const_se3">
+<tt class="descclassname">trep.</tt><tt class="descname">const_se3</tt><big>(</big><em>se3</em>, <em>name=None</em>, <em>kinematic=False</em>, <em>mass=0.0</em><big>)</big><a class="headerlink" href="#trep.const_se3" title="Permalink to this definition">¶</a></dt>
+<dt id="trep.const_txyz">
+<tt class="descclassname">trep.</tt><tt class="descname">const_txyz</tt><big>(</big><em>xyz</em>, <em>name</em>, <em>kinematic</em>, <em>mass</em><big>)</big><a class="headerlink" href="#trep.const_txyz" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>The parameters are the same as for creating new <a class="reference internal" href="#trep.Frame" title="trep.Frame"><tt class="xref py py-class docutils literal"><span class="pre">Frame</span></tt></a> objects
+directly, except the parent and transform type are gone.  The
+transform type is implied by the function name.  The parent will be
+implied by how we use the definition.</p>
+<p><a class="reference internal" href="#trep.Frame.import_frames" title="trep.Frame.import_frames"><tt class="xref py py-meth docutils literal"><span class="pre">Frame.import_frames()</span></tt></a> expects a list of these definitions.  For
+each definition, the frame will create a new frame and add it to it&#8217;s
+children.</p>
+<p>For example, suppose we had a frame with 6 children:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">child1</span> <span class="o">=</span> <span class="n">Frame</span><span class="p">(</span><span class="n">parent</span><span class="p">,</span> <span class="n">trep</span><span class="o">.</span><span class="n">TX</span><span class="p">,</span> <span class="s">&#39;q1&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">child2</span> <span class="o">=</span> <span class="n">Frame</span><span class="p">(</span><span class="n">parent</span><span class="p">,</span> <span class="n">trep</span><span class="o">.</span><span class="n">TY</span><span class="p">,</span> <span class="s">&#39;q2&#39;</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s">&#39;favorite_child&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">child3</span> <span class="o">=</span> <span class="n">Frame</span><span class="p">(</span><span class="n">parent</span><span class="p">,</span> <span class="n">trep</span><span class="o">.</span><span class="n">TZ</span><span class="p">,</span> <span class="s">&#39;q3&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">child4</span> <span class="o">=</span> <span class="n">Frame</span><span class="p">(</span><span class="n">parent</span><span class="p">,</span> <span class="n">trep</span><span class="o">.</span><span class="n">RX</span><span class="p">,</span> <span class="s">&#39;q4&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">child5</span> <span class="o">=</span> <span class="n">Frame</span><span class="p">(</span><span class="n">parent</span><span class="p">,</span> <span class="n">trep</span><span class="o">.</span><span class="n">TX</span><span class="p">,</span> <span class="s">&#39;q5&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Using <a class="reference internal" href="#trep.Frame.import_frames" title="trep.Frame.import_frames"><tt class="xref py py-meth docutils literal"><span class="pre">Frame.import_frames()</span></tt></a>, this becomes:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">children</span> <span class="o">=</span> <span class="p">[</span>
+<span class="gp">... </span>    <span class="n">trep</span><span class="o">.</span><span class="n">tx</span><span class="p">(</span><span class="s">&#39;q1&#39;</span><span class="p">),</span>
+<span class="gp">... </span>    <span class="n">trep</span><span class="o">.</span><span class="n">ty</span><span class="p">(</span><span class="s">&#39;q2&#39;</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s">&#39;favorite_child&#39;</span><span class="p">),</span>
+<span class="gp">... </span>    <span class="n">trep</span><span class="o">.</span><span class="n">tz</span><span class="p">(</span><span class="s">&#39;q3&#39;</span><span class="p">),</span>
+<span class="gp">... </span>    <span class="n">trep</span><span class="o">.</span><span class="n">rx</span><span class="p">(</span><span class="s">&#39;q4&#39;</span><span class="p">),</span>
+<span class="gp">... </span>    <span class="n">trep</span><span class="o">.</span><span class="n">tx</span><span class="p">(</span><span class="s">&#39;q5&#39;</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">parent</span><span class="o">.</span><span class="n">import_frames</span><span class="p">(</span><span class="n">children</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>We can also add children to these children.  If
+<a class="reference internal" href="#trep.Frame.import_frames" title="trep.Frame.import_frames"><tt class="xref py py-meth docutils literal"><span class="pre">Frame.import_frames()</span></tt></a> finds a list after a frame definition,
+then it will call the new call the new child&#8217;s <tt class="xref py py-meth docutils literal"><span class="pre">import_frames()</span></tt>
+method with the new list.</p>
+<p>For example, the <a class="reference internal" href="#frame-pendulum-example1"><em>pendulum</em></a> we created
+earlier, can be defined as:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">trep</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">trep</span> <span class="kn">import</span> <span class="n">rx</span><span class="p">,</span> <span class="n">tz</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">children</span> <span class="o">=</span> <span class="p">[</span>
+<span class="gp">... </span>    <span class="n">rx</span><span class="p">(</span><span class="s">&#39;theta&#39;</span><span class="p">),</span> <span class="p">[</span>
+<span class="gp">... </span>            <span class="n">tz</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">mass</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="p">]]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">system</span><span class="o">.</span><span class="n">world_frame</span><span class="o">.</span><span class="n">import_frames</span><span class="p">(</span><span class="n">children</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Since <a class="reference internal" href="#trep.Frame.import_frames" title="trep.Frame.import_frames"><tt class="xref py py-meth docutils literal"><span class="pre">Frame.import_frames()</span></tt></a> works recursively, we can describe
+arbitrarily complex trees.  Consider this more complicated example:</p>
+<img alt="../_images/fig-pccd-multi.png" src="../_images/fig-pccd-multi.png" />
+<p>The corresponding frame definition is:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">trep</span>
+<span class="kn">from</span> <span class="nn">trep</span> <span class="kn">import</span> <span class="n">tx</span><span class="p">,</span> <span class="n">ty</span><span class="p">,</span> <span class="n">tz</span><span class="p">,</span> <span class="n">rx</span><span class="p">,</span> <span class="n">ry</span><span class="p">,</span> <span class="n">rz</span>
+
+<span class="n">system</span> <span class="o">=</span> <span class="n">trep</span><span class="o">.</span><span class="n">System</span><span class="p">()</span>
+<span class="n">frames</span> <span class="o">=</span> <span class="p">[</span>
+   <span class="n">ty</span><span class="p">(</span><span class="o">-</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s">&#39;Base&#39;</span><span class="p">),</span>
+   <span class="n">ty</span><span class="p">(</span><span class="o">-</span><span class="mf">0.2</span><span class="p">),</span> <span class="p">[</span>
+      <span class="n">ry</span><span class="p">(</span><span class="s">&#39;J&#39;</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s">&#39;J&#39;</span><span class="p">),</span> <span class="p">[</span>
+         <span class="n">tz</span><span class="p">(</span><span class="o">-</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s">&#39;I&#39;</span><span class="p">,</span> <span class="n">mass</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>
+         <span class="n">tz</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">),</span> <span class="p">[</span>
+            <span class="n">ty</span><span class="p">(</span><span class="o">-</span><span class="mf">0.1</span><span class="p">),</span> <span class="p">[</span>
+               <span class="n">ry</span><span class="p">(</span><span class="s">&#39;H&#39;</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s">&#39;H&#39;</span><span class="p">),</span> <span class="p">[</span>
+                  <span class="n">tz</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s">&#39;G&#39;</span><span class="p">,</span> <span class="n">mass</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>
+                  <span class="n">tz</span><span class="p">(</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s">&#39;O2&#39;</span><span class="p">)]]]]],</span>
+   <span class="n">ty</span><span class="p">(</span><span class="o">-</span><span class="mf">0.1</span><span class="p">),</span> <span class="p">[</span>
+      <span class="n">tx</span><span class="p">(</span><span class="o">-</span><span class="mf">1.5</span><span class="p">),</span> <span class="p">[</span>
+         <span class="n">ry</span><span class="p">(</span><span class="s">&#39;K&#39;</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s">&#39;K&#39;</span><span class="p">),</span> <span class="p">[</span>
+            <span class="n">tz</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s">&#39;L&#39;</span><span class="p">,</span> <span class="n">mass</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>
+            <span class="n">tz</span><span class="p">(</span><span class="o">-</span><span class="mi">2</span><span class="p">),</span> <span class="p">[</span>
+               <span class="n">ty</span><span class="p">(</span><span class="mf">0.1</span><span class="p">),</span> <span class="p">[</span>
+                  <span class="n">ry</span><span class="p">(</span><span class="s">&#39;M&#39;</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s">&#39;M&#39;</span><span class="p">),</span> <span class="p">[</span>
+                     <span class="n">tz</span><span class="p">(</span><span class="o">-</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s">&#39;N&#39;</span><span class="p">,</span> <span class="n">mass</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>
+                     <span class="n">tz</span><span class="p">(</span><span class="o">-</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s">&#39;O&#39;</span><span class="p">)]]]]]],</span>
+   <span class="n">ty</span><span class="p">(</span><span class="mf">0.5</span><span class="p">),</span> <span class="p">[</span>
+      <span class="n">tx</span><span class="p">(</span><span class="mf">1.5</span><span class="p">),</span> <span class="p">[</span>
+         <span class="n">ry</span><span class="p">(</span><span class="s">&#39;A&#39;</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s">&#39;A&#39;</span><span class="p">),</span> <span class="p">[</span>
+            <span class="n">tz</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s">&#39;B&#39;</span><span class="p">,</span> <span class="n">mass</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>
+            <span class="n">tz</span><span class="p">(</span><span class="o">-</span><span class="mi">2</span><span class="p">),</span> <span class="p">[</span>
+               <span class="n">ty</span><span class="p">(</span><span class="o">-</span><span class="mf">0.1</span><span class="p">),</span> <span class="p">[</span>
+                  <span class="n">ry</span><span class="p">(</span><span class="s">&#39;C&#39;</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s">&#39;C&#39;</span><span class="p">),</span> <span class="p">[</span>
+                     <span class="n">tz</span><span class="p">(</span><span class="o">-</span><span class="mf">0.375</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s">&#39;D&#39;</span><span class="p">,</span> <span class="n">mass</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>
+                     <span class="n">tz</span><span class="p">(</span><span class="o">-</span><span class="mf">0.75</span><span class="p">),</span> <span class="p">[</span>
+                        <span class="n">ty</span><span class="p">(</span><span class="o">-</span><span class="mf">0.1</span><span class="p">),</span> <span class="p">[</span>
+                           <span class="n">ry</span><span class="p">(</span><span class="s">&#39;E&#39;</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s">&#39;E&#39;</span><span class="p">),</span> <span class="p">[</span>
+                              <span class="n">tz</span><span class="p">(</span><span class="o">-</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s">&#39;F&#39;</span><span class="p">,</span> <span class="n">mass</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>
+                              <span class="n">tz</span><span class="p">(</span><span class="o">-</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s">&#39;G2&#39;</span><span class="p">)]]]]]]]]]</span>
+   <span class="p">]</span>
+<span class="n">system</span><span class="o">.</span><span class="n">import_frames</span><span class="p">(</span><span class="n">frames</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>This is much more concise than defining the frames directly.  It is
+also easier to see the structure of the system by taking advantage of
+how most Python editors will indent the nested lists.</p>
+<p>A convenience functions is also provided to create constant SE(3)
+transformations from an angle and an axis.</p>
+<dl class="function">
+<dt id="trep.rotation_matrix">
+<tt class="descclassname">trep.</tt><tt class="descname">rotation_matrix</tt><big>(</big><em>theta</em>, <em>axis</em><big>)</big><a class="headerlink" href="#trep.rotation_matrix" title="Permalink to this definition">¶</a></dt>
+<dd><p>Build a 4x4 SE3 matrix corresponding to a rotation of theta
+radians around axis.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="frame-objects">
+<h2><a class="toc-backref" href="#id3">Frame Objects</a><a class="headerlink" href="#frame-objects" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="trep.Frame">
+<em class="property">class </em><tt class="descclassname">trep.</tt><tt class="descname">Frame</tt><big>(</big><em>parent</em>, <em>transform</em>, <em>param</em><span class="optional">[</span>, <em>name=None</em>, <em>kinematic=False</em>, <em>mass=0.0</em><span class="optional">]</span><big>)</big><a class="headerlink" href="#trep.Frame" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a new coordinate frame attached to <em>parent</em>.  <em>transform</em>
+must be one of the <a class="reference internal" href="#transform-types"><em>transformation constants</em></a> and defines how the new frame is related to the
+parent frame.</p>
+<p><em>param</em> is either a number or a string.  If <em>param</em> is an number,
+the frame is fixed relative to the parent.</p>
+<p>If <em>param</em> is a string, the frame&#8217;s coordinate transformation is
+controlled by a configuration variable.  A new configuration
+variable will be created using <em>param</em> as the name.  By default,
+the new configuration variable will be dynamic.  If <em>kinematic</em> is
+<tt class="xref py py-data docutils literal"><span class="pre">True</span></tt>, it will be kinematic.</p>
+<p>If <em>transform</em> is <tt class="xref py py-data docutils literal"><span class="pre">CONST_SE</span></tt>, <em>param</em> must be a 4x4 matrix
+that defines the Frame&#8217;s constant SE(3) transformation relative to
+<em>parent</em>.</p>
+<p><em>name</em> is an optional name for the frame.</p>
+<p><em>mass</em> defines the inertial properties of the frame.  If <em>mass</em> is
+a single number, it is the frame&#8217;s linear mass and the rotational
+inertia will be zero.</p>
+<p><em>mass</em> can also be a list of 4 numbers that define the Frame&#8217;s
+<a class="reference internal" href="#trep.Frame.mass" title="trep.Frame.mass"><tt class="xref py py-attr docutils literal"><span class="pre">mass</span></tt></a>, <a class="reference internal" href="#trep.Frame.Ixx" title="trep.Frame.Ixx"><tt class="xref py py-attr docutils literal"><span class="pre">Ixx</span></tt></a>, <a class="reference internal" href="#trep.Frame.Iyy" title="trep.Frame.Iyy"><tt class="xref py py-attr docutils literal"><span class="pre">Iyy</span></tt></a>, and <a class="reference internal" href="#trep.Frame.Izz" title="trep.Frame.Izz"><tt class="xref py py-attr docutils literal"><span class="pre">Izz</span></tt></a> inertial
+properties.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="trep.Frame.uses_config">
+<tt class="descclassname">Frame.</tt><tt class="descname">uses_config</tt><big>(</big><em>q</em><big>)</big><a class="headerlink" href="#trep.Frame.uses_config" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>q</strong> (<a class="reference internal" href="config.html#trep.Config" title="trep.Config"><tt class="xref py py-class docutils literal"><span class="pre">Config</span></tt></a>) &#8211; A configuration variable in the system.</td>
+</tr>
+</tbody>
+</table>
+<p>Determine if this coordinate frame depends on the configuration
+variable <em>q</em>.</p>
+<p>When a frame does not depend on a configuration variable, the
+derivatives of its position and velocity will always be zero.  You
+can usually improve the performance of new constraints, potentials,
+and forces by checking for this and avoiding unnecessary
+calculations.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="trep.Frame.system">
+<tt class="descclassname">Frame.</tt><tt class="descname">system</tt><a class="headerlink" href="#trep.Frame.system" title="Permalink to this definition">¶</a></dt>
+<dd><p>The <a class="reference internal" href="system.html#trep.System" title="trep.System"><tt class="xref py py-class docutils literal"><span class="pre">System</span></tt></a> that the frame belongs to.</p>
+<p><em>(read only)</em></p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="trep.Frame.config">
+<tt class="descclassname">Frame.</tt><tt class="descname">config</tt><a class="headerlink" href="#trep.Frame.config" title="Permalink to this definition">¶</a></dt>
+<dd><p>The <a class="reference internal" href="config.html#trep.Config" title="trep.Config"><tt class="xref py py-class docutils literal"><span class="pre">Config</span></tt></a> that parameterizes the frame&#8217;s transformation.
+This will be <tt class="xref py py-data docutils literal"><span class="pre">None</span></tt> for fixed transformations.</p>
+<p><em>(read only)</em></p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="trep.Frame.parent">
+<tt class="descclassname">Frame.</tt><tt class="descname">parent</tt><a class="headerlink" href="#trep.Frame.parent" title="Permalink to this definition">¶</a></dt>
+<dd><p>The parent frame of this frame.  This is always <tt class="xref py py-data docutils literal"><span class="pre">None</span></tt> for
+the <a class="reference internal" href="system.html#trep.System.world_frame" title="trep.System.world_frame"><tt class="xref py py-attr docutils literal"><span class="pre">System.world_frame</span></tt></a>, and always a valid <a class="reference internal" href="#trep.Frame" title="trep.Frame"><tt class="xref py py-data docutils literal"><span class="pre">Frame</span></tt></a>
+otherwise.</p>
+<p><em>(read only)</em></p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="trep.Frame.children">
+<tt class="descclassname">Frame.</tt><tt class="descname">children</tt><a class="headerlink" href="#trep.Frame.children" title="Permalink to this definition">¶</a></dt>
+<dd><p>A tuple of the frame&#8217;s child frames.</p>
+<p><em>(read only)</em></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="trep.Frame.flatten_tree">
+<tt class="descclassname">Frame.</tt><tt class="descname">flatten_tree</tt><big>(</big><big>)</big><a class="headerlink" href="#trep.Frame.flatten_tree" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a list of the frame and its entire sub-tree.  There is no
+guarantee on the ordering other than it won&#8217;t change as long as no
+frames are added to the system.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="trep.Frame.tree_view">
+<tt class="descclassname">Frame.</tt><tt class="descname">tree_view</tt><big>(</big><em>indent=0</em><big>)</big><a class="headerlink" href="#trep.Frame.tree_view" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a string that visually describes this frame and it&#8217;s
+descendants.</p>
+</dd></dl>
+
+<div class="section" id="importing-and-exporting-frames">
+<h3><a class="toc-backref" href="#id4">Importing and Exporting Frames</a><a class="headerlink" href="#importing-and-exporting-frames" title="Permalink to this headline">¶</a></h3>
+<dl class="method">
+<dt id="trep.Frame.import_frames">
+<tt class="descclassname">Frame.</tt><tt class="descname">import_frames</tt><big>(</big><em>children</em><big>)</big><a class="headerlink" href="#trep.Frame.import_frames" title="Permalink to this definition">¶</a></dt>
+<dd><p>Import a tree of frames from a tree description.  See
+<a class="reference internal" href="#frame-definitions"><em>Defining the Frames</em></a>.  The tree will be added to this frame&#8217;s
+children.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="trep.Frame.export_frames">
+<tt class="descclassname">Frame.</tt><tt class="descname">export_frames</tt><big>(</big><em>tabs=0</em>, <em>tab_size=4</em><big>)</big><a class="headerlink" href="#trep.Frame.export_frames" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create python source code to define this frame and it&#8217;s sub-tree.
+The code is returned as a string.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="transform-information">
+<h3><a class="toc-backref" href="#id5">Transform Information</a><a class="headerlink" href="#transform-information" title="Permalink to this headline">¶</a></h3>
+<dl class="attribute">
+<dt id="trep.Frame.transform_type">
+<tt class="descclassname">Frame.</tt><tt class="descname">transform_type</tt><a class="headerlink" href="#trep.Frame.transform_type" title="Permalink to this definition">¶</a></dt>
+<dd><p>Transformation type of the coordinate frame.  This will be one of
+the constants described in <a class="reference internal" href="#transform-types"><em>Frame Transformation Types</em></a>.</p>
+<p><em>(read only)</em></p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="trep.Frame.transform_value">
+<tt class="descclassname">Frame.</tt><tt class="descname">transform_value</tt><a class="headerlink" href="#trep.Frame.transform_value" title="Permalink to this definition">¶</a></dt>
+<dd><p>Current value of the frame&#8217;s transformation parameters.  This
+will either be the fixed transformation parameter or the value
+of the frame&#8217;s configuration variable.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="trep.Frame.set_SE3">
+<tt class="descclassname">Frame.</tt><tt class="descname">set_SE3</tt><big>(</big><em>Rx=(1</em>, <em>0</em>, <em>0)</em>, <em>Ry=(0</em>, <em>1</em>, <em>0)</em>, <em>Rz=(0</em>, <em>0</em>, <em>1)</em>, <em>p=(0</em>, <em>0</em>, <em>0)</em><big>)</big><a class="headerlink" href="#trep.Frame.set_SE3" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the SE3 transformation for a const_SE3 frame.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="inertial-properties">
+<h3><a class="toc-backref" href="#id6">Inertial Properties</a><a class="headerlink" href="#inertial-properties" title="Permalink to this headline">¶</a></h3>
+<dl class="attribute">
+<dt id="trep.Frame.mass">
+<tt class="descclassname">Frame.</tt><tt class="descname">mass</tt><a class="headerlink" href="#trep.Frame.mass" title="Permalink to this definition">¶</a></dt>
+<dt id="trep.Frame.Ixx">
+<tt class="descclassname">Frame.</tt><tt class="descname">Ixx</tt><a class="headerlink" href="#trep.Frame.Ixx" title="Permalink to this definition">¶</a></dt>
+<dt id="trep.Frame.Iyy">
+<tt class="descclassname">Frame.</tt><tt class="descname">Iyy</tt><a class="headerlink" href="#trep.Frame.Iyy" title="Permalink to this definition">¶</a></dt>
+<dt id="trep.Frame.Izz">
+<tt class="descclassname">Frame.</tt><tt class="descname">Izz</tt><a class="headerlink" href="#trep.Frame.Izz" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="trep.Frame.set_mass">
+<tt class="descclassname">Frame.</tt><tt class="descname">set_mass</tt><big>(</big><em>mass</em>, <em>Ixx=0.0</em>, <em>Iyy=0.0</em>, <em>Izz=0.0</em><big>)</big><a class="headerlink" href="#trep.Frame.set_mass" title="Permalink to this definition">¶</a></dt>
+<dd><p>The coordinate frame can have mass at its origin and rotational
+inertia about each axis.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="local-frame-transformations">
+<h3><a class="toc-backref" href="#id7">Local Frame Transformations</a><a class="headerlink" href="#local-frame-transformations" title="Permalink to this headline">¶</a></h3>
+<dl class="method">
+<dt id="trep.Frame.lg">
+<tt class="descclassname">Frame.</tt><tt class="descname">lg</tt><big>(</big><big>)</big><a class="headerlink" href="#trep.Frame.lg" title="Permalink to this definition">¶</a></dt>
+<dt id="trep.Frame.lg_dq">
+<tt class="descclassname">Frame.</tt><tt class="descname">lg_dq</tt><big>(</big><big>)</big><a class="headerlink" href="#trep.Frame.lg_dq" title="Permalink to this definition">¶</a></dt>
+<dt id="trep.Frame.lg_dqdq">
+<tt class="descclassname">Frame.</tt><tt class="descname">lg_dqdq</tt><big>(</big><big>)</big><a class="headerlink" href="#trep.Frame.lg_dqdq" title="Permalink to this definition">¶</a></dt>
+<dt id="trep.Frame.lg_dqdqdq">
+<tt class="descclassname">Frame.</tt><tt class="descname">lg_dqdqdq</tt><big>(</big><big>)</big><a class="headerlink" href="#trep.Frame.lg_dqdqdq" title="Permalink to this definition">¶</a></dt>
+<dt id="trep.Frame.lg_dqdqdqdq">
+<tt class="descclassname">Frame.</tt><tt class="descname">lg_dqdqdqdq</tt><big>(</big><big>)</big><a class="headerlink" href="#trep.Frame.lg_dqdqdqdq" title="Permalink to this definition">¶</a></dt>
+<dd><p>These functions calculate the coordinate transformation to the
+frame from its parent in SE(3) and the derivatives of coordinate
+transformation with respect to the frame&#8217;s configuration variable.
+If the frame is fixed, the derivatives will be zero.  The returned
+values are 4x4 <tt class="xref py py-mod docutils literal"><span class="pre">numpy</span></tt> arrays.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="trep.Frame.lg_inv">
+<tt class="descclassname">Frame.</tt><tt class="descname">lg_inv</tt><big>(</big><big>)</big><a class="headerlink" href="#trep.Frame.lg_inv" title="Permalink to this definition">¶</a></dt>
+<dt id="trep.Frame.lg_inv_dq">
+<tt class="descclassname">Frame.</tt><tt class="descname">lg_inv_dq</tt><big>(</big><big>)</big><a class="headerlink" href="#trep.Frame.lg_inv_dq" title="Permalink to this definition">¶</a></dt>
+<dt id="trep.Frame.lg_inv_dqdq">
+<tt class="descclassname">Frame.</tt><tt class="descname">lg_inv_dqdq</tt><big>(</big><big>)</big><a class="headerlink" href="#trep.Frame.lg_inv_dqdq" title="Permalink to this definition">¶</a></dt>
+<dt id="trep.Frame.lg_inv_dqdqdq">
+<tt class="descclassname">Frame.</tt><tt class="descname">lg_inv_dqdqdq</tt><big>(</big><big>)</big><a class="headerlink" href="#trep.Frame.lg_inv_dqdqdq" title="Permalink to this definition">¶</a></dt>
+<dt id="trep.Frame.lg_inv_dqdqdqdq">
+<tt class="descclassname">Frame.</tt><tt class="descname">lg_inv_dqdqdqdq</tt><big>(</big><big>)</big><a class="headerlink" href="#trep.Frame.lg_inv_dqdqdqdq" title="Permalink to this definition">¶</a></dt>
+<dd><p>These functions calculate the inverse coordinate transformation to
+the frame from its parent (the transformation from the frame to its
+parent.) and its derivatives.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="global-frame-transformations">
+<h3><a class="toc-backref" href="#id8">Global Frame Transformations</a><a class="headerlink" href="#global-frame-transformations" title="Permalink to this headline">¶</a></h3>
+<dl class="method">
+<dt id="trep.Frame.g">
+<tt class="descclassname">Frame.</tt><tt class="descname">g</tt><big>(</big><big>)</big><a class="headerlink" href="#trep.Frame.g" title="Permalink to this definition">¶</a></dt>
+<dt id="trep.Frame.g_dq">
+<tt class="descclassname">Frame.</tt><tt class="descname">g_dq</tt><big>(</big><em>q1</em><big>)</big><a class="headerlink" href="#trep.Frame.g_dq" title="Permalink to this definition">¶</a></dt>
+<dt id="trep.Frame.g_dqdq">
+<tt class="descclassname">Frame.</tt><tt class="descname">g_dqdq</tt><big>(</big><em>q1</em>, <em>q2</em><big>)</big><a class="headerlink" href="#trep.Frame.g_dqdq" title="Permalink to this definition">¶</a></dt>
+<dt id="trep.Frame.g_dqdqdq">
+<tt class="descclassname">Frame.</tt><tt class="descname">g_dqdqdq</tt><big>(</big><em>q1</em>, <em>q2</em>, <em>q3</em><big>)</big><a class="headerlink" href="#trep.Frame.g_dqdqdq" title="Permalink to this definition">¶</a></dt>
+<dt id="trep.Frame.g_dqdqdqdq">
+<tt class="descclassname">Frame.</tt><tt class="descname">g_dqdqdqdq</tt><big>(</big><em>q1</em>, <em>q2</em>, <em>q3</em>, <em>q4</em><big>)</big><a class="headerlink" href="#trep.Frame.g_dqdqdqdq" title="Permalink to this definition">¶</a></dt>
+<dd><p>These functions calculate the global coordinate transformation in
+SE(3) for the frame (i.e, the coordinate transformation from the
+world frame to this frame) and its derivatives with respect to
+arbitrary configuration variables.  The returned values are 4x4
+<tt class="xref py py-mod docutils literal"><span class="pre">numpy</span></tt> arrays.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="trep.Frame.g_inv">
+<tt class="descclassname">Frame.</tt><tt class="descname">g_inv</tt><big>(</big><big>)</big><a class="headerlink" href="#trep.Frame.g_inv" title="Permalink to this definition">¶</a></dt>
+<dt id="trep.Frame.g_inv_dq">
+<tt class="descclassname">Frame.</tt><tt class="descname">g_inv_dq</tt><big>(</big><em>q1</em><big>)</big><a class="headerlink" href="#trep.Frame.g_inv_dq" title="Permalink to this definition">¶</a></dt>
+<dt id="trep.Frame.g_inv_dqdq">
+<tt class="descclassname">Frame.</tt><tt class="descname">g_inv_dqdq</tt><big>(</big><em>q1</em>, <em>q2</em><big>)</big><a class="headerlink" href="#trep.Frame.g_inv_dqdq" title="Permalink to this definition">¶</a></dt>
+<dd><p>These functions calculate the inverse of the global coordinate
+transformation in SE(3) for the frame (i.e, the coordinate
+transformation from this frame to the world frame) and its
+derivatives with respect to arbitrary configuration variables.  The
+returned values are 4x4 <tt class="xref py py-mod docutils literal"><span class="pre">numpy</span></tt> arrays.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="trep.Frame.p">
+<tt class="descclassname">Frame.</tt><tt class="descname">p</tt><big>(</big><big>)</big><a class="headerlink" href="#trep.Frame.p" title="Permalink to this definition">¶</a></dt>
+<dt id="trep.Frame.p_dq">
+<tt class="descclassname">Frame.</tt><tt class="descname">p_dq</tt><big>(</big><em>q1</em><big>)</big><a class="headerlink" href="#trep.Frame.p_dq" title="Permalink to this definition">¶</a></dt>
+<dt id="trep.Frame.p_dqdq">
+<tt class="descclassname">Frame.</tt><tt class="descname">p_dqdq</tt><big>(</big><em>q1</em>, <em>q2</em><big>)</big><a class="headerlink" href="#trep.Frame.p_dqdq" title="Permalink to this definition">¶</a></dt>
+<dt id="trep.Frame.p_dqdqdq">
+<tt class="descclassname">Frame.</tt><tt class="descname">p_dqdqdq</tt><big>(</big><em>q1</em>, <em>q2</em>, <em>q3</em><big>)</big><a class="headerlink" href="#trep.Frame.p_dqdqdq" title="Permalink to this definition">¶</a></dt>
+<dt id="trep.Frame.p_dqdqdqdq">
+<tt class="descclassname">Frame.</tt><tt class="descname">p_dqdqdqdq</tt><big>(</big><em>q1</em>, <em>q2</em>, <em>q3</em>, <em>q4</em><big>)</big><a class="headerlink" href="#trep.Frame.p_dqdqdqdq" title="Permalink to this definition">¶</a></dt>
+<dd><p>These functions calculate the global position of the coordinate
+frame in R^3 for the frame (i.e, the origin&#8217;s location with respect
+to the world frame to this frame) and its derivatives with respect
+to arbitrary configuration variables.  The returned values are 4x4
+<tt class="xref py py-mod docutils literal"><span class="pre">numpy</span></tt> arrays.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="body-velocity-calculations">
+<h3><a class="toc-backref" href="#id9">Body Velocity Calculations</a><a class="headerlink" href="#body-velocity-calculations" title="Permalink to this headline">¶</a></h3>
+<dl class="method">
+<dt id="trep.Frame.twist_hat">
+<tt class="descclassname">Frame.</tt><tt class="descname">twist_hat</tt><big>(</big><big>)</big><a class="headerlink" href="#trep.Frame.twist_hat" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="trep.Frame.vb">
+<tt class="descclassname">Frame.</tt><tt class="descname">vb</tt><big>(</big><big>)</big><a class="headerlink" href="#trep.Frame.vb" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate the twist and the body velocity of the coordinate frame
+in se(3).  The returned values are 4x4 <tt class="xref py py-mod docutils literal"><span class="pre">numpy</span></tt> arrays.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="trep.Frame.vb_dq">
+<tt class="descclassname">Frame.</tt><tt class="descname">vb_dq</tt><big>(</big><em>q1</em><big>)</big><a class="headerlink" href="#trep.Frame.vb_dq" title="Permalink to this definition">¶</a></dt>
+<dt id="trep.Frame.vb_ddq">
+<tt class="descclassname">Frame.</tt><tt class="descname">vb_ddq</tt><big>(</big><em>dq1</em><big>)</big><a class="headerlink" href="#trep.Frame.vb_ddq" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate first derivative of the body velocity with respect to the
+value or velocity of a configuration variable.  The returned values
+are 4x4 <tt class="xref py py-mod docutils literal"><span class="pre">numpy</span></tt> arrays.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="trep.Frame.vb_dqdq">
+<tt class="descclassname">Frame.</tt><tt class="descname">vb_dqdq</tt><big>(</big><em>q1</em>, <em>q2</em><big>)</big><a class="headerlink" href="#trep.Frame.vb_dqdq" title="Permalink to this definition">¶</a></dt>
+<dt id="trep.Frame.vb_dqdqdq">
+<tt class="descclassname">Frame.</tt><tt class="descname">vb_dqdqdq</tt><big>(</big><em>q1</em>, <em>q2</em>, <em>q3</em><big>)</big><a class="headerlink" href="#trep.Frame.vb_dqdqdq" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate second derivative of the body velocity with respect to the
+values of configuration variables.  The returned values are 4x4
+<tt class="xref py py-mod docutils literal"><span class="pre">numpy</span></tt> arrays.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="trep.Frame.vb_ddqdq">
+<tt class="descclassname">Frame.</tt><tt class="descname">vb_ddqdq</tt><big>(</big><em>dq1</em>, <em>q2</em><big>)</big><a class="headerlink" href="#trep.Frame.vb_ddqdq" title="Permalink to this definition">¶</a></dt>
+<dt id="trep.Frame.vb_ddqdqdq">
+<tt class="descclassname">Frame.</tt><tt class="descname">vb_ddqdqdq</tt><big>(</big><em>dq1</em>, <em>q2</em>, <em>q3</em><big>)</big><a class="headerlink" href="#trep.Frame.vb_ddqdqdq" title="Permalink to this definition">¶</a></dt>
+<dt id="trep.Frame.vb_ddqdqdqdq">
+<tt class="descclassname">Frame.</tt><tt class="descname">vb_ddqdqdqdq</tt><big>(</big><em>dq1</em>, <em>q2</em>, <em>q3</em>, <em>q4</em><big>)</big><a class="headerlink" href="#trep.Frame.vb_ddqdqdqdq" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate derivative of the body velocity with respect to the
+velocity of <em>dq1</em> and the values of the other configuration
+variables.  The returned values are 4x4 <tt class="xref py py-mod docutils literal"><span class="pre">numpy</span></tt> arrays.</p>
+</dd></dl>
+
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#"><tt class="docutils literal"><span class="pre">Frame</span></tt> &#8211; Coordinate Frame</a><ul>
+<li><a class="reference internal" href="#frame-transformation-types">Frame Transformation Types</a></li>
+<li><a class="reference internal" href="#defining-the-frames">Defining the Frames</a></li>
+<li><a class="reference internal" href="#frame-objects">Frame Objects</a><ul>
+<li><a class="reference internal" href="#importing-and-exporting-frames">Importing and Exporting Frames</a></li>
+<li><a class="reference internal" href="#transform-information">Transform Information</a></li>
+<li><a class="reference internal" href="#inertial-properties">Inertial Properties</a></li>
+<li><a class="reference internal" href="#local-frame-transformations">Local Frame Transformations</a></li>
+<li><a class="reference internal" href="#global-frame-transformations">Global Frame Transformations</a></li>
+<li><a class="reference internal" href="#body-velocity-calculations">Body Velocity Calculations</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="system.html"
+                        title="previous chapter"><tt class="docutils literal docutils literal"><span class="pre">System</span></tt> - A Mechanical System</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="config.html"
+                        title="next chapter"><tt class="docutils literal docutils literal"><span class="pre">Config</span></tt> &#8211; Configuration Variables</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="../_sources/ref/frame.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="config.html" title="Config – Configuration Variables"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="system.html" title="System - A Mechanical System"
+             >previous</a> |</li>
+        <li><a href="../index.html">trep documenation</a> &raquo;</li>
+          <li><a href="index.html" ><tt class="docutils literal docutils literal docutils literal docutils literal docutils literal docutils literal docutils literal docutils literal docutils literal docutils literal docutils literal docutils literal docutils literal docutils literal docutils literal docutils literal"><span class="pre">trep</span></tt> Reference</a> &raquo;</li>
+          <li><a href="core.html" >Core Components</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, Elliot Johnson.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.2.
+    </div>
+  </body>
+</html>

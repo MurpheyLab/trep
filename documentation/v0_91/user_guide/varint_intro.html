@@ -1,0 +1,169 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Discrete Dynamics and Variational Integrators &mdash; trep documenation</title>
+    
+    <link rel="stylesheet" href="../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.91',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="trep documenation" href="../index.html" />
+    <link rel="up" title="User’s Guide" href="index.html" />
+    <link rel="next" title="Creating Potential Energies" href="create_potentials.html" />
+    <link rel="prev" title="User’s Guide" href="index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="create_potentials.html" title="Creating Potential Energies"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="User’s Guide"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../index.html">trep documenation</a> &raquo;</li>
+          <li><a href="index.html" accesskey="U">User&#8217;s Guide</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+    <script type="math/tex">
+    \newcommand{\deriv}[2][]{\dfrac{\partial #1}{\partial #2}}
+\newcommand{\tderiv}[2][]{\tfrac{\partial #1}{\partial #2}}
+\newcommand{\fderiv}[2][]{\dfrac{d #1}{d #2}}
+\newcommand{\derivII}[3][]{\dfrac{\partial^2 #1}{\partial #2 \partial #3}}
+\newcommand{\tderivII}[3][]{\tfrac{\partial^2 #1}{\partial #2 \partial #3}}
+\newcommand{\derivIII}[4][]{\dfrac{\partial^3 #1}{\partial #2 \partial #3 \partial #4}}
+\newcommand{\tderivIII}[4][]{\tfrac{\partial^3 #1}{\partial #2 \partial #3 \partial #4}}
+\newcommand{\derivIV}[5][]{\dfrac{\partial^4 #1}{\partial #2 \partial #3 \partial #4 \partial #5}}
+
+\newcommand{\half}{\tfrac{1}{2}}  % Macro for 1/2
+
+\newcommand{\ud}{\mathrm{d}}
+
+\newcommand{\op}{\circ}
+\newcommand{\dq}{\dot{q}}
+\newcommand{\ddq}{\ddot{q}}
+
+\newcommand{\dt}{\Delta t}
+
+
+    </script>
+    
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="discrete-dynamics-and-variational-integrators">
+<span id="varint-intro"></span><h1>Discrete Dynamics and Variational Integrators<a class="headerlink" href="#discrete-dynamics-and-variational-integrators" title="Permalink to this headline">¶</a></h1>
+<p>The variational integrator simulates a discrete mechanical systems.
+Given a known state (time <span class="math">\(t_{k-1}\)</span>, configuration <span class="math">\(q_{k-1}\)</span>, and
+discrete momentum <span class="math">\(p_{k-1}\)</span>) and inputs (force inputs <span class="math">\(u_{k-1}\)</span>
+and next kinematic configuration <span class="math">\(\rho_{k-1}\)</span>), the integrator finds the next
+state:</p>
+<div class="math">
+\[(t_{k-1}, q_{k-1}, p_{k-1}), (u_{k-1}, \rho_{k-1}) \Rightarrow (t_k, q_k, p_k)\]</div>
+<p>The integrator also finds the discrete constraint force variable
+<span class="math">\(\lambda_{k-1}\)</span>.</p>
+<p>The variational integrator finds the next state by numerically solving
+the constrained <em>Discrete Euler-Langrange (DEL)</em> equation for
+<span class="math">\(q_k\)</span> and <span class="math">\(\lambda_{k-1}\)</span>:</p>
+<div class="math">
+\[p_{k-1} + D_1L_d(q_{k-1}, q_k, t_{k-1}, t_{k-1}) + f_d^-(q_{k-1}, q_k, u_{k-1}, t_{k-1}, t_k) - Dh^T(q_{k-1})\dot \lambda_{k-1}\]\[h(q_k) = 0\]</div>
+<p>and then calculating the new discrete momentum:</p>
+<div class="math">
+\[p_k = D_2L_d(q_{k-1}, q_k, t_{k-1}, t_k)\]</div>
+<p>In <a class="reference internal" href="../ref/index.html#module-trep" title="trep: Dynamics and Optimal Control Tools (Linux, Mac, Windows)"><tt class="xref py py-mod docutils literal"><span class="pre">trep</span></tt></a>, we simplify notation by letting <span class="math">\(k=2\)</span>, so that
+we consider <span class="math">\(t_1\)</span>, <span class="math">\(q_1\)</span>, and <span class="math">\(p_1\)</span> to be the
+previous state, and <span class="math">\(t_2\)</span>, <span class="math">\(q_2\)</span>, and <span class="math">\(p_2\)</span> to be
+the new or current state.</p>
+<div class="math">
+\[L_2 = L_d(q_1, q_2, t_1, t_2)\]\[f_2^\pm = f_d^\pm(q_1, q_2, u_1, t_1, t_2)\]\[h_1 = h(q_1)\]\[h_2 = h(q_2)\]</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="index.html"
+                        title="previous chapter">User&#8217;s Guide</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="create_potentials.html"
+                        title="next chapter">Creating Potential Energies</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="../_sources/user_guide/varint_intro.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="create_potentials.html" title="Creating Potential Energies"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="User’s Guide"
+             >previous</a> |</li>
+        <li><a href="../index.html">trep documenation</a> &raquo;</li>
+          <li><a href="index.html" >User&#8217;s Guide</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, Elliot Johnson.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.2.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,215 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Trep: Dynamic Simulation and Optimal Control &mdash; trep documenation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '0.91',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="trep documenation" href="#" />
+    <link rel="next" title="Overview" href="overview.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="overview.html" title="Overview"
+             accesskey="N">next</a> |</li>
+        <li><a href="#">trep documenation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+    <script type="math/tex">
+    \newcommand{\deriv}[2][]{\dfrac{\partial #1}{\partial #2}}
+\newcommand{\tderiv}[2][]{\tfrac{\partial #1}{\partial #2}}
+\newcommand{\fderiv}[2][]{\dfrac{d #1}{d #2}}
+\newcommand{\derivII}[3][]{\dfrac{\partial^2 #1}{\partial #2 \partial #3}}
+\newcommand{\tderivII}[3][]{\tfrac{\partial^2 #1}{\partial #2 \partial #3}}
+\newcommand{\derivIII}[4][]{\dfrac{\partial^3 #1}{\partial #2 \partial #3 \partial #4}}
+\newcommand{\tderivIII}[4][]{\tfrac{\partial^3 #1}{\partial #2 \partial #3 \partial #4}}
+\newcommand{\derivIV}[5][]{\dfrac{\partial^4 #1}{\partial #2 \partial #3 \partial #4 \partial #5}}
+
+\newcommand{\half}{\tfrac{1}{2}}  % Macro for 1/2
+
+\newcommand{\ud}{\mathrm{d}}
+
+\newcommand{\op}{\circ}
+\newcommand{\dq}{\dot{q}}
+\newcommand{\ddq}{\ddot{q}}
+
+\newcommand{\dt}{\Delta t}
+
+
+    </script>
+    
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="trep-dynamic-simulation-and-optimal-control">
+<h1>Trep: Dynamic Simulation and Optimal Control<a class="headerlink" href="#trep-dynamic-simulation-and-optimal-control" title="Permalink to this headline">¶</a></h1>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Release:</th><td class="field-body">0.91</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Date:</th><td class="field-body">March 12, 2012</td>
+</tr>
+</tbody>
+</table>
+<p>Trep is a Python module for modeling rigid body mechanical systems in
+generalized coordinates.  Trep is designed to be fast, easy to use,
+and easy to extend.  Trep currently features:</p>
+<ul class="simple">
+<li>Concise System Definitions</li>
+<li>Conservative Forces (Potential Energies)</li>
+<li>Non-Conservative forces</li>
+<li>Holonomic Constraints</li>
+<li>Continuous Dynamics</li>
+<li>Exact 1<sup>st</sup> and 2<sup>nd</sup> derivatives of continuous dynamics</li>
+<li>Discrete Dynamics using Variational Integrators</li>
+<li>Exact 1<sup>st</sup> and 2<sup>nd</sup> derivatives of discrete dynamics</li>
+<li>Projection-based Trajectory Optimization in discrete time</li>
+<li>Automatic Visualization Tools</li>
+<li>Excellent Scalability</li>
+</ul>
+<p>We&#8217;re still getting all of this documentation together.  For now,
+check out the <a class="reference internal" href="installation.html#installation"><em>Installation</em></a> page to get setup using <a class="reference internal" href="ref/index.html#module-trep" title="trep: Dynamics and Optimal Control Tools (Linux, Mac, Windows)"><tt class="xref py py-mod docutils literal"><span class="pre">trep</span></tt></a>
+and checkout the <a class="reference internal" href="ref/index.html#module-trep" title="trep: Dynamics and Optimal Control Tools (Linux, Mac, Windows)"><tt class="xref py py-mod docutils literal"><span class="pre">module</span> <span class="pre">reference</span></tt></a>.</p>
+<p>If you have any questions or suggestions, please head over to our
+<a class="reference external" href="http://sourceforge.net/projects/trep/">sourceforge page</a> and
+contact us by email.</p>
+<p>Contents:</p>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#prerequisites">Prerequisites</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#general-installation">General Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#documentation">Documentation</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="user_guide/index.html">User&#8217;s Guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="user_guide/varint_intro.html">Discrete Dynamics and Variational Integrators</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user_guide/create_potentials.html">Creating Potential Energies</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user_guide/create_constraints.html">Creating Constraints</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user_guide/create_forces.html">Creating Forces</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="ref/index.html"><tt class="docutils literal"><span class="pre">trep</span></tt> Reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="ref/core.html">Core Components</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ref/potentials.html">Potential Energies</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ref/forces.html">Forces</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ref/constraints.html">Constraints</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ref/optimal.html">Optimal Control</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ref/misc.html">Misc. Components</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ref/visualization.html">Visualization</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="placeholders.html">Missing References</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="placeholders.html#internal-details-for-framesequence">Internal Details for FrameSequence</a></li>
+<li class="toctree-l2"><a class="reference internal" href="placeholders.html#internal-details-for-spline">Internal Details for Spline</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div class="section" id="indices-and-tables">
+<h1>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Permalink to this headline">¶</a></h1>
+<ul class="simple">
+<li><a class="reference internal" href="genindex.html"><em>Index</em></a></li>
+<li><a class="reference internal" href="py-modindex.html"><em>Module Index</em></a></li>
+<li><a class="reference internal" href="search.html"><em>Search Page</em></a></li>
+</ul>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="#">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Trep: Dynamic Simulation and Optimal Control</a><ul>
+</ul>
+</li>
+<li><a class="reference internal" href="#indices-and-tables">Indices and tables</a></li>
+</ul>
+
+  <h4>Next topic</h4>
+  <p class="topless"><a href="overview.html"
+                        title="next chapter">Overview</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/index.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="overview.html" title="Overview"
+             >next</a> |</li>
+        <li><a href="#">trep documenation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, Elliot Johnson.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.2.
+    </div>
+  </body>
+</html>

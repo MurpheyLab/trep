@@ -1,0 +1,293 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Spline – Spline Objects &mdash; trep documenation</title>
+    
+    <link rel="stylesheet" href="../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.91',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="trep documenation" href="../index.html" />
+    <link rel="up" title="Misc. Components" href="misc.html" />
+    <link rel="next" title="FrameSequence – Measuring distances between frames" href="framesequence.html" />
+    <link rel="prev" title="Misc. Components" href="misc.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="framesequence.html" title="FrameSequence – Measuring distances between frames"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="misc.html" title="Misc. Components"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../index.html">trep documenation</a> &raquo;</li>
+          <li><a href="index.html" ><tt class="docutils literal docutils literal docutils literal docutils literal docutils literal docutils literal docutils literal docutils literal docutils literal docutils literal docutils literal docutils literal docutils literal docutils literal docutils literal docutils literal docutils literal docutils literal docutils literal docutils literal docutils literal docutils literal docutils literal docutils literal docutils literal docutils literal docutils literal docutils literal docutils literal docutils literal docutils literal docutils literal"><span class="pre">trep</span></tt> Reference</a> &raquo;</li>
+          <li><a href="misc.html" accesskey="U">Misc. Components</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+    <script type="math/tex">
+    \newcommand{\deriv}[2][]{\dfrac{\partial #1}{\partial #2}}
+\newcommand{\tderiv}[2][]{\tfrac{\partial #1}{\partial #2}}
+\newcommand{\fderiv}[2][]{\dfrac{d #1}{d #2}}
+\newcommand{\derivII}[3][]{\dfrac{\partial^2 #1}{\partial #2 \partial #3}}
+\newcommand{\tderivII}[3][]{\tfrac{\partial^2 #1}{\partial #2 \partial #3}}
+\newcommand{\derivIII}[4][]{\dfrac{\partial^3 #1}{\partial #2 \partial #3 \partial #4}}
+\newcommand{\tderivIII}[4][]{\tfrac{\partial^3 #1}{\partial #2 \partial #3 \partial #4}}
+\newcommand{\derivIV}[5][]{\dfrac{\partial^4 #1}{\partial #2 \partial #3 \partial #4 \partial #5}}
+
+\newcommand{\half}{\tfrac{1}{2}}  % Macro for 1/2
+
+\newcommand{\ud}{\mathrm{d}}
+
+\newcommand{\op}{\circ}
+\newcommand{\dq}{\dot{q}}
+\newcommand{\ddq}{\ddot{q}}
+
+\newcommand{\dt}{\Delta t}
+
+
+    </script>
+    
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="spline-spline-objects">
+<h1><tt class="xref py py-class docutils literal"><span class="pre">Spline</span></tt> &#8211; Spline Objects<a class="headerlink" href="#spline-spline-objects" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="trep.Spline">
+<em class="property">class </em><tt class="descclassname">trep.</tt><tt class="descname">Spline</tt><big>(</big><em>points</em><big>)</big><a class="headerlink" href="#trep.Spline" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>points</strong> &#8211; A list of points defining the spline.  See details.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<p>The <a class="reference internal" href="#trep.Spline" title="trep.Spline"><tt class="xref py py-class docutils literal"><span class="pre">Spline</span></tt></a> class implements 1D <a class="reference external" href="http://en.wikipedia.org/wiki/Spline_interpolation">spline interpolation</a> between a set of
+points.  <a class="reference internal" href="#trep.Spline" title="trep.Spline"><tt class="xref py py-class docutils literal"><span class="pre">Spline</span></tt></a> provides methods to evaluate points on the
+spline curve as well as its first and second derivatives.  It can be
+used by new types of forces, potentials, and constraints to implement
+calculations.</p>
+<p>The spline is defined by the list <em>points</em>.  Each entry in <em>points</em> is
+a list of 2-4 numbers.  The first two numbers are the <em>x</em> and <em>y</em>
+values of the points.  The remaining two numbers, if provided and not
+<tt class="xref py py-data docutils literal"><span class="pre">None</span></tt>, are the first and second derivatives of the curve at
+that point.  Any derivatives not provided are determined by the
+resulting interpolation.</p>
+<p>For <em>N</em> points, The spline will comprise <em>N-1</em> polynomials of order
+3-5, depending on how many derivatives were specified. <a class="reference internal" href="#trep.Spline" title="trep.Spline"><tt class="xref py py-class docutils literal"><span class="pre">Spline</span></tt></a>
+will choose the lowest order polynomials possible while still being
+able to satisfy the specified values.  Specifying derivatives directly
+is much more effective than placing several points infinitesimally
+close to force the curve into a particular shape.</p>
+<p>See the <a class="reference internal" href="../placeholders.html#internal-ref-spline"><em>internal documentation</em></a> on
+<a class="reference internal" href="#trep.Spline" title="trep.Spline"><tt class="xref py py-class docutils literal"><span class="pre">Spline</span></tt></a> for more details about the implementation and how the
+interpolating polynomials are found.</p>
+<div class="section" id="spline-objects">
+<h2>Spline Objects<a class="headerlink" href="#spline-objects" title="Permalink to this headline">¶</a></h2>
+<dl class="attribute">
+<dt id="trep.Spline.x_points">
+<tt class="descclassname">Spline.</tt><tt class="descname">x_points</tt><a class="headerlink" href="#trep.Spline.x_points" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><tt class="xref py py-class docutils literal"><span class="pre">numpy.ndarray</span></tt></td>
+</tr>
+</tbody>
+</table>
+<p>List of the x points that define this spline.</p>
+<p><em>(read-only)</em></p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="trep.Spline.y_points">
+<tt class="descclassname">Spline.</tt><tt class="descname">y_points</tt><a class="headerlink" href="#trep.Spline.y_points" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><tt class="xref py py-class docutils literal"><span class="pre">numpy.ndarray</span></tt></td>
+</tr>
+</tbody>
+</table>
+<p>List of the y points that define this spline.</p>
+<p><em>(read-only)</em></p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="trep.Spline.cofficients">
+<tt class="descclassname">Spline.</tt><tt class="descname">cofficients</tt><a class="headerlink" href="#trep.Spline.cofficients" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><tt class="xref py py-class docutils literal"><span class="pre">numpy.ndarray</span></tt></td>
+</tr>
+</tbody>
+</table>
+<p>The coefficients of the interpolating polynomials.</p>
+<p><em>(read-only)</em></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="trep.Spline.copy">
+<tt class="descclassname">Spline.</tt><tt class="descname">copy</tt><big>(</big><big>)</big><a class="headerlink" href="#trep.Spline.copy" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference internal" href="#trep.Spline" title="trep.Spline"><tt class="xref py py-class docutils literal"><span class="pre">Spline</span></tt></a></td>
+</tr>
+</tbody>
+</table>
+<p>Create a new copy of this <a class="reference internal" href="#trep.Spline" title="trep.Spline"><tt class="xref py py-class docutils literal"><span class="pre">Spline</span></tt></a>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="trep.Spline.y">
+<tt class="descclassname">Spline.</tt><tt class="descname">y</tt><big>(</big><em>x</em><big>)</big><a class="headerlink" href="#trep.Spline.y" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><tt class="xref py py-class docutils literal"><span class="pre">Float</span></tt></td>
+</tr>
+</tbody>
+</table>
+<p>Evaluate the spline at <em>x</em>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="trep.Spline.dy">
+<tt class="descclassname">Spline.</tt><tt class="descname">dy</tt><big>(</big><em>x</em><big>)</big><a class="headerlink" href="#trep.Spline.dy" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><tt class="xref py py-class docutils literal"><span class="pre">Float</span></tt></td>
+</tr>
+</tbody>
+</table>
+<p>Evaluate the derivative of the spline at <em>x</em>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="trep.Spline.ddy">
+<tt class="descclassname">Spline.</tt><tt class="descname">ddy</tt><big>(</big><em>x</em><big>)</big><a class="headerlink" href="#trep.Spline.ddy" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><tt class="xref py py-class docutils literal"><span class="pre">Float</span></tt></td>
+</tr>
+</tbody>
+</table>
+<p>Evaluate the second derivative of the spline at <em>x</em>.</p>
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#"><tt class="docutils literal"><span class="pre">Spline</span></tt> &#8211; Spline Objects</a><ul>
+<li><a class="reference internal" href="#spline-objects">Spline Objects</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="misc.html"
+                        title="previous chapter">Misc. Components</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="framesequence.html"
+                        title="next chapter"><tt class="docutils literal docutils literal"><span class="pre">FrameSequence</span></tt> &#8211; Measuring distances between frames</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="../_sources/ref/spline.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="framesequence.html" title="FrameSequence – Measuring distances between frames"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="misc.html" title="Misc. Components"
+             >previous</a> |</li>
+        <li><a href="../index.html">trep documenation</a> &raquo;</li>
+          <li><a href="index.html" ><tt class="docutils literal docutils literal docutils literal docutils literal docutils literal docutils literal docutils literal docutils literal docutils literal docutils literal docutils literal docutils literal docutils literal docutils literal docutils literal docutils literal docutils literal docutils literal docutils literal docutils literal docutils literal docutils literal docutils literal docutils literal docutils literal docutils literal docutils literal docutils literal docutils literal docutils literal docutils literal docutils literal"><span class="pre">trep</span></tt> Reference</a> &raquo;</li>
+          <li><a href="misc.html" >Misc. Components</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, Elliot Johnson.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.2.
+    </div>
+  </body>
+</html>

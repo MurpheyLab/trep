@@ -1,0 +1,236 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Installation &mdash; trep documenation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '0.91',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="trep documenation" href="index.html" />
+    <link rel="next" title="User’s Guide" href="user_guide/index.html" />
+    <link rel="prev" title="Overview" href="overview.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="user_guide/index.html" title="User’s Guide"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="overview.html" title="Overview"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">trep documenation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+    <script type="math/tex">
+    \newcommand{\deriv}[2][]{\dfrac{\partial #1}{\partial #2}}
+\newcommand{\tderiv}[2][]{\tfrac{\partial #1}{\partial #2}}
+\newcommand{\fderiv}[2][]{\dfrac{d #1}{d #2}}
+\newcommand{\derivII}[3][]{\dfrac{\partial^2 #1}{\partial #2 \partial #3}}
+\newcommand{\tderivII}[3][]{\tfrac{\partial^2 #1}{\partial #2 \partial #3}}
+\newcommand{\derivIII}[4][]{\dfrac{\partial^3 #1}{\partial #2 \partial #3 \partial #4}}
+\newcommand{\tderivIII}[4][]{\tfrac{\partial^3 #1}{\partial #2 \partial #3 \partial #4}}
+\newcommand{\derivIV}[5][]{\dfrac{\partial^4 #1}{\partial #2 \partial #3 \partial #4 \partial #5}}
+
+\newcommand{\half}{\tfrac{1}{2}}  % Macro for 1/2
+
+\newcommand{\ud}{\mathrm{d}}
+
+\newcommand{\op}{\circ}
+\newcommand{\dq}{\dot{q}}
+\newcommand{\ddq}{\ddot{q}}
+
+\newcommand{\dt}{\Delta t}
+
+
+    </script>
+    
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="installation">
+<span id="id1"></span><h1><a class="toc-backref" href="#id3">Installation</a><a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h1>
+<div class="contents topic" id="contents">
+<p class="topic-title first">Contents</p>
+<ul class="simple">
+<li><a class="reference internal" href="#installation" id="id3">Installation</a><ul>
+<li><a class="reference internal" href="#prerequisites" id="id4">Prerequisites</a></li>
+<li><a class="reference internal" href="#general-installation" id="id5">General Installation</a><ul>
+<li><a class="reference internal" href="#os-x-installation" id="id6">OS X Installation</a></li>
+<li><a class="reference internal" href="#debian-linux-installation" id="id7">Debian Linux Installation</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#documentation" id="id8">Documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<p>Currently trep is only available as a source distribution that must be
+compiled on your machine.</p>
+<div class="section" id="prerequisites">
+<h2><a class="toc-backref" href="#id4">Prerequisites</a><a class="headerlink" href="#prerequisites" title="Permalink to this headline">¶</a></h2>
+<p>To install trep, you will need the following dependencies.</p>
+<ul class="simple">
+<li><a class="reference external" href="http://www.python.org/">Python</a> (&gt;=2.6) (including development header files)</li>
+<li><a class="reference external" href="http://www.scipy.org/">Numpy</a> (&gt;=1.4.1)  (including development header files)</li>
+<li><a class="reference external" href="http://www.scipy.org/">Scipy</a></li>
+<li>(Optional) <a class="reference external" href="http://pyopengl.sourceforge.net/">PyOpenGL</a></li>
+<li>(Optional) <a class="reference external" href="http://www.riverbankcomputing.co.uk/software/pyqt/intro">PyQt4</a></li>
+<li>(Optional) <a class="reference external" href="http://www.pythonware.com/products/pil/">Python Imaging Library</a></li>
+<li>(Optional) <a class="reference external" href="http://matplotlib.sourceforge.net/">matplotlib</a></li>
+</ul>
+<p>The optional packages are required to use the visualization tools
+provided by trep. You also need a C compiler installed and configured
+properly to compile Python extensions.</p>
+</div>
+<div class="section" id="general-installation">
+<h2><a class="toc-backref" href="#id5">General Installation</a><a class="headerlink" href="#general-installation" title="Permalink to this headline">¶</a></h2>
+<p>To install trep, you will need to install any missing prerequisites,
+download the source code, and build/install the package using the
+include setup script.  Trep has been developed and tested on Debian
+Linux and Mac OS X, but should be portable to any system supported by
+Python and Numpy.  Detailed instructions are provided for
+<a class="reference internal" href="#debian-install"><em>Debian</em></a> and <a class="reference internal" href="#osx-install"><em>OS X</em></a>.</p>
+<p>Download the <a class="reference external" href="http://sourceforge.net/projects/trep/files/trep/">latest release</a> of trep and
+unpack the archive. In the unpacked directory, run python setup.py
+build. If your build environment is properly installed, the script
+will compile trep. Install the package by running python setup.py
+install in the same directory (On Mac OS X and Linux this requires
+super user privileges).</p>
+<p>You can test the installation by importing the trep module in Python:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">trep</span>
+</pre></div>
+</div>
+<p>If the import succeeds, trep is properly installed.  Once trep is
+installed, you can check out the many examples provided in the
+<tt class="docutils literal"><span class="pre">examples</span></tt> sub-directory, or start reading the <a class="reference internal" href="user_guide/index.html#user-guide"><em>User&#8217;s Guide</em></a>.</p>
+<div class="section" id="os-x-installation">
+<span id="osx-install"></span><h3><a class="toc-backref" href="#id6">OS X Installation</a><a class="headerlink" href="#os-x-installation" title="Permalink to this headline">¶</a></h3>
+</div>
+<div class="section" id="debian-linux-installation">
+<span id="debian-install"></span><h3><a class="toc-backref" href="#id7">Debian Linux Installation</a><a class="headerlink" href="#debian-linux-installation" title="Permalink to this headline">¶</a></h3>
+<ol class="arabic simple">
+<li>Install the prerequisites: <tt class="docutils literal"><span class="pre">sudo</span> <span class="pre">aptitude</span> <span class="pre">install</span> <span class="pre">python</span> <span class="pre">python-dev</span> <span class="pre">python-opengl</span> <span class="pre">python-numpy</span> <span class="pre">python-scipy</span> <span class="pre">python-imaging</span> <span class="pre">python-qt4</span> <span class="pre">python-qt4-gl</span> <span class="pre">python-matplotlib</span></tt></li>
+<li>Download the <a class="reference external" href="http://sourceforge.net/projects/trep/files/trep/">latest release</a>.</li>
+<li>Unpack the sources: <tt class="docutils literal"><span class="pre">tar</span> <span class="pre">xvfj</span> <span class="pre">trep-*.tar.bz2</span></tt></li>
+<li>Change to the source directory: <tt class="docutils literal"><span class="pre">cd</span> <span class="pre">trep-*</span></tt></li>
+<li>Build: <tt class="docutils literal"><span class="pre">python</span> <span class="pre">setup.py</span> <span class="pre">build</span></tt></li>
+<li>Install: <tt class="docutils literal"><span class="pre">sudo</span> <span class="pre">python</span> <span class="pre">setup.py</span> <span class="pre">install</span></tt></li>
+</ol>
+</div>
+</div>
+<div class="section" id="documentation">
+<h2><a class="toc-backref" href="#id8">Documentation</a><a class="headerlink" href="#documentation" title="Permalink to this headline">¶</a></h2>
+<p>The current documentation can be viewed or downloaded directly from
+the website.  If you want to modify or build the documentation, you
+will need to install <a class="reference external" href="http://http://sphinx.pocoo.org/">Sphinx</a>.  To
+build the documentation, change to the <tt class="docutils literal"><span class="pre">doc</span></tt> sub-directory and type
+<tt class="docutils literal"><span class="pre">make</span> <span class="pre">html</span></tt>.  The build output will be located in
+<tt class="docutils literal"><span class="pre">doc/build/html</span></tt>.  Additionally, you can type <tt class="docutils literal"><span class="pre">make</span> <span class="pre">help</span></tt> to see
+other output types, including LaTeX.</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Installation</a><ul>
+<li><a class="reference internal" href="#prerequisites">Prerequisites</a></li>
+<li><a class="reference internal" href="#general-installation">General Installation</a><ul>
+<li><a class="reference internal" href="#os-x-installation">OS X Installation</a></li>
+<li><a class="reference internal" href="#debian-linux-installation">Debian Linux Installation</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#documentation">Documentation</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="overview.html"
+                        title="previous chapter">Overview</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="user_guide/index.html"
+                        title="next chapter">User&#8217;s Guide</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/installation.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="user_guide/index.html" title="User’s Guide"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="overview.html" title="Overview"
+             >previous</a> |</li>
+        <li><a href="index.html">trep documenation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, Elliot Johnson.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.2.
+    </div>
+  </body>
+</html>
