@@ -6,35 +6,13 @@ title: Trep - Mechanical Simulation and Optimal Control
 
     <div class="row">
 
-        <div class="col-md-6">
+        <div class="col-md-6" style="margin: 0 auto;text-align:center;">
             <br><br><br><br>
             <iframe width="420" height="400" src="http://www.youtube.com/embed/1cjiZASgQ0k" frameborder="0" allowfullscreen></iframe>
         </div>
 
         <div class="col-md-6">
-
-            <h3>Trep: Dynamic Simulation and Optimal Control</h3>
-
-            <p>Trep is a Python module for modeling articulated rigid body mechanical systems in generalized coordinates. Trep supports basic simulation but it is primarily designed to serve as a calculation engine for analysis and optimal control algorithms that require 1st and 2nd derivatives of the system's dynamics.</p>
-
-            <p>Get started by installing trep and checking out the documentation.</p>
-
-            <p>Trep is designed to work with large mechanical systems in generalized coordinates. This video shows the progress of a discrete time trajectory optimization that was created with trep.</p>
-
-            <p>Trep currently features:
-            <ul>
-                <li>Concise System Definitions</li>
-                <li>Conservative Forces (Potential Energies)</li>
-                <li>Non-Conservative forces</li>
-                <li>Holonomic Constraints</li>
-                <li>Continuous Dynamics</li>
-                <li>Exact 1st and 2nd derivatives of continuous dynamics</li>
-                <li>Discrete Dynamics using variational integrators</li>
-                <li>Exact 1st and 2nd derivatives of discrete dynamics</li>
-                <li>Projection-based Trajectory Optimization in discrete time</li>
-                <li>Automatic Visualization Tools</li>
-                <li>Excellent Scalability</li>
-            </ul>
+            <p>{% capture m %}{% include front-page.md %}{% endcapture %}{{ m | markdownify }}</p>
         </div>
     </div>
 
@@ -44,19 +22,14 @@ title: Trep - Mechanical Simulation and Optimal Control
             <h3 class="page-header">Projects using Trep:</h3>
         </div>
 
+        {% for project in site.data.projects %}
         <div class="col-sm-3 col-xs-6">
-                <a href="http://nxr.northwestern.edu/research/scalable-algorithms-physical-systems/marionettes">
-                    <img class="img-responsive portfolio-item" src="{{ site.baseurl }}/images/marionette.jpg">
+                <a href="{{ project.url }}">
+                    <img class="img-responsive portfolio-item" src="{{ site.baseurl }}{{ project.image}}">
                 </a>
-                <span>NxR Robotic Marionettes</span>
+                <span>{{ project.title }}</span>
         </div>
-
-        <div class="col-sm-3 col-xs-6">
-            <a href="http://nxr.northwestern.edu/research/mechanics-whiskers">
-                <img class="img-responsive portfolio-item" src="{{ site.baseurl }}/images/whisker.jpg">
-            </a>
-            <span>NxR Rat Whisker Simulation</span>
-        </div>
+        {% endfor %}
 
     </div>
 

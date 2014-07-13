@@ -1,5 +1,5 @@
-1. Prerequisites
-----------------
+### 1. Prerequisites
+
 Trep requires that the following dependencies are installed:
 
 * Python - [http://www.python.org/](http://www.python.org/) (>=2.6) (including development header files)
@@ -27,8 +27,8 @@ sudo aptitude install python python-dev python-opengl python-numpy python-scipy 
      python-qt4 python-qt4-gl python-matplotlib freeglut3-dev
 </pre>
 
-2. Installing from source
--------------------------
+### 2. Installing from source
+
 Checkout the latest version of trep from Github using the following
 <pre>
 git clone https://github.com/MurpheyLab/trep.git
