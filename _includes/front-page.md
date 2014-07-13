@@ -1,7 +1,7 @@
 ### Trep: Dynamic Simulation and Optimal Control
 Trep is a Python module for modeling articulated rigid body mechanical systems in generalized coordinates. Trep supports basic simulation but it is primarily designed to serve as a calculation engine for analysis and optimal control algorithms that require 1st and 2nd derivatives of the system's dynamics.
 
-Get started by installing trep and checking out the documentation.
+Get started by [installing](install/) trep and checking out the [documentation](documentation/dev/).
 
 Trep is designed to work with large mechanical systems in generalized coordinates. This video shows the progress of a discrete time trajectory optimization that was created with trep.
 

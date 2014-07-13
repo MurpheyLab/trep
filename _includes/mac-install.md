@@ -1,30 +1,7 @@
-1. Prerequisites
-----------------
-Trep requires that the following dependencies are installed:
+### 1. Install with MacPorts
 
-* Python - [http://www.python.org/](http://www.python.org/) (>=2.6) (including development header files)
-* Numpy - [http://www.scipy.org/](http://www.scipy.org/) (>=1.4.1) (including development header files)
-* Scipy - [http://www.scipy.org/](http://www.scipy.org/)
-
-You also need a C compiler installed and configured properly to compile Python extensions.
-
-To install the basic prerequisites, run the following command:
-
-
-The following packages are optional. Trep should work fine without them, but they are required to use any of the visualization tools:
-
-* PyOpenGL - [http://pyopengl.sourceforge.net/](http://pyopengl.sourceforge.net/)
-* PyQt4 - [http://www.riverbankcomputing.co.uk/software/pyqt/intro](http://www.riverbankcomputing.co.uk/software/pyqt/intro)
-* Python Imaging Library - [http://www.pythonware.com/products/pil/](http://www.pythonware.com/products/pil/)
-* matplotlib - [http://matplotlib.sourceforge.net/](http://matplotlib.sourceforge.net/)
-
-To install the all prerequisites including visualizations, run the following command:
-
-
-2. Installing from source
--------------------------
-Checkout the latest version of trep from Github using the following
-<pre>
-git clone https://github.com/MurpheyLab/trep.git
-</pre>
-
+Mark Moll, one of the core developers of the [Open Motion Planning Library](http://ompl.kavrakilab.org/), has created a [MacPorts](http://www.macports.org/) package for trep.  If you have MacPorts installed, just update your package index with:
+<pre>sudo port selfupdate</pre>
+and install trep with:
+<pre>sudo port install py27-trep</pre>
+Alternatively, you can install py26-trep for Python 2.6. (Thanks Mark!)
