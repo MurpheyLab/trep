@@ -38,7 +38,7 @@ Python and Numpy.  Detailed instructions are provided for
 :ref:`Debian <debian-install>` and :ref:`OS X <osx-install>`.
 
 Download the `latest release
-<http://sourceforge.net/projects/trep/files/trep/>`_ of trep and
+<https://github.com/MurpheyLab/trep/releases>`_ of trep and
 unpack the archive. In the unpacked directory, run python setup.py
 build. If your build environment is properly installed, the script
 will compile trep. Install the package by running python setup.py

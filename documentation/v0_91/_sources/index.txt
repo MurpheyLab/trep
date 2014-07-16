@@ -31,7 +31,7 @@ and checkout the :mod:`module reference <trep>`.
 
 
 If you have any questions or suggestions, please head over to our
-`sourceforge page <http://sourceforge.net/projects/trep/>`_ and
+`project page <http://murpheylab.github.io/trep/>`_ and
 contact us by email.
 
 
