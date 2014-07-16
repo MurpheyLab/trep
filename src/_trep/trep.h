@@ -7,7 +7,9 @@
 
 /* Import Numpy C API as described at
  * http://docs.scipy.org/doc/numpy/reference/c-api.array.html#miscellaneous
+ * Tested against Numpy API 1.7
  */
+#define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
 #define PY_ARRAY_UNIQUE_SYMBOL trep_ARRAY_API
 #ifndef IMPORT_ARRAY
 #define NO_IMPORT_ARRAY

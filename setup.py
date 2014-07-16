@@ -25,9 +25,8 @@ cmd_class = {}
 cmd_options = {}
 
 
-# If numpy include file isn't in the standard Python include path, add
-# it manually.  This shouldn't be necessary if numpy is installed
-# properly, but Todd was having problems with this.  
+# If numpy include file isn't in the standard Python include path, 
+# add it manually.
 if not os.path.exists(os.path.join(get_python_inc(), "numpy", "arrayobject.h")):
     include_dirs += [numpy.get_include()]
 
@@ -125,7 +124,7 @@ try:
     from sphinx.setup_command import BuildDoc
     cmd_class['build_sphinx'] = BuildDoc
     cmd_options['build_sphinx'] = {
-        'version' : ('setup.py', get_version()),
+        'version' : ('setup.py', get_approx_version()),
         'release' : ('setup.py', '')
         }
     # See docstring for BuildDoc on how to set default options here.
@@ -216,11 +215,17 @@ else:
 
 
 setup (name = 'trep',
-       version = get_approx_version(),
+       version = get_approx_version()[1:],
        description = 'trep is used to simulate mechanical systems.',
-       author = ['Elliot Johnson'],
+       long_description="Trep is a Python module for modeling articulated rigid body mechanical systems in \
+generalized coordinates. Trep supports basic simulation but it is primarily designed to serve as a \
+calculation engine for analysis and optimal control algorithms that require 1st and 2nd derivatives \
+of the system's dynamics.",
+       author = 'Elliot Johnson',
        author_email = 'elliot.r.johnson@gmail.com',
-       url = 'http://trep.googlecode.com/',
+       url = 'http://murpheylab.github.io/trep/',
+       license='GPLv3',
+       platforms='Linux, Mac, Windows',
        package_dir = {'' : 'src', 'trep': 'src'},
        packages=['trep',
                  'trep.constraints',
@@ -236,6 +241,10 @@ setup (name = 'trep',
        ext_modules=ext_modules,
        cmdclass=cmd_class,
        command_options=cmd_options,
+       install_requires=[
+           'numpy',
+           'scipy',
+       ],
        headers=[
            'src/_trep/trep.h',
            'src/_trep/c_api.h'

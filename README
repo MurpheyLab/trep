@@ -1,6 +1,6 @@
 trep is released under the GPLv3 license.
 
-See http://trep.googlecode.com/ for more information.
+See http://murpheylab.github.io/trep/ for more information.
 
 
 Build trep:             python setup.py build
