@@ -25,8 +25,14 @@ sudo aptitude install python python-dev python-opengl python-numpy python-scipy 
      python-qt4 python-qt4-gl python-matplotlib freeglut3-dev
 </pre>
 
+### 2.1. Installing with pip
 
-### 2. Installing from source
+Trep can be installed from the Python Package Index using [pip](https://pip.pypa.io/en/latest/index.html).  If you have already [installed pip](https://pip.pypa.io/en/latest/installing.html), install trep by running the following command
+<pre>
+sudo pip install trep
+</pre>
+
+### 2.2. Installing from source
 
 Checkout the latest version of trep from Github using the following
 <pre>git clone https://github.com/MurpheyLab/trep.git</pre>
