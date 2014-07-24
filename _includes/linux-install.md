@@ -1,4 +1,4 @@
-### 1. Install Prerequisites
+### 1. Install prerequisites
 
 Trep requires that the following dependencies are installed:
 
@@ -9,7 +9,8 @@ Trep requires that the following dependencies are installed:
 You also need a C compiler installed and configured properly to compile Python extensions.
 
 To install the basic prerequisites, run the following command:
-<pre>sudo aptitude install python python-dev python-numpy python-scipy</pre>
+
+    sudo aptitude install python python-dev python-numpy python-scipy
 
 
 The following packages are optional. Trep should work fine without them, but they are required to use any of the visualization tools:
@@ -20,26 +21,29 @@ The following packages are optional. Trep should work fine without them, but the
 * matplotlib - [http://matplotlib.sourceforge.net/](http://matplotlib.sourceforge.net/)
 
 To install the all prerequisites including visualizations, run the following command:
-<pre>
-sudo aptitude install python python-dev python-opengl python-numpy python-scipy python-imaging \
-     python-qt4 python-qt4-gl python-matplotlib freeglut3-dev
-</pre>
 
+    sudo aptitude install python python-dev python-opengl python-numpy python-scipy python-imaging \
+     python-qt4 python-qt4-gl python-matplotlib freeglut3-dev
+
+<br>
 ### 2.1. Installing with pip
 
 Trep can be installed from the Python Package Index using [pip](https://pip.pypa.io/en/latest/index.html).  If you have already [installed pip](https://pip.pypa.io/en/latest/installing.html), install trep by running the following command
-<pre>
-sudo pip install trep
-</pre>
 
+    sudo pip install trep
+
+<br>
 ### 2.2. Installing from source
 
-Checkout the latest version of trep from Github using the following
-<pre>git clone https://github.com/MurpheyLab/trep.git</pre>
+Checkout the development version of trep from Github using the following
+
+    git clone -b master https://github.com/MurpheyLab/trep.git
+
 Build trep with the following commands
-<pre>
-cd trep
-python setup.py build
-</pre>
+
+    cd trep
+    python setup.py build
+
 After the compilation finishes, install trep with
-<pre>sudo python setup.py install</pre>
+
+    sudo python setup.py install

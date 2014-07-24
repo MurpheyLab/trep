@@ -1,0 +1,15 @@
+- version_name: Development
+  folder: dev
+  date: Not yet released
+
+- version_name: v0.92.1
+  folder: v0_92_1
+  date: July 16, 2014
+
+- version_name: v0.92
+  folder: v0_92
+  date: April 15, 2012
+
+- version_name: v0.91
+  folder: v0_91
+  date: March 12, 2012

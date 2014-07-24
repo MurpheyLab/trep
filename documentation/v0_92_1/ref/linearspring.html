@@ -1,0 +1,278 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>LinearSpring – Linear spring between two points &mdash; trep documentation</title>
+    
+    <link rel="stylesheet" href="../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.92-dev',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="trep documentation" href="../index.html" />
+    <link rel="up" title="trep.potentials - Potential Energies" href="potentials.html" />
+    <link rel="next" title="ConfigSpring – Linear Spring acting on a configuration variable" href="configspring.html" />
+    <link rel="prev" title="Gravity – Basic Gravity" href="gravity.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="configspring.html" title="ConfigSpring – Linear Spring acting on a configuration variable"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="gravity.html" title="Gravity – Basic Gravity"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../index.html">trep documentation</a> &raquo;</li>
+          <li><a href="index.html" >API Reference</a> &raquo;</li>
+          <li><a href="potentials.html" accesskey="U"><tt class="docutils literal docutils literal docutils literal docutils literal"><span class="pre">trep.potentials</span></tt> - Potential Energies</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+    <script type="math/tex">
+    \newcommand{\deriv}[2][]{\dfrac{\partial #1}{\partial #2}}
+\newcommand{\tderiv}[2][]{\tfrac{\partial #1}{\partial #2}}
+\newcommand{\fderiv}[2][]{\dfrac{d #1}{d #2}}
+\newcommand{\derivII}[3][]{\dfrac{\partial^2 #1}{\partial #2 \partial #3}}
+\newcommand{\tderivII}[3][]{\tfrac{\partial^2 #1}{\partial #2 \partial #3}}
+\newcommand{\derivIII}[4][]{\dfrac{\partial^3 #1}{\partial #2 \partial #3 \partial #4}}
+\newcommand{\tderivIII}[4][]{\tfrac{\partial^3 #1}{\partial #2 \partial #3 \partial #4}}
+\newcommand{\derivIV}[5][]{\dfrac{\partial^4 #1}{\partial #2 \partial #3 \partial #4 \partial #5}}
+
+\newcommand{\half}{\tfrac{1}{2}}  % Macro for 1/2
+
+\newcommand{\ud}{\mathrm{d}}
+
+\newcommand{\op}{\circ}
+\newcommand{\dq}{\dot{q}}
+\newcommand{\ddq}{\ddot{q}}
+
+\newcommand{\dt}{\Delta t}
+
+
+    </script>
+    
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="linearspring-linear-spring-between-two-points">
+<h1><tt class="xref py py-class docutils literal"><span class="pre">LinearSpring</span></tt> &#8211; Linear spring between two points<a class="headerlink" href="#linearspring-linear-spring-between-two-points" title="Permalink to this headline">¶</a></h1>
+<p><a class="reference internal" href="#trep.potentials.LinearSpring" title="trep.potentials.LinearSpring"><tt class="xref py py-class docutils literal"><span class="pre">LinearSpring</span></tt></a> creates a spring force between the origins of
+two coordinate frames in 3D space:</p>
+<div class="math">
+\[x = ||p_1 - p_2||\]\[V(q) = -k(x - x_0)^2\]</div>
+<p>where <span class="math">\(p_1\)</span> and <span class="math">\(p_2\)</span> are the origins of two coordinate
+frames, <span class="math">\(k\)</span> is the spring stiffness and <span class="math">\(x_0\)</span> is the
+natural length of the spring.</p>
+<blockquote>
+<div><table border="1" class="docutils">
+<caption><strong>Implemented Calculations</strong></caption>
+<colgroup>
+<col width="50%" />
+<col width="50%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Calculation</th>
+<th class="head">Implemented</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>V</td>
+<td>Y</td>
+</tr>
+<tr class="row-odd"><td>V_dq</td>
+<td>Y</td>
+</tr>
+<tr class="row-even"><td>V_dqdq</td>
+<td>Y</td>
+</tr>
+<tr class="row-odd"><td>V_dqdqdq</td>
+<td>Y</td>
+</tr>
+</tbody>
+</table>
+</div></blockquote>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p>The current implementation will fail if <span class="math">\(p_1\)</span> equals <span class="math">\(p_2\)</span> and
+<span class="math">\(x_0\)</span> is nonzero because of a divide by zero problem.</p>
+<p class="last">If the two points are equal and <span class="math">\(x_0\)</span> is not zero,
+there should be a force.  But since there is no vector between the
+two points, the direction of this force is undefined.  When the
+natural length is zero, this problem can be corrected because the
+force also goes to zero.</p>
+</div>
+<div class="section" id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
+<p>We can create a simple 1D harmonic oscillator using
+<a class="reference internal" href="#trep.potentials.LinearSpring" title="trep.potentials.LinearSpring"><tt class="xref py py-class docutils literal"><span class="pre">LinearSpring</span></tt></a> with a frame that is free to translate:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">trep</span>
+<span class="kn">from</span> <span class="nn">trep</span> <span class="kn">import</span> <span class="n">tx</span><span class="p">,</span><span class="n">ty</span><span class="p">,</span><span class="n">tz</span><span class="p">,</span><span class="n">rx</span><span class="p">,</span><span class="n">ry</span><span class="p">,</span><span class="n">rz</span>
+
+<span class="c"># Create a sytem with one mass that moves in the x direction.</span>
+<span class="n">system</span> <span class="o">=</span> <span class="n">trep</span><span class="o">.</span><span class="n">System</span><span class="p">()</span>
+<span class="n">system</span><span class="o">.</span><span class="n">import_frames</span><span class="p">([</span><span class="n">tx</span><span class="p">(</span><span class="s">&#39;x&#39;</span><span class="p">,</span> <span class="n">mass</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s">&#39;block&#39;</span><span class="p">)])</span>
+
+<span class="n">trep</span><span class="o">.</span><span class="n">potentials</span><span class="o">.</span><span class="n">LinearSpring</span><span class="p">(</span><span class="n">system</span><span class="p">,</span> <span class="s">&#39;World&#39;</span><span class="p">,</span> <span class="s">&#39;block&#39;</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">x0</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+<span class="c"># Remember to avoid x = 0 in simulation.</span>
+<span class="n">system</span><span class="o">.</span><span class="n">get_config</span><span class="p">(</span><span class="s">&#39;x&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">q</span> <span class="o">=</span> <span class="mf">0.5</span>
+</pre></div>
+</div>
+<p>The <a class="reference internal" href="#trep.potentials.LinearSpring" title="trep.potentials.LinearSpring"><tt class="xref py py-class docutils literal"><span class="pre">LinearSpring</span></tt></a> works between arbitrary frames, not just
+frames connected by a translation.  Here, we create two pendulums and
+connect their masses with a spring:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">trep</span>
+<span class="kn">from</span> <span class="nn">trep</span> <span class="kn">import</span> <span class="n">tx</span><span class="p">,</span><span class="n">ty</span><span class="p">,</span><span class="n">tz</span><span class="p">,</span><span class="n">rx</span><span class="p">,</span><span class="n">ry</span><span class="p">,</span><span class="n">rz</span>
+
+<span class="n">system</span> <span class="o">=</span> <span class="n">trep</span><span class="o">.</span><span class="n">System</span><span class="p">()</span>
+<span class="n">system</span><span class="o">.</span><span class="n">import_frames</span><span class="p">([</span>
+    <span class="n">ry</span><span class="p">(</span><span class="s">&#39;theta1&#39;</span><span class="p">),</span> <span class="p">[</span>
+        <span class="n">tz</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">mass</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s">&#39;pend1&#39;</span><span class="p">)</span>
+        <span class="p">],</span>
+    <span class="n">tx</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span> <span class="p">[</span>
+        <span class="n">ry</span><span class="p">(</span><span class="s">&#39;theta2&#39;</span><span class="p">),</span> <span class="p">[</span>
+            <span class="n">tz</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">mass</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s">&#39;pend2&#39;</span><span class="p">)</span>
+            <span class="p">]]</span>
+    <span class="p">])</span>
+
+<span class="n">trep</span><span class="o">.</span><span class="n">potentials</span><span class="o">.</span><span class="n">LinearSpring</span><span class="p">(</span><span class="n">system</span><span class="p">,</span> <span class="s">&#39;pend1&#39;</span><span class="p">,</span> <span class="s">&#39;pend2&#39;</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">x0</span><span class="o">=</span><span class="mf">0.9</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="linearspring-objects">
+<h2>LinearSpring Objects<a class="headerlink" href="#linearspring-objects" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="trep.potentials.LinearSpring">
+<em class="property">class </em><tt class="descclassname">trep.potentials.</tt><tt class="descname">LinearSpring</tt><big>(</big><em>system</em>, <em>frame1</em>, <em>frame2</em>, <em>k</em><span class="optional">[</span>, <em>x0=0.0</em>, <em>name=None</em><span class="optional">]</span><big>)</big><a class="headerlink" href="#trep.potentials.LinearSpring" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a new spring between <em>frame1</em> and <em>frame2</em>.  The frames must
+already exist in the system.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="trep.potentials.LinearSpring.frame1">
+<tt class="descclassname">LinearSpring.</tt><tt class="descname">frame1</tt><a class="headerlink" href="#trep.potentials.LinearSpring.frame1" title="Permalink to this definition">¶</a></dt>
+<dd><p>The coordinate frame at one end of the spring.</p>
+<p><em>(read only)</em></p>
+</dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">LinearSpring.</tt><tt class="descname">frame1</tt></dt>
+<dd><p>The coordinate frame at the other end of the spring.</p>
+<p><em>(read only)</em></p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="trep.potentials.LinearSpring.x0">
+<tt class="descclassname">LinearSpring.</tt><tt class="descname">x0</tt><a class="headerlink" href="#trep.potentials.LinearSpring.x0" title="Permalink to this definition">¶</a></dt>
+<dd><p>The natural length of the spring.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="trep.potentials.LinearSpring.k">
+<tt class="descclassname">LinearSpring.</tt><tt class="descname">k</tt><a class="headerlink" href="#trep.potentials.LinearSpring.k" title="Permalink to this definition">¶</a></dt>
+<dd><p>The spring constant of the spring.</p>
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+    <h2><a href="http://murpheylab.github.io/trep/">Project Website</a></h2>
+
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#"><tt class="docutils literal"><span class="pre">LinearSpring</span></tt> &#8211; Linear spring between two points</a><ul>
+<li><a class="reference internal" href="#examples">Examples</a></li>
+<li><a class="reference internal" href="#linearspring-objects">LinearSpring Objects</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="gravity.html"
+                        title="previous chapter"><tt class="docutils literal docutils literal"><span class="pre">Gravity</span></tt> &#8211; Basic Gravity</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="configspring.html"
+                        title="next chapter"><tt class="docutils literal docutils literal"><span class="pre">ConfigSpring</span></tt> &#8211; Linear Spring acting on a configuration variable</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="../_sources/ref/linearspring.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="configspring.html" title="ConfigSpring – Linear Spring acting on a configuration variable"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="gravity.html" title="Gravity – Basic Gravity"
+             >previous</a> |</li>
+        <li><a href="../index.html">trep documentation</a> &raquo;</li>
+          <li><a href="index.html" >API Reference</a> &raquo;</li>
+          <li><a href="potentials.html" ><tt class="docutils literal docutils literal docutils literal docutils literal"><span class="pre">trep.potentials</span></tt> - Potential Energies</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2014, Elliot Johnson.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

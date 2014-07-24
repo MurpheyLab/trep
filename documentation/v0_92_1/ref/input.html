@@ -1,0 +1,230 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Input – Input Variables &mdash; trep documentation</title>
+    
+    <link rel="stylesheet" href="../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.92-dev',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="trep documentation" href="../index.html" />
+    <link rel="up" title="trep - Core Components" href="core.html" />
+    <link rel="next" title="Force – Base Class for Forces" href="force.html" />
+    <link rel="prev" title="Config – Configuration Variables" href="config.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="force.html" title="Force – Base Class for Forces"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="config.html" title="Config – Configuration Variables"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../index.html">trep documentation</a> &raquo;</li>
+          <li><a href="index.html" >API Reference</a> &raquo;</li>
+          <li><a href="core.html" accesskey="U"><tt class="docutils literal docutils literal docutils literal docutils literal docutils literal docutils literal docutils literal"><span class="pre">trep</span></tt> - Core Components</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+    <script type="math/tex">
+    \newcommand{\deriv}[2][]{\dfrac{\partial #1}{\partial #2}}
+\newcommand{\tderiv}[2][]{\tfrac{\partial #1}{\partial #2}}
+\newcommand{\fderiv}[2][]{\dfrac{d #1}{d #2}}
+\newcommand{\derivII}[3][]{\dfrac{\partial^2 #1}{\partial #2 \partial #3}}
+\newcommand{\tderivII}[3][]{\tfrac{\partial^2 #1}{\partial #2 \partial #3}}
+\newcommand{\derivIII}[4][]{\dfrac{\partial^3 #1}{\partial #2 \partial #3 \partial #4}}
+\newcommand{\tderivIII}[4][]{\tfrac{\partial^3 #1}{\partial #2 \partial #3 \partial #4}}
+\newcommand{\derivIV}[5][]{\dfrac{\partial^4 #1}{\partial #2 \partial #3 \partial #4 \partial #5}}
+
+\newcommand{\half}{\tfrac{1}{2}}  % Macro for 1/2
+
+\newcommand{\ud}{\mathrm{d}}
+
+\newcommand{\op}{\circ}
+\newcommand{\dq}{\dot{q}}
+\newcommand{\ddq}{\ddot{q}}
+
+\newcommand{\dt}{\Delta t}
+
+
+    </script>
+    
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="input-input-variables">
+<h1><tt class="xref py py-class docutils literal"><span class="pre">Input</span></tt> &#8211; Input Variables<a class="headerlink" href="#input-input-variables" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="trep.Input">
+<em class="property">class </em><tt class="descclassname">trep.</tt><tt class="descname">Input</tt><big>(</big><em>system</em><span class="optional">[</span>, <em>name=None</em><span class="optional">]</span><big>)</big><a class="headerlink" href="#trep.Input" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>system</strong> &#8211; An instance of <a class="reference internal" href="system.html#trep.System" title="trep.System"><tt class="xref py py-class docutils literal"><span class="pre">System</span></tt></a> to add the variable to.</li>
+<li><strong>name</strong> &#8211; A string that uniquely identifies the input variable.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>An <a class="reference internal" href="#trep.Input" title="trep.Input"><tt class="xref py py-class docutils literal"><span class="pre">Input</span></tt></a> instance represents a single variable in the
+input vector, <span class="math">\(u\)</span>, of a mechanical system.  Inputs are used
+by <a class="reference internal" href="force.html#trep.Force" title="trep.Force"><tt class="xref py py-class docutils literal"><span class="pre">Force</span></tt></a> to apply non-conservative forcing to the system
+(e.g, a torque or body wrench)</p>
+<p>Input variables are created automatically by implementations of
+<a class="reference internal" href="force.html#trep.Force" title="trep.Force"><tt class="xref py py-class docutils literal"><span class="pre">Force</span></tt></a> when needed, so you do not need to create them
+directly unless defining a new force type.  In that case, they
+should be created using <tt class="xref py py-meth docutils literal"><span class="pre">Force._create_input()</span></tt>.</p>
+<p>If a <em>name</em> is provided, it can be used to identify and retrieve
+input variables.</p>
+<p>The current value of a single input variable can be accessed
+directly (<a class="reference internal" href="#trep.Input.u" title="trep.Input.u"><tt class="xref py py-attr docutils literal"><span class="pre">u</span></tt></a>) or through <a class="reference internal" href="system.html#trep.System" title="trep.System"><tt class="xref py py-class docutils literal"><span class="pre">System</span></tt></a> to access all input
+variables at once (<a class="reference internal" href="system.html#trep.System.u" title="trep.System.u"><tt class="xref py py-attr docutils literal"><span class="pre">System.u</span></tt></a>).</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">Currently <a class="reference internal" href="core.html#module-trep" title="trep: Dynamics and Optimal Control Tools (Linux, Mac)"><tt class="xref py py-mod docutils literal"><span class="pre">trep</span></tt></a> does not enforce unique names for input
+variables. It is recommended to provide a unique name for every
+<a class="reference internal" href="#trep.Input" title="trep.Input"><tt class="xref py py-class docutils literal"><span class="pre">Input</span></tt></a> so they can be unambiguously retrieved by
+<a class="reference internal" href="system.html#trep.System.get_input" title="trep.System.get_input"><tt class="xref py py-meth docutils literal"><span class="pre">System.get_input()</span></tt></a>.</p>
+</div>
+</dd></dl>
+
+<div class="section" id="input-objects">
+<h2>Input Objects<a class="headerlink" href="#input-objects" title="Permalink to this headline">¶</a></h2>
+<dl class="attribute">
+<dt id="trep.Input.u">
+<tt class="descclassname">Input.</tt><tt class="descname">u</tt><a class="headerlink" href="#trep.Input.u" title="Permalink to this definition">¶</a></dt>
+<dd><p>The current value of the input.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="trep.Input.system">
+<tt class="descclassname">Input.</tt><tt class="descname">system</tt><a class="headerlink" href="#trep.Input.system" title="Permalink to this definition">¶</a></dt>
+<dd><p>The system that owns this input variable.</p>
+<p><em>(read only)</em></p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="trep.Input.force">
+<tt class="descclassname">Input.</tt><tt class="descname">force</tt><a class="headerlink" href="#trep.Input.force" title="Permalink to this definition">¶</a></dt>
+<dd><p>The force that uses this input variable.</p>
+<p><em>(read only)</em></p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="trep.Input.name">
+<tt class="descclassname">Input.</tt><tt class="descname">name</tt><a class="headerlink" href="#trep.Input.name" title="Permalink to this definition">¶</a></dt>
+<dd><p>The name of this input variable or <tt class="xref py py-data docutils literal"><span class="pre">None</span></tt>.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="trep.Input.index">
+<tt class="descclassname">Input.</tt><tt class="descname">index</tt><a class="headerlink" href="#trep.Input.index" title="Permalink to this definition">¶</a></dt>
+<dd><p>The index of the input in <a class="reference internal" href="system.html#trep.System.inputs" title="trep.System.inputs"><tt class="xref py py-attr docutils literal"><span class="pre">System.inputs</span></tt></a>.</p>
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+    <h2><a href="http://murpheylab.github.io/trep/">Project Website</a></h2>
+
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#"><tt class="docutils literal"><span class="pre">Input</span></tt> &#8211; Input Variables</a><ul>
+<li><a class="reference internal" href="#input-objects">Input Objects</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="config.html"
+                        title="previous chapter"><tt class="docutils literal docutils literal docutils literal"><span class="pre">Config</span></tt> &#8211; Configuration Variables</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="force.html"
+                        title="next chapter"><tt class="docutils literal docutils literal"><span class="pre">Force</span></tt> &#8211; Base Class for Forces</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="../_sources/ref/input.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="force.html" title="Force – Base Class for Forces"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="config.html" title="Config – Configuration Variables"
+             >previous</a> |</li>
+        <li><a href="../index.html">trep documentation</a> &raquo;</li>
+          <li><a href="index.html" >API Reference</a> &raquo;</li>
+          <li><a href="core.html" ><tt class="docutils literal docutils literal docutils literal docutils literal docutils literal docutils literal docutils literal"><span class="pre">trep</span></tt> - Core Components</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2014, Elliot Johnson.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

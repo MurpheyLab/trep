@@ -1,0 +1,441 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>TapeMeasure – Measuring distances between frames &mdash; trep documentation</title>
+    
+    <link rel="stylesheet" href="../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.92-dev',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="trep documentation" href="../index.html" />
+    <link rel="up" title="Misc. Components" href="misc.html" />
+    <link rel="next" title="Visualization" href="visualization.html" />
+    <link rel="prev" title="Spline – Spline Objects" href="spline.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="visualization.html" title="Visualization"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="spline.html" title="Spline – Spline Objects"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../index.html">trep documentation</a> &raquo;</li>
+          <li><a href="index.html" >API Reference</a> &raquo;</li>
+          <li><a href="misc.html" accesskey="U">Misc. Components</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+    <script type="math/tex">
+    \newcommand{\deriv}[2][]{\dfrac{\partial #1}{\partial #2}}
+\newcommand{\tderiv}[2][]{\tfrac{\partial #1}{\partial #2}}
+\newcommand{\fderiv}[2][]{\dfrac{d #1}{d #2}}
+\newcommand{\derivII}[3][]{\dfrac{\partial^2 #1}{\partial #2 \partial #3}}
+\newcommand{\tderivII}[3][]{\tfrac{\partial^2 #1}{\partial #2 \partial #3}}
+\newcommand{\derivIII}[4][]{\dfrac{\partial^3 #1}{\partial #2 \partial #3 \partial #4}}
+\newcommand{\tderivIII}[4][]{\tfrac{\partial^3 #1}{\partial #2 \partial #3 \partial #4}}
+\newcommand{\derivIV}[5][]{\dfrac{\partial^4 #1}{\partial #2 \partial #3 \partial #4 \partial #5}}
+
+\newcommand{\half}{\tfrac{1}{2}}  % Macro for 1/2
+
+\newcommand{\ud}{\mathrm{d}}
+
+\newcommand{\op}{\circ}
+\newcommand{\dq}{\dot{q}}
+\newcommand{\ddq}{\ddot{q}}
+
+\newcommand{\dt}{\Delta t}
+
+
+    </script>
+    
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="tapemeasure-measuring-distances-between-frames">
+<h1><tt class="xref py py-class docutils literal"><span class="pre">TapeMeasure</span></tt> &#8211; Measuring distances between frames<a class="headerlink" href="#tapemeasure-measuring-distances-between-frames" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="trep.TapeMeasure">
+<em class="property">class </em><tt class="descclassname">trep.</tt><tt class="descname">TapeMeasure</tt><big>(</big><em>system</em>, <em>frames</em><big>)</big><a class="headerlink" href="#trep.TapeMeasure" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>system</strong> &#8211; The <a class="reference internal" href="system.html#trep.System" title="trep.System"><tt class="xref py py-class docutils literal"><span class="pre">System</span></tt></a> that the frames belong to.</li>
+<li><strong>frames</strong> &#8211; A list of <a class="reference internal" href="frame.html#trep.Frame" title="trep.Frame"><tt class="xref py py-class docutils literal"><span class="pre">Frame</span></tt></a> objects or frame names.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>A <a class="reference internal" href="#trep.TapeMeasure" title="trep.TapeMeasure"><tt class="xref py py-class docutils literal"><span class="pre">TapeMeasure</span></tt></a> object calculates the length of the line
+you get from playing &#8220;connect the dots&#8221; with the origins of a list
+of coordinate frames.  <a class="reference internal" href="#trep.TapeMeasure" title="trep.TapeMeasure"><tt class="xref py py-class docutils literal"><span class="pre">TapeMeasure</span></tt></a> can calculate the
+length of the line and its derivatives with respect to
+configuration variables, and the velocity of the length
+(<span class="math">\(\tfrac{dx}{dt}\)</span>) and its derivatives.</p>
+<p><em>(figure here)</em></p>
+<p><a class="reference internal" href="#trep.TapeMeasure" title="trep.TapeMeasure"><tt class="xref py py-class docutils literal"><span class="pre">TapeMeasure</span></tt></a> can be used as the basis for new
+constraints, potentials, and forces, or used independently for your
+own calculations.</p>
+</dd></dl>
+
+<div class="section" id="length-and-velocity-calculations">
+<h2>Length and Velocity Calculations<a class="headerlink" href="#length-and-velocity-calculations" title="Permalink to this headline">¶</a></h2>
+<blockquote>
+<div><p>Let <span class="math">\((p_0, p_1, p_2 \dots p_{n} )\)</span> be the points at the origins
+of the frames specified by <tt class="xref py py-attr docutils literal"><span class="pre">frames</span></tt>.  The length, <span class="math">\(x\)</span> is
+calculated as follows.</p>
+<div class="math">
+\[v_k = p_{k+1} - p_k\]\[x_k = \sqrt{v_k^T v_k}\]\[x = \sum_{k=0}^{n-1} x_k\]</div>
+<p>The velocity is calculated by applying the chain rule to <span class="math">\(x\)</span>:</p>
+<div class="math">
+\[\dot{x} = \sum_k \sum_i \frac{\partial x_k}{\partial q_i} \dot{q}_i\]</div>
+<p>These calculations, and their derivatives, are optimized internally
+to take advantage of the fact that many of these terms are zero,
+significantly reducing the amount of calculation to do.</p>
+<p>See the <a class="reference internal" href="../placeholders.html#internal-ref-tapemeasure"><em>internal documentation</em></a>
+on <a class="reference internal" href="#trep.TapeMeasure" title="trep.TapeMeasure"><tt class="xref py py-class docutils literal"><span class="pre">TapeMeasure</span></tt></a> for more details about the implementation
+and for the equations to calculate the derivatives.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">The derivatives of the length and velocity do not exist when the
+length of any part of the segment is zero.
+<a class="reference internal" href="#trep.TapeMeasure" title="trep.TapeMeasure"><tt class="xref py py-class docutils literal"><span class="pre">TapeMeasure</span></tt></a> does not check for this condition and
+will return <tt class="xref py py-data docutils literal"><span class="pre">NaN</span></tt> or cause a divide-by-zero error.  Be
+careful to avoid these cases.</p>
+</div>
+</div></blockquote>
+</div>
+<div class="section" id="tapemeasure-objects">
+<h2>TapeMeasure Objects<a class="headerlink" href="#tapemeasure-objects" title="Permalink to this headline">¶</a></h2>
+<dl class="attribute">
+<dt id="trep.TapeMeasure.system">
+<tt class="descclassname">TapeMeasure.</tt><tt class="descname">system</tt><a class="headerlink" href="#trep.TapeMeasure.system" title="Permalink to this definition">¶</a></dt>
+<dd><p>The system that the <a class="reference internal" href="#trep.TapeMeasure" title="trep.TapeMeasure"><tt class="xref py py-class docutils literal"><span class="pre">TapeMeasure</span></tt></a> works in.</p>
+<p><em>(read-only)</em></p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="trep.TapeMeasure.frames">
+<tt class="descclassname">TapeMeasure.</tt><tt class="descname">frames</tt><a class="headerlink" href="#trep.TapeMeasure.frames" title="Permalink to this definition">¶</a></dt>
+<dd><p>A tuple of <a class="reference internal" href="frame.html#trep.Frame" title="trep.Frame"><tt class="xref py py-class docutils literal"><span class="pre">Frame</span></tt></a> objects that define the lines being
+measured.</p>
+<p><em>(read-only)</em></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="trep.TapeMeasure.length">
+<tt class="descclassname">TapeMeasure.</tt><tt class="descname">length</tt><big>(</big><big>)</big><a class="headerlink" href="#trep.TapeMeasure.length" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><tt class="xref py py-class docutils literal"><span class="pre">Float</span></tt></td>
+</tr>
+</tbody>
+</table>
+<p>Calculate the total length of the line segments at the system&#8217;s
+current configuration.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="trep.TapeMeasure.length_dq">
+<tt class="descclassname">TapeMeasure.</tt><tt class="descname">length_dq</tt><big>(</big><em>q1</em><big>)</big><a class="headerlink" href="#trep.TapeMeasure.length_dq" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>q1</strong> (<a class="reference internal" href="config.html#trep.Config" title="trep.Config"><tt class="xref py py-class docutils literal"><span class="pre">Config</span></tt></a>) &#8211; Derivative variable</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><tt class="xref py py-class docutils literal"><span class="pre">Float</span></tt></td>
+</tr>
+</tbody>
+</table>
+<p>Calculate the derivative of the length with respect to the value of
+<em>q1</em>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="trep.TapeMeasure.length_dqdq">
+<tt class="descclassname">TapeMeasure.</tt><tt class="descname">length_dqdq</tt><big>(</big><em>q1</em>, <em>q2</em><big>)</big><a class="headerlink" href="#trep.TapeMeasure.length_dqdq" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>q1</strong> (<a class="reference internal" href="config.html#trep.Config" title="trep.Config"><tt class="xref py py-class docutils literal"><span class="pre">Config</span></tt></a>) &#8211; Derivative variable</li>
+<li><strong>q2</strong> (<a class="reference internal" href="config.html#trep.Config" title="trep.Config"><tt class="xref py py-class docutils literal"><span class="pre">Config</span></tt></a>) &#8211; Derivative variable</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><tt class="xref py py-class docutils literal"><span class="pre">Float</span></tt></p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Calculate the second derivative of the length with respect to the
+value of <em>q1</em> and the value of <em>q2</em>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="trep.TapeMeasure.length_dqdqdq">
+<tt class="descclassname">TapeMeasure.</tt><tt class="descname">length_dqdqdq</tt><big>(</big><em>q1</em>, <em>q2</em>, <em>q3</em><big>)</big><a class="headerlink" href="#trep.TapeMeasure.length_dqdqdq" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>q1</strong> (<a class="reference internal" href="config.html#trep.Config" title="trep.Config"><tt class="xref py py-class docutils literal"><span class="pre">Config</span></tt></a>) &#8211; Derivative variable</li>
+<li><strong>q2</strong> (<a class="reference internal" href="config.html#trep.Config" title="trep.Config"><tt class="xref py py-class docutils literal"><span class="pre">Config</span></tt></a>) &#8211; Derivative variable</li>
+<li><strong>q3</strong> (<a class="reference internal" href="config.html#trep.Config" title="trep.Config"><tt class="xref py py-class docutils literal"><span class="pre">Config</span></tt></a>) &#8211; Derivative variable</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><tt class="xref py py-class docutils literal"><span class="pre">Float</span></tt></p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Calculate the third derivative of the length with respect to the
+value of <em>q1</em>, the value of <em>q2</em>, and the value of <em>q3</em>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="trep.TapeMeasure.velocity">
+<tt class="descclassname">TapeMeasure.</tt><tt class="descname">velocity</tt><big>(</big><big>)</big><a class="headerlink" href="#trep.TapeMeasure.velocity" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><tt class="xref py py-class docutils literal"><span class="pre">Float</span></tt></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="trep.TapeMeasure.velocity_dq">
+<tt class="descclassname">TapeMeasure.</tt><tt class="descname">velocity_dq</tt><big>(</big><em>q1</em><big>)</big><a class="headerlink" href="#trep.TapeMeasure.velocity_dq" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>q1</strong> (<a class="reference internal" href="config.html#trep.Config" title="trep.Config"><tt class="xref py py-class docutils literal"><span class="pre">Config</span></tt></a>) &#8211; Derivative variable</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><tt class="xref py py-class docutils literal"><span class="pre">Float</span></tt></td>
+</tr>
+</tbody>
+</table>
+<p>Calculate the derivative of the velocity with respect to the value
+of <em>q1</em>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="trep.TapeMeasure.velocity_ddq">
+<tt class="descclassname">TapeMeasure.</tt><tt class="descname">velocity_ddq</tt><big>(</big><em>dq1</em><big>)</big><a class="headerlink" href="#trep.TapeMeasure.velocity_ddq" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>dq1</strong> (<a class="reference internal" href="config.html#trep.Config" title="trep.Config"><tt class="xref py py-class docutils literal"><span class="pre">Config</span></tt></a>) &#8211; Derivative variable</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><tt class="xref py py-class docutils literal"><span class="pre">Float</span></tt></td>
+</tr>
+</tbody>
+</table>
+<p>Calculate the derivative of the velocity with respect to the
+velocity of <em>q1</em>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="trep.TapeMeasure.velocity_dqdq">
+<tt class="descclassname">TapeMeasure.</tt><tt class="descname">velocity_dqdq</tt><big>(</big><em>q1</em>, <em>q2</em><big>)</big><a class="headerlink" href="#trep.TapeMeasure.velocity_dqdq" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>q1</strong> (<a class="reference internal" href="config.html#trep.Config" title="trep.Config"><tt class="xref py py-class docutils literal"><span class="pre">Config</span></tt></a>) &#8211; Derivative variable</li>
+<li><strong>q2</strong> (<a class="reference internal" href="config.html#trep.Config" title="trep.Config"><tt class="xref py py-class docutils literal"><span class="pre">Config</span></tt></a>) &#8211; Derivative variable</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><tt class="xref py py-class docutils literal"><span class="pre">Float</span></tt></p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Calculate the second derivative of the velocity with respect to the
+value of <em>q1</em> and the value of <em>q2</em>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="trep.TapeMeasure.velocity_dddqdq">
+<tt class="descclassname">TapeMeasure.</tt><tt class="descname">velocity_dddqdq</tt><big>(</big><em>dq1</em>, <em>dq2</em><big>)</big><a class="headerlink" href="#trep.TapeMeasure.velocity_dddqdq" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>dq1</strong> (<a class="reference internal" href="config.html#trep.Config" title="trep.Config"><tt class="xref py py-class docutils literal"><span class="pre">Config</span></tt></a>) &#8211; Derivative variable</li>
+<li><strong>q2</strong> (<a class="reference internal" href="config.html#trep.Config" title="trep.Config"><tt class="xref py py-class docutils literal"><span class="pre">Config</span></tt></a>) &#8211; Derivative variable</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><tt class="xref py py-class docutils literal"><span class="pre">Float</span></tt></p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Calculate the second derivative of the velocity with respect to the
+velocity of <em>q1</em> and the value of <em>q2</em>.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="visualization">
+<h2>Visualization<a class="headerlink" href="#visualization" title="Permalink to this headline">¶</a></h2>
+<dl class="method">
+<dt id="trep.TapeMeasure.opengl_draw">
+<tt class="descclassname">TapeMeasure.</tt><tt class="descname">opengl_draw</tt><big>(</big><em>width=1.0</em>, <em>color=(1.0</em>, <em>1.0</em>, <em>1.0)</em><big>)</big><a class="headerlink" href="#trep.TapeMeasure.opengl_draw" title="Permalink to this definition">¶</a></dt>
+<dd><p>Draw a representation of the line defined by the
+<a class="reference internal" href="#trep.TapeMeasure" title="trep.TapeMeasure"><tt class="xref py py-class docutils literal"><span class="pre">TapeMeasure</span></tt></a> with the specified width and color.  The
+current OpenGL coordinate system should be the root coordinate
+frame of the <a class="reference internal" href="system.html#trep.System" title="trep.System"><tt class="xref py py-class docutils literal"><span class="pre">System</span></tt></a>.</p>
+<p>This method can be called by constraints, forces, and potentials
+that are based on the <a class="reference internal" href="#trep.TapeMeasure" title="trep.TapeMeasure"><tt class="xref py py-class docutils literal"><span class="pre">TapeMeasure</span></tt></a>.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="verifying-derivatives">
+<h2>Verifying Derivatives<a class="headerlink" href="#verifying-derivatives" title="Permalink to this headline">¶</a></h2>
+<dl class="method">
+<dt id="trep.TapeMeasure.validate_length_dq">
+<tt class="descclassname">TapeMeasure.</tt><tt class="descname">validate_length_dq</tt><big>(</big><span class="optional">[</span><em>delta=1e-6</em>, <em>tolerance=1e-6</em>, <em>verbose=False</em><span class="optional">]</span><big>)</big><a class="headerlink" href="#trep.TapeMeasure.validate_length_dq" title="Permalink to this definition">¶</a></dt>
+<dt id="trep.TapeMeasure.validate_length_dqdq">
+<tt class="descclassname">TapeMeasure.</tt><tt class="descname">validate_length_dqdq</tt><big>(</big><span class="optional">[</span><em>delta=1e-6</em>, <em>tolerance=1e-6</em>, <em>verbose=False</em><span class="optional">]</span><big>)</big><a class="headerlink" href="#trep.TapeMeasure.validate_length_dqdq" title="Permalink to this definition">¶</a></dt>
+<dt id="trep.TapeMeasure.validate_length_dqdqdq">
+<tt class="descclassname">TapeMeasure.</tt><tt class="descname">validate_length_dqdqdq</tt><big>(</big><span class="optional">[</span><em>delta=1e-6</em>, <em>tolerance=1e-6</em>, <em>verbose=False</em><span class="optional">]</span><big>)</big><a class="headerlink" href="#trep.TapeMeasure.validate_length_dqdqdq" title="Permalink to this definition">¶</a></dt>
+<dt id="trep.TapeMeasure.validate_velocity_dq">
+<tt class="descclassname">TapeMeasure.</tt><tt class="descname">validate_velocity_dq</tt><big>(</big><span class="optional">[</span><em>delta=1e-6</em>, <em>tolerance=1e-6</em>, <em>verbose=False</em><span class="optional">]</span><big>)</big><a class="headerlink" href="#trep.TapeMeasure.validate_velocity_dq" title="Permalink to this definition">¶</a></dt>
+<dt id="trep.TapeMeasure.validate_velocity_ddq">
+<tt class="descclassname">TapeMeasure.</tt><tt class="descname">validate_velocity_ddq</tt><big>(</big><span class="optional">[</span><em>delta=1e-6</em>, <em>tolerance=1e-6</em>, <em>verbose=False</em><span class="optional">]</span><big>)</big><a class="headerlink" href="#trep.TapeMeasure.validate_velocity_ddq" title="Permalink to this definition">¶</a></dt>
+<dt id="trep.TapeMeasure.validate_velocity_dqdq">
+<tt class="descclassname">TapeMeasure.</tt><tt class="descname">validate_velocity_dqdq</tt><big>(</big><span class="optional">[</span><em>delta=1e-6</em>, <em>tolerance=1e-6</em>, <em>verbose=False</em><span class="optional">]</span><big>)</big><a class="headerlink" href="#trep.TapeMeasure.validate_velocity_dqdq" title="Permalink to this definition">¶</a></dt>
+<dt id="trep.TapeMeasure.validate_velocity_ddqdq">
+<tt class="descclassname">TapeMeasure.</tt><tt class="descname">validate_velocity_ddqdq</tt><big>(</big><span class="optional">[</span><em>delta=1e-6</em>, <em>tolerance=1e-6</em>, <em>verbose=False</em><span class="optional">]</span><big>)</big><a class="headerlink" href="#trep.TapeMeasure.validate_velocity_ddqdq" title="Permalink to this definition">¶</a></dt>
+<dd><p>Unlike <a class="reference internal" href="constraint.html#trep.Constraint" title="trep.Constraint"><tt class="xref py py-class docutils literal"><span class="pre">Constraint</span></tt></a>, <a class="reference internal" href="potential.html#trep.Potential" title="trep.Potential"><tt class="xref py py-class docutils literal"><span class="pre">Potential</span></tt></a>, and <a class="reference internal" href="force.html#trep.Force" title="trep.Force"><tt class="xref py py-class docutils literal"><span class="pre">Force</span></tt></a>,
+<a class="reference internal" href="#trep.TapeMeasure" title="trep.TapeMeasure"><tt class="xref py py-class docutils literal"><span class="pre">TapeMeasure</span></tt></a> is used directly and all of the calculations
+are already implemented and verified.  These functions are
+primarily used for testing during developement, but they might be
+useful for debugging if you are using a <a class="reference internal" href="#trep.TapeMeasure" title="trep.TapeMeasure"><tt class="xref py py-class docutils literal"><span class="pre">TapeMeasure</span></tt></a> and
+having trouble.</p>
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+    <h2><a href="http://murpheylab.github.io/trep/">Project Website</a></h2>
+
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#"><tt class="docutils literal"><span class="pre">TapeMeasure</span></tt> &#8211; Measuring distances between frames</a><ul>
+<li><a class="reference internal" href="#length-and-velocity-calculations">Length and Velocity Calculations</a></li>
+<li><a class="reference internal" href="#tapemeasure-objects">TapeMeasure Objects</a></li>
+<li><a class="reference internal" href="#visualization">Visualization</a></li>
+<li><a class="reference internal" href="#verifying-derivatives">Verifying Derivatives</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="spline.html"
+                        title="previous chapter"><tt class="docutils literal docutils literal docutils literal"><span class="pre">Spline</span></tt> &#8211; Spline Objects</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="visualization.html"
+                        title="next chapter">Visualization</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="../_sources/ref/tapemeasure.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="visualization.html" title="Visualization"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="spline.html" title="Spline – Spline Objects"
+             >previous</a> |</li>
+        <li><a href="../index.html">trep documentation</a> &raquo;</li>
+          <li><a href="index.html" >API Reference</a> &raquo;</li>
+          <li><a href="misc.html" >Misc. Components</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2014, Elliot Johnson.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

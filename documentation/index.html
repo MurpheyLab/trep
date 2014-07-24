@@ -1,0 +1,27 @@
+---
+layout: default
+title: Trep Installation
+---
+<div class="container">
+ 
+<!-------->
+<div id="content">
+
+    <h2>Trep Documentation:</h2>
+    <br>
+    <ul>
+        {% for release in site.data.releases %}
+        <li>
+            <h4><a href="{{ site.baseurl }}/documentation/{{ release.folder }}/">{{ release.version_name }}</a></h4>
+            <ul>
+                <li>Released: {{ release.date }}</li>
+            </ul>
+        </li>
+        <br>
+        {% endfor %}
+    </ul>
+
+</div>
+<br><br><br><br><br><br>
+
+</div> 
