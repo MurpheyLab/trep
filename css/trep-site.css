@@ -14,3 +14,9 @@ footer {
   margin-top: 50px;
   padding: 10px;
 }
+
+.vcenter {
+    display: inline-block;
+    vertical-align: middle;
+    float: none;
+}
