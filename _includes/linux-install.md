@@ -10,7 +10,7 @@ You also need a C compiler installed and configured properly to compile Python e
 
 To install the basic prerequisites, run the following command:
 
-    sudo aptitude install python python-dev python-numpy python-scipy
+    sudo apt-get install python python-dev python-numpy python-scipy
 
 
 The following packages are optional. Trep will work fine without them, but they are required to use any of the visualization tools:
@@ -22,7 +22,7 @@ The following packages are optional. Trep will work fine without them, but they 
 
 To install the all prerequisites including visualizations, run the following command:
 
-    sudo aptitude install python python-dev python-opengl python-numpy python-scipy python-imaging \
+    sudo apt-get install python python-dev python-opengl python-numpy python-scipy python-imaging \
      python-qt4 python-qt4-gl python-matplotlib freeglut3-dev
 
 <br>
