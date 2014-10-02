@@ -25,9 +25,9 @@ desired trajectory:
 
 .. math:: 
 
-   \ell(x, u, k) = (x - x_d(k))^T Q (x - x_d(k)) + (x - u_d(k))^T R (u - u_d(k))
+   \ell(x, u, k) = \frac{1}{2}\left((x - x_d(k))^T Q (x - x_d(k)) + (x - u_d(k))^T R (u - u_d(k))\right)
 
-   m(x) = (x - x_d(k_f))^T Q (x - x_d(k_f))
+   m(x) = \frac{1}{2}(x - x_d(k_f))^T Q (x - x_d(k_f))
 
 where :math:`x_d(k)` and :math:`u_d(k)` are the desired state and
 input trajectories and :math:`Q` and :math:`R` are positive definite
