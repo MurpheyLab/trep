@@ -1,5 +1,3 @@
-
-
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
@@ -95,7 +93,7 @@ a cost of the form:</p>
 <p>The current implementation defines a suitable cost for tracking a
 desired trajectory:</p>
 <div class="math">
-\[\ell(x, u, k) = (x - x_d(k))^T Q (x - x_d(k)) + (x - u_d(k))^T R (u - u_d(k))\]\[m(x) = (x - x_d(k_f))^T Q (x - x_d(k_f))\]</div>
+\[\ell(x, u, k) = \frac{1}{2}\left((x - x_d(k))^T Q (x - x_d(k)) + (x - u_d(k))^T R (u - u_d(k))\right)\]\[m(x) = \frac{1}{2}(x - x_d(k_f))^T Q (x - x_d(k_f))\]</div>
 <p>where <span class="math">\(x_d(k)\)</span> and <span class="math">\(u_d(k)\)</span> are the desired state and
 input trajectories and <span class="math">\(Q\)</span> and <span class="math">\(R\)</span> are positive definite
 matrices that define their weighting.</p>
@@ -411,7 +409,7 @@ implementation, this is always equal to <a class="reference internal" href="#tre
     </div>
     <div class="footer">
         &copy; Copyright 2014, Elliot Johnson.
-      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
     </div>
   </body>
 </html>
