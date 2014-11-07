@@ -233,7 +233,8 @@ of the system's dynamics.",
                  'trep.forces',
                  'trep.visual',
                  'trep.puppets',
-                 'trep.discopt'
+                 'trep.discopt',
+                 'trep.ros'
                  ],
        package_data={
            'trep.visual' : ['icons/*.svg']
