@@ -834,6 +834,8 @@ class System(_System):
         self._M_dq = np.zeros( (self.nQ, self.nQ, self.nQ), np.double, 'C')
         self._M_dqdq = np.zeros( (self.nQ, self.nQ, self.nQ, self.nQ), np.double, 'C')
 
+        self._clear_cache()
+
         for func in self._structure_changed_funcs:
             func()
 
