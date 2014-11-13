@@ -25,6 +25,7 @@ derivatives of the dynamics.
    forces
    constraints
    optimal
+   ros
    misc
    visualization
 
