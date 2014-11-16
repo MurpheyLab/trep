@@ -2260,12 +2260,6 @@ static PyObject* L_ddqddqdqdq(System *sys, PyObject *args)
 	return PyFloat_FromDouble(result);
 }
 
-static PyObject* clear_cache(System *sys, PyObject *args)
-{
-    sys->cache = SYSTEM_CACHE_NONE;
-    Py_RETURN_NONE;
-}
-
 static PyObject* update_cache(System *sys, PyObject *args)
 {
     unsigned long flags;
@@ -2330,7 +2324,6 @@ static PyMethodDef methods_list[] = {
     {"_L_ddqddqdq", (PyCFunction)L_ddqddqdq, METH_VARARGS, trep_internal_doc},
     {"_L_ddqddqdqdq", (PyCFunction)L_ddqddqdqdq, METH_VARARGS, trep_internal_doc},
 
-    {"_clear_cache", (PyCFunction)clear_cache, METH_VARARGS, trep_internal_doc},
     {"_update_cache", (PyCFunction)update_cache, METH_VARARGS, trep_internal_doc},
     {NULL}  /* Sentinel */
 };
