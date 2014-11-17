@@ -753,7 +753,7 @@ void rz_add_sandwich_gk(Frame *self, mat4x4 dest, mat4x4 X, int n1, int n2)
     double val;
     assert(n1 <= n2);
 
-    if(self->config == NULL)
+    if(ISNONE(self->config))
 	z = self->value;
     else
 	z = self->config->q;
