@@ -539,12 +539,10 @@ void tz_add_sandwich_gk(Frame *self, mat4x4 dest, mat4x4 X, int n1, int n2)
 
 void rx_add_sandwich_gk(Frame *self, mat4x4 dest, mat4x4 X, int n1, int n2) 
 {
+    assert(n1 <= n2);
     double x, cx, sx;
     double val;
 
-    assert(n1 <= n2);
-
-    if(n1 == 0 && n2 == 0) {
 	if(ISNONE(self->config))
 	    x = self->value;
 	else
@@ -552,6 +550,7 @@ void rx_add_sandwich_gk(Frame *self, mat4x4 dest, mat4x4 X, int n1, int n2)
 	sx = sin(x);
 	cx = cos(x);
 
+    if(n1 == 0 && n2 == 0) {
 	// Using val to take advantage of symmetry
 	val = X[0][2]*sx + X[0][1]*cx;
 	dest[0][1] += val;
@@ -570,13 +569,6 @@ void rx_add_sandwich_gk(Frame *self, mat4x4 dest, mat4x4 X, int n1, int n2)
     }
 
     if(n1 == 0 && n2 == 1) {
-	if(ISNONE(self->config))
-	    x = self->value;
-	else
-	    x = self->config->q;
-	sx = sin(x);
-	cx = cos(x);
-
 	// Using val to take advantage of symmetry
 	val = X[0][2]*cx + X[1][0]*sx;
 	dest[0][1] += val;
@@ -589,14 +581,8 @@ void rx_add_sandwich_gk(Frame *self, mat4x4 dest, mat4x4 X, int n1, int n2)
 	dest[2][3] += -X[1][3]*cx - X[2][3]*sx;
 	return;
     }
-    if(n1 == 0 && n2 == 2) {
-	if(ISNONE(self->config))
-	    x = self->value;
-	else
-	    x = self->config->q;
-	sx = sin(x);
-	cx = cos(x);
 
+    if(n1 == 0 && n2 == 2) {
 	// Using val to take advantage of symmetry
 	val = X[1][0]*cx + X[2][0]*sx;
 	dest[0][1] += val;
@@ -612,14 +598,8 @@ void rx_add_sandwich_gk(Frame *self, mat4x4 dest, mat4x4 X, int n1, int n2)
 	dest[2][3] += -X[2][3]*cx + X[1][3]*sx;
 	return;
     }
-    if(n1 == 0 && n2 == 3) {
-	if(ISNONE(self->config))
-	    x = self->value;
-	else
-	    x = self->config->q;
-	sx = sin(x);
-	cx = cos(x);
 
+    if(n1 == 0 && n2 == 3) {
 	// Using val to take advantage of symmetry
 	val = X[2][0]*cx+X[0][1]*sx;
 	dest[0][1] += val;
@@ -632,20 +612,15 @@ void rx_add_sandwich_gk(Frame *self, mat4x4 dest, mat4x4 X, int n1, int n2)
 	dest[2][3] += X[1][3]*cx+X[2][3]*sx;
 	return;
     }
-    if(n1 == 1 && n2 == 1) {
-	if(ISNONE(self->config))
-	    x = self->value;
-	else
-	    x = self->config->q;
-	sx = sin(x);
-	cx = cos(x);
 
+    if(n1 == 1 && n2 == 1) {
 	// Using val to take advantage of symmetry
 	val = X[1][2];
 	dest[1][2] += val;
 	dest[2][1] -= val;
 	return;
     }
+
     if(n1 == 1 && n2 == 2) {
 	// All zeros
 	return;
@@ -661,9 +636,9 @@ void ry_add_sandwich_gk(Frame *self, mat4x4 dest, mat4x4 X, int n1, int n2)
     double val;
 
     if(ISNONE(self->config))
-	y = self->value;
+	    y = self->value;
     else
-	y = self->config->q;
+	    y = self->config->q;
     sy = sin(y);
     cy = cos(y);
     
@@ -749,14 +724,14 @@ void ry_add_sandwich_gk(Frame *self, mat4x4 dest, mat4x4 X, int n1, int n2)
 
 void rz_add_sandwich_gk(Frame *self, mat4x4 dest, mat4x4 X, int n1, int n2) 
 {
+    assert(n1 <= n2);
     double z, cz, sz;
     double val;
-    assert(n1 <= n2);
 
     if(ISNONE(self->config))
-	z = self->value;
+	    z = self->value;
     else
-	z = self->config->q;
+	    z = self->config->q;
     sz = sin(z);
     cz = cos(z);
     
