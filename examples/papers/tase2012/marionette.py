@@ -57,15 +57,15 @@ def create_initial_trajectory():
                             string_constraints=True)
 
     puppet.q = {
-        'torso_rx' : -0.05,
-        #'torso_ry' : 0.1,
-        'torso_tz' : 0.0,
-        'lelbow_rx' : 1.57,
-        'relbow_rx' : 1.57,
-        'lhip_rx' : pi/2 - 0.6,
-        'rhip_rx' : pi/2 - 0.6,
-        'lknee_rx' : -pi/2 + 0.6,
-        'rknee_rx' : -pi/2 + 0.6,
+        "torso_rx" : -0.05,
+        #"torso_ry" : 0.1,
+        "torso_tz" : 0.0,
+        "lelbow_rx" : 1.57,
+        "relbow_rx" : 1.57,
+        "lhip_rx" : pi/2 - 0.6,
+        "rhip_rx" : pi/2 - 0.6,
+        "lknee_rx" : -pi/2 + 0.6,
+        "rknee_rx" : -pi/2 + 0.6,
         }
     puppet.project_string_controls()
 
@@ -77,10 +77,10 @@ def create_initial_trajectory():
     gmvi = trep.MidpointVI(puppet)
     gmvi.initialize_from_configs(0.0, q0, dt, q0)
 
-    left_leg_index = puppet.get_config('left_leg_string-length').k_index
-    right_leg_index = puppet.get_config('right_leg_string-length').k_index
-    left_arm_index = puppet.get_config('left_arm_string-length').k_index
-    right_arm_index = puppet.get_config('right_arm_string-length').k_index
+    left_leg_index = puppet.get_config("left_leg_string-length").k_index
+    right_leg_index = puppet.get_config("right_leg_string-length").k_index
+    left_arm_index = puppet.get_config("left_arm_string-length").k_index
+    right_arm_index = puppet.get_config("right_arm_string-length").k_index
 
     def calc_vk():
         v2 = [(q2-q1)/(gmvi.t2 - gmvi.t1) for (q2, q1) in zip(gmvi.q2, gmvi.q1)]

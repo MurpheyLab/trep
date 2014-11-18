@@ -17,14 +17,14 @@ tvec = np.arange(0,tf+dt,dt)
 system = trep.System()
 # define frames
 frames = [
-        trep.rz('theta_1', name="PendAngle"), [
+        trep.rz("theta_1", name="PendAngle"), [
             trep.ty(-l, name="PendMass", mass=m)]]
 # add frames to system
 system.import_frames(frames)
 # add gravity potential
 trep.potentials.Gravity(system, (0,-g,0))
 # add a torque at the base
-trep.forces.ConfigForce(system, 'theta_1', 'tau')
+trep.forces.ConfigForce(system, "theta_1", "tau")
 
 # create vi and dsys
 mvi = trep.MidpointVI(system)
@@ -54,7 +54,7 @@ optimizer.optimize_ic = False
 optimizer.descent_tolerance = 1e-6
 
 # setup initial steps of optimization:
-optimizer.first_method = 'quasi'
+optimizer.first_method = "quasi"
 optimizer.first_method_iterations = 4
 
 
@@ -64,14 +64,14 @@ finished = False
 costs2 = []
 dcosts2 = []
 dcosts2_linear = []
-method = 'newton'
+method = "newton"
 step_count = optimizer.first_method_iterations
 Xn = X0.copy()
 Un = U0.copy()
 finished, Xn, Un = optimizer.optimize(X0, U0, max_steps=optimizer.first_method_iterations)
 costs2.append(optimizer.calc_cost(Xn,Un))
 while not finished:
-    Kproj,dX,dU,Q,R,S = optimizer.calc_descent_direction(Xn, Un, method='steepest')
+    Kproj,dX,dU,Q,R,S = optimizer.calc_descent_direction(Xn, Un, method="steepest")
     dcosts2_linear.append(optimizer.calc_dcost(Xn,Un,dX,dU))
     finished,Xn,Un,dcost,ncost = optimizer.step(
         step_count, Xn, Un, method=method)
@@ -87,14 +87,14 @@ finished = False
 costs1 = []
 dcosts1 = []
 dcosts1_linear = []
-method = 'steepest'
+method = "steepest"
 step_count = optimizer.first_method_iterations
 Xg = X0.copy()
 Ug = U0.copy()
 finished, Xg, Ug = optimizer.optimize(X0, U0, max_steps=optimizer.first_method_iterations)
 costs1.append(optimizer.calc_cost(Xg,Ug))
 while not finished:
-    Kproj,dX,dU,Q,R,S = optimizer.calc_descent_direction(Xg, Ug, method='steepest')
+    Kproj,dX,dU,Q,R,S = optimizer.calc_descent_direction(Xg, Ug, method="steepest")
     dcosts1_linear.append(optimizer.calc_dcost(Xg,Ug,dX,dU))
     finished,Xg,Ug,dcost,ncost = optimizer.step(
         step_count, Xg, Ug, method=method)
@@ -104,5 +104,5 @@ while not finished:
 print "Optimization Finished Bool: ",finished,"\r\n"
 
 # store the results:
-dsys.save_state_trajectory('pend_ref.mat', Xd, Ud)
-dsys.save_state_trajectory('pend_opt.mat', Xn, Un)
+dsys.save_state_trajectory("pend_ref.mat", Xd, Ud)
+dsys.save_state_trajectory("pend_opt.mat", Xn, Un)

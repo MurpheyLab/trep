@@ -33,15 +33,15 @@ def fref(t):
 system = trep.System()
 # define frames
 frames = [
-    trep.tx('x_cart', name='CartFrame', mass=mc), [
-        trep.rz('theta', name="PendulumBase"), [
+    trep.tx("x_cart", name="CartFrame", mass=mc), [
+        trep.rz("theta", name="PendulumBase"), [
             trep.ty(-l, name="Pendulum", mass=m)]]]
 # add frames to system
 system.import_frames(frames)
 # add gravity potential
 trep.potentials.Gravity(system, (0,-g,0))
 # add a horizontal force on the cart
-trep.forces.ConfigForce(system, 'x_cart', 'cart_force')
+trep.forces.ConfigForce(system, "x_cart", "cart_force")
 
 # create a variational integrator, and a discrete system
 t = np.arange(0,tf+dt,dt)
@@ -66,12 +66,12 @@ optimizer.first_method_iterations = 4
 finished, X, U = optimizer.optimize(Xinit, Uinit)
 
 mp.hold(True)
-l1 = mp.plot(t, Xref[:,0:2],'--',lw=2, color="gray")[0]
+l1 = mp.plot(t, Xref[:,0:2],"--",lw=2, color="gray")[0]
 l2 = mp.plot(t, X[:,0:2],lw=2,color="black")[0]
 mp.hold(False)
-mp.legend([l1,l2],['Reference', 'Optimal'],
-          loc='lower right')
-mp.xlabel('time [s]')
+mp.legend([l1,l2],["Reference", "Optimal"],
+          loc="lower right")
+mp.xlabel("time [s]")
 mp.show()
 mp.clf()
 mp.cla()

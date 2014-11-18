@@ -18,14 +18,14 @@ tvec = np.arange(0,tf+dt,dt)
 system = trep.System()
 # define frames
 frames = [
-        trep.rz('theta_1', name="PendAngle"), [
+        trep.rz("theta_1", name="PendAngle"), [
             trep.ty(-l, name="PendMass", mass=m)]]
 # add frames to system
 system.import_frames(frames)
 # add gravity potential
 trep.potentials.Gravity(system, (0,-g,0))
 # add a torque at the base
-trep.forces.ConfigForce(system, 'theta_1', 'tau')
+trep.forces.ConfigForce(system, "theta_1", "tau")
 
 # create vi and dsys
 mvi = trep.MidpointVI(system)
@@ -33,8 +33,8 @@ dsys = discopt.DSystem(mvi, tvec)
 
 # load in the reference and optimal trajectory (pend-optimization must be run
 # first):
-Xd, Ud = dsys.load_state_trajectory('pend_ref.mat')
-Xopt,Uopt = dsys.load_state_trajectory('pend_opt.mat')
+Xd, Ud = dsys.load_state_trajectory("pend_ref.mat")
+Xopt,Uopt = dsys.load_state_trajectory("pend_opt.mat")
 
 # now we can get a stabilizing controller about the optimal trajectory
 Q = lambda t: np.diag([1,1])

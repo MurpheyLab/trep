@@ -15,14 +15,14 @@ dt = 0.1 # timestep
 system = trep.System()
 # define frames
 frames = [
-        trep.rz('theta_1', name="PendAngle"), [
+        trep.rz("theta_1", name="PendAngle"), [
             trep.ty(-l, name="PendMass", mass=m)]]
 # add frames to system
 system.import_frames(frames)
 # add gravity potential
 trep.potentials.Gravity(system, (0,-g,0))
 # add a torque at the base
-trep.forces.ConfigForce(system, 'theta_1', 'tau')
+trep.forces.ConfigForce(system, "theta_1", "tau")
 
 # create and initialize variational integrator
 mvi = trep.MidpointVI(system)
@@ -32,7 +32,7 @@ mvi.initialize_from_state(0, np.array([qk]), np.array([pk]))
 mvi.step(mvi.t1+dt, np.array([uk])) # args are t2, u1
 
 # calc derivatives of discrete Lagrangian:
-q = system.get_config('theta_1')
+q = system.get_config("theta_1")
 print "D1D1Ld = ",\
     dt/4*system.L_dqdq(q,q) - \
     1/2.*system.L_ddqdq(q,q) - \
