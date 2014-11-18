@@ -77,31 +77,4 @@ mp.clf()
 mp.cla()
 mp.close()
 
-q,p,v,u,rho = dsys.split_trajectory(X,U)
-trep.save_trajectory("opt.mat", system, t, Q=q, p=p, v=v, u=u, rho=rho)
 
-q,p,v,u,rho = dsys.split_trajectory(Xinit,Uinit)
-trep.save_trajectory("init.mat", system, t, Q=q, p=p, v=v, u=u, rho=rho)
-
-q,p,v,u,rho = dsys.split_trajectory(Xref,Uref)
-trep.save_trajectory("ref.mat", system, t, Q=q, p=p, v=v, u=u, rho=rho)
-
-
-
-# visual.visualize_2d([ visual.VisualItem2D(system, t[0:-1], q[0:-1]) ],
-#                     scale=1.5)
-
-
-# nx = Xinit.copy()
-# nu = Uinit.copy()
-# done, nx, nu, dcost, cost1 = optimizer.step(4, nx, nu, method="steepest")
-# done, nx, nu, dcost, cost1 = optimizer.step(3, nx, nu, method="newton")
-# for i in range(500):
-#     done, nx, nu, dcost, cost1 = optimizer.step(1, nx, nu, method="newton")
-#     try:
-#         optimizer.descent_plot(nx, nu, points=40, method="newton")
-#     except trep.ConvergenceError:
-#         pass
-#     mp.show()
-#     if done:
-#         break
