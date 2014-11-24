@@ -5,7 +5,7 @@ URDF Import Tool
 
 .. currentmodule:: trep.ros
 
-The :mod:`trep.ros` module provides several tools for working with the ROS environment.  The URDF import function allows trep to interface directly with the Unified Robot Description Format (URDF). 
+The :mod:`trep.ros` module provides several tools for working with the ROS environment.  The URDF import function allows trep to interface directly with the Unified Robot Description Format (URDF). See the `python_trep wiki page <http://wiki.ros.org/python_trep/>`_ for more details on supported URDF tags.
 
 .. function:: import_urdf(source, system=None, prefix=None)
    

@@ -3,3 +3,4 @@ include src/_trep/c_api.h
 recursive-include examples *.py
 recursive-include doc *
 include LICENSE
+include CHANGELOG.rst
