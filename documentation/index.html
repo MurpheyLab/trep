@@ -2,26 +2,33 @@
 layout: default
 title: Trep Installation
 ---
+
 <div class="container">
- 
-<!-------->
-<div id="content">
 
-    <h2>Trep Documentation:</h2>
-    <br>
-    <ul>
-        {% for release in site.data.releases %}
-        <li>
-            <h4><a href="{{ site.baseurl }}/documentation/{{ release.folder }}/">{{ release.version_name }}</a></h4>
+    <div class="row" style="margin: 0 auto;text-align:left;">
+
+        <div class="col-md-6" style="margin: 0 auto;text-align:left;">
+            <p>{% capture m %}{% include CHANGELOG.rst %}{% endcapture %}{{ m | markdownify }}</p>
+        </div>
+
+
+        <div class="col-md-6" >
+            <h2>Trep Documentation:</h2>
+            <br>
             <ul>
-                <li>Released: {{ release.date }}</li>
+                {% for release in site.data.releases %}
+                <li>
+                    <h4><a href="{{ site.baseurl }}/documentation/{{ release.folder }}/">{{ release.version_name }}</a></h4>
+                    <ul>
+                        <li>Released: {{ release.date }}</li>
+                    </ul>
+                </li>
+                <br>
+                {% endfor %}
             </ul>
-        </li>
-        <br>
-        {% endfor %}
-    </ul>
+        </div>
 
+    </div>
+
+<br><br><br><br><br>
 </div>
-<br><br><br><br><br><br>
-
-</div> 

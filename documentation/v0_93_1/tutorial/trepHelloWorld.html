@@ -1,0 +1,294 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Trep “Hello World” &mdash; trep documentation</title>
+    
+    <link rel="stylesheet" href="../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.92-dev',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="trep documentation" href="../index.html" />
+    <link rel="up" title="Tutorial" href="index.html" />
+    <link rel="next" title="Create a pendulum" href="pendulumSystem.html" />
+    <link rel="prev" title="Tutorial" href="index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="pendulumSystem.html" title="Create a pendulum"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="Tutorial"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../index.html">trep documentation</a> &raquo;</li>
+          <li><a href="index.html" accesskey="U">Tutorial</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+    <script type="math/tex">
+    \newcommand{\deriv}[2][]{\dfrac{\partial #1}{\partial #2}}
+\newcommand{\tderiv}[2][]{\tfrac{\partial #1}{\partial #2}}
+\newcommand{\fderiv}[2][]{\dfrac{d #1}{d #2}}
+\newcommand{\derivII}[3][]{\dfrac{\partial^2 #1}{\partial #2 \partial #3}}
+\newcommand{\tderivII}[3][]{\tfrac{\partial^2 #1}{\partial #2 \partial #3}}
+\newcommand{\derivIII}[4][]{\dfrac{\partial^3 #1}{\partial #2 \partial #3 \partial #4}}
+\newcommand{\tderivIII}[4][]{\tfrac{\partial^3 #1}{\partial #2 \partial #3 \partial #4}}
+\newcommand{\derivIV}[5][]{\dfrac{\partial^4 #1}{\partial #2 \partial #3 \partial #4 \partial #5}}
+
+\newcommand{\half}{\tfrac{1}{2}}  % Macro for 1/2
+
+\newcommand{\ud}{\mathrm{d}}
+
+\newcommand{\op}{\circ}
+\newcommand{\dq}{\dot{q}}
+\newcommand{\ddq}{\ddot{q}}
+
+\newcommand{\dt}{\Delta t}
+
+
+    </script>
+    
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="trep-hello-world">
+<h1>Trep &#8220;Hello World&#8221;<a class="headerlink" href="#trep-hello-world" title="Permalink to this headline">¶</a></h1>
+<p>Let&#8217;s begin by creating the trep equivalent of &#8220;Hello World&#8221;.</p>
+<div class="section" id="import-the-trep-module-into-python">
+<h2>Import the trep module into python<a class="headerlink" href="#import-the-trep-module-into-python" title="Permalink to this headline">¶</a></h2>
+<p>Let us begin by importing the trep module into Python.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">trep</span>
+</pre></div>
+</div>
+<p>After importing trep if you type <tt class="docutils literal"><span class="pre">trep</span></tt> followed by pressing tab in IPython a
+list of all of the methods that are available for the trep module are
+displayed. As you can see that <a class="reference internal" href="../ref/system.html#trep.System" title="trep.System"><tt class="xref py py-class docutils literal"><span class="pre">trep.System</span></tt></a> is listed, which instantiates an
+empty trep system. This is used in the next section.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">trep</span><span class="o">.</span>
+<span class="go">trep.CONST_SE3         trep.RZ                trep.constraint        trep.ryXRT</span>
+<span class="go">trep.Config            trep.Spline            trep.constraints       trep.rz</span>
+<span class="go">trep.Constraint        trep.System            trep.finput            trep.save_trajectory</span>
+<span class="go">trep.ConvergenceError  trep.TX                trep.force             trep.spline</span>
+<span class="go">trep.Force             trep.TY                trep.forces            trep.system</span>
+<span class="go">trep.Frame             trep.TZ                trep.frame             trep.tapemeasure</span>
+<span class="go">trep.Input             trep.TapeMeasure       trep.load_trajectory   trep.tx</span>
+<span class="go">trep.MidpointVI        trep.WORLD             trep.midpointvi        trep.ty</span>
+<span class="go">trep.Potential         trep.config            trep.potential         trep.tz</span>
+<span class="go">trep.RX                trep.const_se3         trep.potentials        trep.util</span>
+<span class="go">trep.RY                trep.const_txyz        trep.rx                trep.visual</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="create-a-new-instance-of-a-trep-system">
+<h2>Create a new instance of a trep system<a class="headerlink" href="#create-a-new-instance-of-a-trep-system" title="Permalink to this headline">¶</a></h2>
+<p>Let us create a new instance of a trep system.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">system</span> <span class="o">=</span> <span class="n">trep</span><span class="o">.</span><span class="n">System</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>This creates a new instance of a trep system. Typing <tt class="docutils literal"><span class="pre">system.</span></tt> followed by
+pressing tab will list all the methods and properties of the system object.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">system</span><span class="o">.</span>
+<span class="go">system.L                           system.get_frame</span>
+<span class="go">system.L_ddq                       system.get_input</span>
+<span class="go">system.L_ddqddq                    system.get_potential</span>
+<span class="go">system.L_ddqddqdq                  system.hold_structure_changes</span>
+<span class="go">system.L_ddqddqdqdq                system.import_frames</span>
+<span class="go">system.L_ddqdq                     system.inputs</span>
+<span class="go">system.L_ddqdqdq                   system.kin_configs</span>
+<span class="go">system.L_ddqdqdqdq                 system.lambda_</span>
+<span class="go">system.L_dq                        system.lambda_dddk</span>
+<span class="go">system.L_dqdq                      system.lambda_dddkdq</span>
+<span class="go">system.L_dqdqdq                    system.lambda_ddq</span>
+<span class="go">system.add_structure_changed_func  system.lambda_ddqddq</span>
+<span class="go">system.configs                     system.lambda_ddqdq</span>
+<span class="go">system.constraints                 system.lambda_dq</span>
+<span class="go">system.ddq                         system.lambda_dqdq</span>
+<span class="go">system.ddqd                        system.lambda_du</span>
+<span class="go">system.ddqk                        system.lambda_duddq</span>
+<span class="go">system.dq                          system.lambda_dudq</span>
+<span class="go">system.dqd                         system.lambda_dudu</span>
+<span class="go">system.dqk                         system.masses</span>
+<span class="go">system.dyn_configs                 system.nQ</span>
+<span class="go">system.export_frames               system.nQd</span>
+<span class="go">system.f                           system.nQk</span>
+<span class="go">system.f_dddk                      system.nc</span>
+<span class="go">system.f_dddkdq                    system.nu</span>
+<span class="go">system.f_ddq                       system.potentials</span>
+<span class="go">system.f_ddqddq                    system.q</span>
+<span class="go">system.f_ddqdq                     system.qd</span>
+<span class="go">system.f_dq                        system.qk</span>
+<span class="go">system.f_dqdq                      system.resume_structure_changes</span>
+<span class="go">system.f_du                        system.satisfy_constraints</span>
+<span class="go">system.f_duddq                     system.set_state</span>
+<span class="go">system.f_dudq                      system.t</span>
+<span class="go">system.f_dudu                      system.test_derivative_ddq</span>
+<span class="go">system.forces                      system.test_derivative_dq</span>
+<span class="go">system.frames                      system.total_energy</span>
+<span class="go">system.get_config                  system.u</span>
+<span class="go">system.get_constraint              system.world_frame</span>
+<span class="go">system.get_force</span>
+</pre></div>
+</div>
+<p><strong>Some examples:</strong></p>
+<dl class="docutils">
+<dt>The current system time is</dt>
+<dd><div class="first last highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">system</span><span class="o">.</span><span class="n">t</span>
+<span class="go">0.0</span>
+</pre></div>
+</div>
+</dd>
+<dt>The current inputs are (the system has no inputs)</dt>
+<dd><div class="first last highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">system</span><span class="o">.</span><span class="n">u</span>
+<span class="go">array([], dtype=float64)</span>
+</pre></div>
+</div>
+</dd>
+<dt>The current generalized coordinates are (the system has no configuration)</dt>
+<dd><div class="first last highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">system</span><span class="o">.</span><span class="n">q</span>
+<span class="go">array([], dtype=float64)</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+<p>All of the properties and methods for the system object are documented in the
+<a class="reference internal" href="../ref/system.html#trep-system"><em>System</em></a> documentation. We will explore more of these properties and
+methods later in the tutorial.</p>
+</div>
+<div class="section" id="visualize-the-system-with-trep-s-visualization-tools">
+<h2>Visualize the system with trep&#8217;s visualization tools<a class="headerlink" href="#visualize-the-system-with-trep-s-visualization-tools" title="Permalink to this headline">¶</a></h2>
+<p>Let us visualize the system.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">trep</span><span class="o">.</span><span class="n">visual</span><span class="o">.</span><span class="n">visualize_3d</span><span class="p">([</span> <span class="n">trep</span><span class="o">.</span><span class="n">visual</span><span class="o">.</span><span class="n">VisualItem3D</span><span class="p">(</span><span class="n">system</span><span class="p">,</span> <span class="p">[],</span> <span class="p">[])</span> <span class="p">])</span>
+</pre></div>
+</div>
+<p>Below is what you should see.</p>
+<img alt="../_images/trepHelloWorld.png" src="../_images/trepHelloWorld.png" />
+<p>This brings up the trep visualization of the mechanical system. Since this
+system has no components nothing is shown. The <tt class="docutils literal"><span class="pre">VisualItem3D</span></tt> method takes in
+three arguments: system object, time vector, and configuration vector. In this
+example the time vector and configuration vector are set to empty vectors. If
+these vectors were not empty the visualization would play a movie of the system
+going through the configurations at the given times.</p>
+</div>
+<div class="section" id="trephelloworld-py-code">
+<h2>trepHelloWorld.py code<a class="headerlink" href="#trephelloworld-py-code" title="Permalink to this headline">¶</a></h2>
+<p>Below is the entire script used in this section of the tutorial.</p>
+<div class="highlight-python"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5
+6
+7
+8</pre></div></td><td class="code"><div class="highlight"><pre><span class="c"># trepHelloWorld.py</span>
+
+<span class="c"># Import the Trep module into python</span>
+<span class="kn">import</span> <span class="nn">trep</span>
+<span class="c"># Create a new instance of a trep system</span>
+<span class="n">system</span> <span class="o">=</span> <span class="n">trep</span><span class="o">.</span><span class="n">System</span><span class="p">()</span>
+<span class="c"># Visualize the system with trep&#39;s visualization tools</span>
+<span class="n">trep</span><span class="o">.</span><span class="n">visual</span><span class="o">.</span><span class="n">visualize_3d</span><span class="p">([</span> <span class="n">trep</span><span class="o">.</span><span class="n">visual</span><span class="o">.</span><span class="n">VisualItem3D</span><span class="p">(</span><span class="n">system</span><span class="p">,</span> <span class="p">[],</span> <span class="p">[])</span> <span class="p">])</span>
+</pre></div>
+</td></tr></table></div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+    <h2><a href="http://murpheylab.github.io/trep/">Project Website</a></h2>
+
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Trep &#8220;Hello World&#8221;</a><ul>
+<li><a class="reference internal" href="#import-the-trep-module-into-python">Import the trep module into python</a></li>
+<li><a class="reference internal" href="#create-a-new-instance-of-a-trep-system">Create a new instance of a trep system</a></li>
+<li><a class="reference internal" href="#visualize-the-system-with-trep-s-visualization-tools">Visualize the system with trep&#8217;s visualization tools</a></li>
+<li><a class="reference internal" href="#trephelloworld-py-code">trepHelloWorld.py code</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="index.html"
+                        title="previous chapter">Tutorial</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="pendulumSystem.html"
+                        title="next chapter">Create a pendulum</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="../_sources/tutorial/trepHelloWorld.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="pendulumSystem.html" title="Create a pendulum"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="Tutorial"
+             >previous</a> |</li>
+        <li><a href="../index.html">trep documentation</a> &raquo;</li>
+          <li><a href="index.html" >Tutorial</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2014, Elliot Johnson.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
+    </div>
+  </body>
+</html>

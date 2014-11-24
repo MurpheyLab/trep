@@ -1,0 +1,354 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Discrete LQ Problems &mdash; trep documentation</title>
+    
+    <link rel="stylesheet" href="../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.92-dev',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="trep documentation" href="../index.html" />
+    <link rel="up" title="trep.discopt - Discrete Optimal Control" href="optimal.html" />
+    <link rel="next" title="DSystem - Discrete System wrapper for Midpoint Variational Integrators" href="dsystem.html" />
+    <link rel="prev" title="trep.discopt - Discrete Optimal Control" href="optimal.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="dsystem.html" title="DSystem - Discrete System wrapper for Midpoint Variational Integrators"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="optimal.html" title="trep.discopt - Discrete Optimal Control"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../index.html">trep documentation</a> &raquo;</li>
+          <li><a href="index.html" >API Reference</a> &raquo;</li>
+          <li><a href="optimal.html" accesskey="U"><tt class="docutils literal"><span class="pre">trep.discopt</span></tt> - Discrete Optimal Control</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+    <script type="math/tex">
+    \newcommand{\deriv}[2][]{\dfrac{\partial #1}{\partial #2}}
+\newcommand{\tderiv}[2][]{\tfrac{\partial #1}{\partial #2}}
+\newcommand{\fderiv}[2][]{\dfrac{d #1}{d #2}}
+\newcommand{\derivII}[3][]{\dfrac{\partial^2 #1}{\partial #2 \partial #3}}
+\newcommand{\tderivII}[3][]{\tfrac{\partial^2 #1}{\partial #2 \partial #3}}
+\newcommand{\derivIII}[4][]{\dfrac{\partial^3 #1}{\partial #2 \partial #3 \partial #4}}
+\newcommand{\tderivIII}[4][]{\tfrac{\partial^3 #1}{\partial #2 \partial #3 \partial #4}}
+\newcommand{\derivIV}[5][]{\dfrac{\partial^4 #1}{\partial #2 \partial #3 \partial #4 \partial #5}}
+
+\newcommand{\half}{\tfrac{1}{2}}  % Macro for 1/2
+
+\newcommand{\ud}{\mathrm{d}}
+
+\newcommand{\op}{\circ}
+\newcommand{\dq}{\dot{q}}
+\newcommand{\ddq}{\ddot{q}}
+
+\newcommand{\dt}{\Delta t}
+
+
+    </script>
+    
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="discrete-lq-problems">
+<span id="trep-dlqr"></span><h1>Discrete LQ Problems<a class="headerlink" href="#discrete-lq-problems" title="Permalink to this headline">¶</a></h1>
+<p>The <a class="reference internal" href="optimal.html#module-trep.discopt" title="trep.discopt: Discrete Optimal Control Tools (Linux, Mac)"><tt class="xref py py-mod docutils literal"><span class="pre">trep.discopt</span></tt></a> module provides functions for solving
+time-varying discrete LQ problems.</p>
+<div class="section" id="the-linear-quadratic-regulator-lqr-problem">
+<h2>The Linear Quadratic Regulator (LQR) Problem<a class="headerlink" href="#the-linear-quadratic-regulator-lqr-problem" title="Permalink to this headline">¶</a></h2>
+<p>The LQR problem is to find the input for a linear system that
+minimizes a quadratic cost.  The optimal input turns out to be a
+feedback law that is independent of the system&#8217;s initial condition.
+Because of this, the LQR problem is a useful tool to automatically
+calculate a stabilizing feedback controller for a dynamic system.  For
+nonlinear systems, the LQR problem is solved for the linearization of
+the system about a trajectory to get a locally stabilizing controller.</p>
+<p><strong>Problem Statement:</strong> Given a discrete linear system Find the control
+input <span class="math">\(u(k)\)</span> that minimizes a quadratic cost:</p>
+<div class="math">
+\[V(x(k_0), u(\cdot), k_0) = \sum_{k=k_0}^{k_f-1} \left[
+x^T(k)Q(k)x(k) + u^T(k)R(k)u(k) \right] + x^T(k_f) Q(k_f) x(k_f)\]</div>
+<p>where</p>
+<div class="math">
+\[\begin{split}\begin{align}
+    R(k) &amp;= R^T(k) \geq 0 \ \forall\ k \in \{k_0 \dots (k_f-1)\}
+    \\
+    Q(k) &amp;= Q^T(k) \geq 0 \ \forall\ k \in \{k_0 \dots k_f\}
+    \\
+    x(k_0)&amp;\text{ is known.}
+    \\
+    x(k+1) &amp;= A(k)x(k) + B(k)u(k)
+\end{align}\end{split}\]</div>
+<p><strong>Solution:</strong> The optimal control <span class="math">\(u^*(k)\)</span> and optimal cost
+<span class="math">\(V^*(x(k_0), k_0)\)</span> are</p>
+<div class="math">
+\[\begin{split}\begin{align}
+    u^*(k) &amp;= -\mathcal{K}(k) x(k)
+    \\
+    V^*(x(k_0), k_0) &amp;= x^T(k_0) P(k_0) x(k_0)
+\end{align}\end{split}\]</div>
+<p>where</p>
+<div class="math">
+\[\mathcal{K}(k) = \Gamma^{-1}(k) B^T(k) P(k+1) A(k)\]\[\Gamma(k) = R(k) + B^T(k)P(k+1)B(k)\]</div>
+<p>and <span class="math">\(P(k+1)\)</span> is a symmetric time varying matrix satisfying a
+discrete Ricatti-like equation:</p>
+<div class="math">
+\[\begin{split}\begin{align}
+   P(k_f) &amp;= Q(k_f) \\
+   P(k) &amp;= Q(k) + A^T(k)P(k+1)A(k) - \mathcal{K}^T(k)\Gamma(k)\mathcal{K}(k)
+\end{align}\end{split}\]</div>
+<dl class="function">
+<dt id="trep.discopt.solve_tv_lqr">
+<tt class="descclassname">trep.discopt.</tt><tt class="descname">solve_tv_lqr</tt><big>(</big><em>A</em>, <em>B</em>, <em>Q</em>, <em>R</em><big>)</big><a class="headerlink" href="#trep.discopt.solve_tv_lqr" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>A</strong> (<em>Sequence of N numpy arrays, shape (nX, nX)</em>) &#8211; Linear system dynamics</li>
+<li><strong>B</strong> (<em>Sequence of N numpy arrays, shape (nX, nU)</em>) &#8211; Linear system input matrix</li>
+<li><strong>Q</strong> (<em>Function Q(k) returning numpy array, shape (nX, nX)</em>) &#8211; Quadratic State Cost</li>
+<li><strong>R</strong> (<em>Function R(k) returning numpy array, shape (nU, nU)</em>) &#8211; Quadratic Input Cost</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">tuple (K, P)</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>This function solve the time-varying discrete LQR problem for the
+linear system <em>A</em>, <em>B</em> and costs <em>Q</em> and <em>R</em>.</p>
+<p><em>A</em> is a sequence of the linear system dynamics, <tt class="docutils literal"><span class="pre">A[k]</span></tt>.</p>
+<p><em>B</em> is a sequence of the linear system&#8217;s input matrix, <tt class="docutils literal"><span class="pre">B[k]</span></tt>.</p>
+<p><em>Q</em> is a function <tt class="docutils literal"><span class="pre">Q(k)</span></tt> that returns the state cost matrix at
+time <em>k</em>.  For example, if <span class="math">\(Q(k) = \mathcal{I}\)</span>:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">Q</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">k</span><span class="p">:</span> <span class="n">numpy</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="n">nX</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><em>R</em> is a function <tt class="docutils literal"><span class="pre">Q(k)</span></tt> that returns the state cost matrix at
+time <em>k</em>.  For example, if the cost matrices are stored in an array
+<em>r_costs</em>:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">R</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">k</span><span class="p">:</span> <span class="n">r_costs</span><span class="p">[</span><span class="n">k</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>The function returns the optimal feedback law
+<span class="math">\(\mathcal{K(k)}\)</span> and the solution to the discrete Ricatti
+equation at k=0, <span class="math">\(P(0)\)</span>.  <em>K</em> is a sequence of N numpy arrays of shape
+(nU,nX).  <em>P</em> is a single (nX, nX) numpy array.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="the-linear-quadratic-lq-problem">
+<h2>The Linear Quadratic (LQ) Problem<a class="headerlink" href="#the-linear-quadratic-lq-problem" title="Permalink to this headline">¶</a></h2>
+<p>The LQ problem is to find the input for a linear system that minimizes
+a cost with linear and quadratic terms.  In trep, the LQ problem is a
+sub-problem for discrete trajectory optimization that is used to
+calculate the descent direction at each iteration.</p>
+<p><strong>Problem Statement:</strong> Find the control input <span class="math">\(u(k)\)</span> that
+minimizes the cost:</p>
+<div class="math">
+\[\begin{split}V(x(k_0), u(\cdot), k_0) =
+\sum_{k=k_0}^{k_f-1} \Bigg[
+  2 \begin{bmatrix} q(k) \\ r(k) \end{bmatrix}^T
+  \begin{bmatrix} x(k) \\ u(k) \end{bmatrix}
+  +
+  \begin{bmatrix} x(k) \\ u(k) \end{bmatrix}^T
+  \begin{bmatrix} Q(k) &amp; S(k) \\ S^T(k) &amp; R(k) \end{bmatrix}
+  \begin{bmatrix} x(k) \\ u(k) \end{bmatrix}
+  \Bigg] \\
++ 2 q^T(k_f) x(k_f) + x^T(k_f)Q(k_f)x(k_f)\end{split}\]</div>
+<p>where</p>
+<div class="math">
+\[\begin{split}\begin{align*}
+    R(k) &amp;= R^T(k) &gt; 0 \ \forall\ k \in \{k_0 \dots (k_f-1)\}
+    \\
+    Q(k) &amp;= Q^T(k) \geq 0 \ \forall\ k \in \{k_0 \dots k_f\}
+    \\
+    x(k_0)&amp;\text{ is known.}
+    \\
+    x(k+1) &amp;= A(k)x(k) + B(k)u(k)
+\end{align*}\end{split}\]</div>
+<p><strong>Solution:</strong> The optimal control <span class="math">\(u^*(k)\)</span> and optimal cost
+<span class="math">\(V^*(x(k_0), k_0)\)</span> are:</p>
+<div class="math">
+\[\begin{split}\begin{align*}
+    u^*(k) &amp;= -\mathcal{K}(k) x(k) - C(k)
+    \\
+    V^*(x(k_0), k_0) &amp;= x^T(k_0) P(k_0) x(k_0) + 2 b^T(k_0) x(k_0) + c(k_0)
+\end{align*}\end{split}\]</div>
+<p>where:</p>
+<div class="math">
+\[K(k) = \Gamma^{-1}(k) \left[B^T(k)P(k+1)A(k) + S^T(k)\right]\]\[C(k) = \Gamma^{-1}(k) \left[B^T(k)b(k+1) + r(k) \right]\]\[\Gamma(k) = \left[ R(k) + B^T(k)P(k+1)B(k) \right]\]</div>
+<p>and <span class="math">\(P(k)\)</span>, <span class="math">\(b(k)\)</span>, and <span class="math">\(c(k)\)</span> are solutions to
+backwards difference equations:</p>
+<div class="math">
+\[\begin{split}\begin{align*}
+    P(k_f) &amp;= Q(k_f)
+    \\
+    P(k) &amp;= Q(k) + A^T(k)P(k+1)A(k) - \mathcal{K}^T(k)\Gamma(k)\mathcal{K}(k)
+\end{align*}\end{split}\]\[\begin{split}\begin{align*}
+    b(k_f) &amp;= q(k_f)
+    \\
+    b(k) &amp;= \left[A^T(k) - \mathcal{K}^T(k)B^T(k) \right]b(k+1) + q(k) - \mathcal{K}^T(k)r(k)
+\end{align*}\end{split}\]\[\begin{split}\begin{align*}
+    c(k_f) &amp;= 0
+    \\
+    c(k) &amp;= c(k+1) - C(k)^T\Gamma(k) C(k)
+\end{align*}\end{split}\]</div>
+<dl class="function">
+<dt id="trep.discopt.solve_tv_lq">
+<tt class="descclassname">trep.discopt.</tt><tt class="descname">solve_tv_lq</tt><big>(</big><em>A</em>, <em>B</em>, <em>q</em>, <em>r</em>, <em>Q</em>, <em>S</em>, <em>R</em><big>)</big><a class="headerlink" href="#trep.discopt.solve_tv_lq" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>A</strong> (<em>Sequence of N numpy arrays, shape (nX, nX)</em>) &#8211; Linear system dynamics</li>
+<li><strong>B</strong> (<em>Sequence of N numpy arrays, shape (nX, nU)</em>) &#8211; Linear system input matrix</li>
+<li><strong>q</strong> (<em>Sequence of N numpy arrays, shape (nX)</em>) &#8211; Linear State Cost</li>
+<li><strong>r</strong> (<em>Sequence of N numpy arrays, shape (nU)</em>) &#8211; Linear Input Cost</li>
+<li><strong>Q</strong> (<em>Function Q(k) returning numpy array, shape (nX, nX)</em>) &#8211; Quadratic State Cost</li>
+<li><strong>S</strong> (<em>Function S(k) returning numpy array, shape (nX, nU)</em>) &#8211; Quadratic Cross Term Cost</li>
+<li><strong>R</strong> (<em>Function R(k) returning numpy array, shape (nU, nU)</em>) &#8211; Quadratic Input Cost</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">tuple (K, C, P, b)</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>This function solve the time-varying discrete LQ problem for the
+linear system <em>A</em>, <em>B</em>.</p>
+<p><em>A[k]</em> is a sequence of the linear system dynamics, <span class="math">\(A(k)\)</span>.</p>
+<p><em>B[k]</em> is a sequence of the linear system&#8217;s input matrix, <span class="math">\(B(k)\)</span>.</p>
+<p><em>q[k]</em> is a sequence of the linear state cost, <span class="math">\(q(k)\)</span>.</p>
+<p><em>r[k]</em> is a sequence of the linear input cost, <span class="math">\(r(k)\)</span>.</p>
+<p><em>Q(k)</em> is a function that returns the quadratic state cost matrix
+<em>at time k</em>.  For example, if <span class="math">\(Q(k) = \mathcal{I}\)</span>:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">Q</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">k</span><span class="p">:</span> <span class="n">numpy</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="n">nX</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><em>S(k)</em> is a function that returns the quadratic cross term cost
+<em>matrix at time k</em>.</p>
+<p><em>R(k)</em> is a function that returns the state cost matrix at time
+<em>k</em>.  For example, if the cost matrices are stored in an array
+<em>r_costs</em>:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">R</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">k</span><span class="p">:</span> <span class="n">r_costs</span><span class="p">[</span><span class="n">k</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>The function returns the optimal feedback law
+<span class="math">\(\mathcal{K(k)}\)</span>, the affine input term <span class="math">\(C(k)\)</span>, and the
+last solution to two of the difference equations, <span class="math">\(P(0)\)</span> and
+<span class="math">\(b(0)\)</span>.</p>
+<p><em>K</em> is a sequence of N numpy arrays of shape (nU,nX).</p>
+<p><em>C</em> is a sequence of N numpy arrays of shape (nU).</p>
+<p><em>P</em> is a single (nX, nX) numpy array.</p>
+<p><em>b</em> is a single (nX) numpy array.</p>
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+    <h2><a href="http://murpheylab.github.io/trep/">Project Website</a></h2>
+
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Discrete LQ Problems</a><ul>
+<li><a class="reference internal" href="#the-linear-quadratic-regulator-lqr-problem">The Linear Quadratic Regulator (LQR) Problem</a></li>
+<li><a class="reference internal" href="#the-linear-quadratic-lq-problem">The Linear Quadratic (LQ) Problem</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="optimal.html"
+                        title="previous chapter"><tt class="docutils literal"><span class="pre">trep.discopt</span></tt> - Discrete Optimal Control</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="dsystem.html"
+                        title="next chapter"><tt class="docutils literal"><span class="pre">DSystem</span></tt> - Discrete System wrapper for Midpoint Variational Integrators</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="../_sources/ref/dlqr.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="dsystem.html" title="DSystem - Discrete System wrapper for Midpoint Variational Integrators"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="optimal.html" title="trep.discopt - Discrete Optimal Control"
+             >previous</a> |</li>
+        <li><a href="../index.html">trep documentation</a> &raquo;</li>
+          <li><a href="index.html" >API Reference</a> &raquo;</li>
+          <li><a href="optimal.html" ><tt class="docutils literal"><span class="pre">trep.discopt</span></tt> - Discrete Optimal Control</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2014, Elliot Johnson.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
+    </div>
+  </body>
+</html>

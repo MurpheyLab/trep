@@ -1,0 +1,415 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>DCost - Discrete Trajectory Cost &mdash; trep documentation</title>
+    
+    <link rel="stylesheet" href="../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.92-dev',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="trep documentation" href="../index.html" />
+    <link rel="up" title="trep.discopt - Discrete Optimal Control" href="optimal.html" />
+    <link rel="next" title="DOptimizer - Discrete Trajectory Optimization" href="doptimizer.html" />
+    <link rel="prev" title="DSystem - Discrete System wrapper for Midpoint Variational Integrators" href="dsystem.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="doptimizer.html" title="DOptimizer - Discrete Trajectory Optimization"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="dsystem.html" title="DSystem - Discrete System wrapper for Midpoint Variational Integrators"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../index.html">trep documentation</a> &raquo;</li>
+          <li><a href="index.html" >API Reference</a> &raquo;</li>
+          <li><a href="optimal.html" accesskey="U"><tt class="docutils literal"><span class="pre">trep.discopt</span></tt> - Discrete Optimal Control</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+    <script type="math/tex">
+    \newcommand{\deriv}[2][]{\dfrac{\partial #1}{\partial #2}}
+\newcommand{\tderiv}[2][]{\tfrac{\partial #1}{\partial #2}}
+\newcommand{\fderiv}[2][]{\dfrac{d #1}{d #2}}
+\newcommand{\derivII}[3][]{\dfrac{\partial^2 #1}{\partial #2 \partial #3}}
+\newcommand{\tderivII}[3][]{\tfrac{\partial^2 #1}{\partial #2 \partial #3}}
+\newcommand{\derivIII}[4][]{\dfrac{\partial^3 #1}{\partial #2 \partial #3 \partial #4}}
+\newcommand{\tderivIII}[4][]{\tfrac{\partial^3 #1}{\partial #2 \partial #3 \partial #4}}
+\newcommand{\derivIV}[5][]{\dfrac{\partial^4 #1}{\partial #2 \partial #3 \partial #4 \partial #5}}
+
+\newcommand{\half}{\tfrac{1}{2}}  % Macro for 1/2
+
+\newcommand{\ud}{\mathrm{d}}
+
+\newcommand{\op}{\circ}
+\newcommand{\dq}{\dot{q}}
+\newcommand{\ddq}{\ddot{q}}
+
+\newcommand{\dt}{\Delta t}
+
+
+    </script>
+    
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="dcost-discrete-trajectory-cost">
+<span id="trep-dcost"></span><h1><tt class="xref py py-class docutils literal"><span class="pre">DCost</span></tt> - Discrete Trajectory Cost<a class="headerlink" href="#dcost-discrete-trajectory-cost" title="Permalink to this headline">¶</a></h1>
+<p>The <a class="reference internal" href="#trep.discopt.DCost" title="trep.discopt.DCost"><tt class="xref py py-class docutils literal"><span class="pre">DCost</span></tt></a> class defines the incremental and terminal costs of
+a trajectory during a discrete trajectory optimization.  It is used in
+conjunction with <a class="reference internal" href="dsystem.html#trep.discopt.DSystem" title="trep.discopt.DSystem"><tt class="xref py py-class docutils literal"><span class="pre">DSystem</span></tt></a> and <a class="reference internal" href="doptimizer.html#trep.discopt.DOptimizer" title="trep.discopt.DOptimizer"><tt class="xref py py-class docutils literal"><span class="pre">DOptimizer</span></tt></a>.</p>
+<p>The discrete trajectory optimization finds a trajectory that minimizes
+a cost of the form:</p>
+<div class="math">
+\[h(\xi) = \sum_{k=0}^{k_f-1} \ell(x(k), u(k), k) + m(x(k_f))\]</div>
+<p><a class="reference internal" href="#trep.discopt.DCost" title="trep.discopt.DCost"><tt class="xref py py-class docutils literal"><span class="pre">DCost</span></tt></a> defines the costs <span class="math">\(\ell(x, u, k)\)</span> and
+<span class="math">\(m(x)\)</span> for a system and calculates their 1<sup>st</sup> and 2<sup>nd</sup> derivatives.</p>
+<p>The current implementation defines a suitable cost for tracking a
+desired trajectory:</p>
+<div class="math">
+\[\ell(x, u, k) = \frac{1}{2}\left((x - x_d(k))^T Q (x - x_d(k)) + (x - u_d(k))^T R (u - u_d(k))\right)\]\[m(x) = \frac{1}{2}(x - x_d(k_f))^T Q (x - x_d(k_f))\]</div>
+<p>where <span class="math">\(x_d(k)\)</span> and <span class="math">\(u_d(k)\)</span> are the desired state and
+input trajectories and <span class="math">\(Q\)</span> and <span class="math">\(R\)</span> are positive definite
+matrices that define their weighting.</p>
+<div class="section" id="dcost-objects">
+<h2>DCost Objects<a class="headerlink" href="#dcost-objects" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="trep.discopt.DCost">
+<em class="property">class </em><tt class="descclassname">trep.discopt.</tt><tt class="descname">DCost</tt><big>(</big><em>xd</em>, <em>ud</em>, <em>Q</em>, <em>R</em><big>)</big><a class="headerlink" href="#trep.discopt.DCost" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>xd</strong> (<em>numpy array, shape (N, nX)</em>) &#8211; The desired state trajectory</li>
+<li><strong>ud</strong> (<em>numpy array, shape (N-1, nU)</em>) &#8211; The desired input trajectory</li>
+<li><strong>Q</strong> (<em>numpy array, shape (nX, nX)</em>) &#8211; Cost weights for the states</li>
+<li><strong>R</strong> (<em>numpy array, shape (nU, nU)</em>) &#8211; Cost weights for the inputs</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Create a new cost object for the desired states <em>xd</em> weighted by
+<em>Q</em> and the desired inputs <em>ud</em> weighted by <em>R</em>.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="trep.discopt.DCost.Q">
+<tt class="descclassname">DCost.</tt><tt class="descname">Q</tt><a class="headerlink" href="#trep.discopt.DCost.Q" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>(numpy array, shape (nX, nX))</em></p>
+<p>The weights of the states.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="trep.discopt.DCost.R">
+<tt class="descclassname">DCost.</tt><tt class="descname">R</tt><a class="headerlink" href="#trep.discopt.DCost.R" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>(numpy array, shape (nU, nU))</em></p>
+<p>The weights of the inputs.</p>
+</dd></dl>
+
+<div class="section" id="costs">
+<h3>Costs<a class="headerlink" href="#costs" title="Permalink to this headline">¶</a></h3>
+<dl class="method">
+<dt id="trep.discopt.DCost.l">
+<tt class="descclassname">DCost.</tt><tt class="descname">l</tt><big>(</big><em>xk</em>, <em>uk</em>, <em>k</em><big>)</big><a class="headerlink" href="#trep.discopt.DCost.l" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>xk</strong> (<em>numpy array, shape (nX)</em>) &#8211; Current state</li>
+<li><strong>uk</strong> (<em>numpy array, shape (nU)</em>) &#8211; Current input</li>
+<li><strong>k</strong> (<em>int</em>) &#8211; Current discrete time</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">float</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Calculate the incremental cost of <em>xk</em> and <em>uk</em> at discrete time
+<em>k</em>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="trep.discopt.DCost.m">
+<tt class="descclassname">DCost.</tt><tt class="descname">m</tt><big>(</big><em>xkf</em><big>)</big><a class="headerlink" href="#trep.discopt.DCost.m" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>xkf</strong> (<em>numpy array, shape (nX)</em>) &#8211; Final state</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">float</td>
+</tr>
+</tbody>
+</table>
+<p>Calculate the terminal cost of <em>xk</em>.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="st-derivatives">
+<h3>1<sup>st</sup> Derivatives<a class="headerlink" href="#st-derivatives" title="Permalink to this headline">¶</a></h3>
+<dl class="method">
+<dt id="trep.discopt.DCost.l_dx">
+<tt class="descclassname">DCost.</tt><tt class="descname">l_dx</tt><big>(</big><em>xk</em>, <em>uk</em>, <em>k</em><big>)</big><a class="headerlink" href="#trep.discopt.DCost.l_dx" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>xk</strong> (<em>numpy array, shape (nX)</em>) &#8211; Current state</li>
+<li><strong>uk</strong> (<em>numpy array, shape (nU)</em>) &#8211; Current input</li>
+<li><strong>k</strong> (<em>int</em>) &#8211; Current discrete time</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">numpy array, shape (nX)</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Calculate the derivative of the incremental cost with respect to
+the state.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="trep.discopt.DCost.l_du">
+<tt class="descclassname">DCost.</tt><tt class="descname">l_du</tt><big>(</big><em>xk</em>, <em>uk</em>, <em>k</em><big>)</big><a class="headerlink" href="#trep.discopt.DCost.l_du" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>xk</strong> (<em>numpy array, shape (nX)</em>) &#8211; Current state</li>
+<li><strong>uk</strong> (<em>numpy array, shape (nU)</em>) &#8211; Current input</li>
+<li><strong>k</strong> (<em>int</em>) &#8211; Current discrete time</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">numpy array, shape (nU)</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Calculate the derivative of the incremental cost with respect to
+the input.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="trep.discopt.DCost.m_dx">
+<tt class="descclassname">DCost.</tt><tt class="descname">m_dx</tt><big>(</big><em>xkf</em><big>)</big><a class="headerlink" href="#trep.discopt.DCost.m_dx" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>xkf</strong> (<em>numpy array, shape (nX)</em>) &#8211; Current state</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">numpy array, shape (nX)</td>
+</tr>
+</tbody>
+</table>
+<p>Calculate the derivative of the terminal cost with respect to the
+final state.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="nd-derivatives">
+<h3>2<sup>nd</sup> Derivatives<a class="headerlink" href="#nd-derivatives" title="Permalink to this headline">¶</a></h3>
+<dl class="method">
+<dt id="trep.discopt.DCost.l_dxdx">
+<tt class="descclassname">DCost.</tt><tt class="descname">l_dxdx</tt><big>(</big><em>xk</em>, <em>uk</em>, <em>k</em><big>)</big><a class="headerlink" href="#trep.discopt.DCost.l_dxdx" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>xk</strong> (<em>numpy array, shape (nX)</em>) &#8211; Current state</li>
+<li><strong>uk</strong> (<em>numpy array, shape (nU)</em>) &#8211; Current input</li>
+<li><strong>k</strong> (<em>int</em>) &#8211; Current discrete time</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">numpy array, shape (nX, nX)</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Calculate the second derivative of the incremental cost with
+respect to the state.  For this implementation, this is always
+equal to <a class="reference internal" href="#trep.discopt.DCost.Q" title="trep.discopt.DCost.Q"><tt class="xref py py-attr docutils literal"><span class="pre">Q</span></tt></a>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="trep.discopt.DCost.l_dudu">
+<tt class="descclassname">DCost.</tt><tt class="descname">l_dudu</tt><big>(</big><em>xk</em>, <em>uk</em>, <em>k</em><big>)</big><a class="headerlink" href="#trep.discopt.DCost.l_dudu" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>xk</strong> (<em>numpy array, shape (nX)</em>) &#8211; Current state</li>
+<li><strong>uk</strong> (<em>numpy array, shape (nU)</em>) &#8211; Current input</li>
+<li><strong>k</strong> (<em>int</em>) &#8211; Current discrete time</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">numpy array, shape (nU, nU)</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Calculate the second derivative of the incremental cost with
+respect to the inputs.  For this implementation, this is always
+equal to <a class="reference internal" href="#trep.discopt.DCost.R" title="trep.discopt.DCost.R"><tt class="xref py py-attr docutils literal"><span class="pre">R</span></tt></a>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="trep.discopt.DCost.l_dxdu">
+<tt class="descclassname">DCost.</tt><tt class="descname">l_dxdu</tt><big>(</big><em>xk</em>, <em>uk</em>, <em>k</em><big>)</big><a class="headerlink" href="#trep.discopt.DCost.l_dxdu" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>xk</strong> (<em>numpy array, shape (nX)</em>) &#8211; Current state</li>
+<li><strong>uk</strong> (<em>numpy array, shape (nU)</em>) &#8211; Current input</li>
+<li><strong>k</strong> (<em>int</em>) &#8211; Current discrete time</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">numpy array, shape (nX, nU)</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Calculate the second derivative of the incremental cost with
+respect to the state and inputs.  For this implementation, this is
+always equal to zero.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="trep.discopt.DCost.m_dxdx">
+<tt class="descclassname">DCost.</tt><tt class="descname">m_dxdx</tt><big>(</big><em>xkf</em><big>)</big><a class="headerlink" href="#trep.discopt.DCost.m_dxdx" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>xkf</strong> (<em>numpy array, shape (nX)</em>) &#8211; Current state</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">numpy array, shape (nX, nX)</td>
+</tr>
+</tbody>
+</table>
+<p>Calculate the second derivative of the terminal cost.  For this
+implementation, this is always equal to <a class="reference internal" href="#trep.discopt.DCost.Q" title="trep.discopt.DCost.Q"><tt class="xref py py-attr docutils literal"><span class="pre">Q</span></tt></a>.</p>
+</dd></dl>
+
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+    <h2><a href="http://murpheylab.github.io/trep/">Project Website</a></h2>
+
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#"><tt class="docutils literal"><span class="pre">DCost</span></tt> - Discrete Trajectory Cost</a><ul>
+<li><a class="reference internal" href="#dcost-objects">DCost Objects</a><ul>
+<li><a class="reference internal" href="#costs">Costs</a></li>
+<li><a class="reference internal" href="#st-derivatives">1<sup>st</sup> Derivatives</a></li>
+<li><a class="reference internal" href="#nd-derivatives">2<sup>nd</sup> Derivatives</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="dsystem.html"
+                        title="previous chapter"><tt class="docutils literal"><span class="pre">DSystem</span></tt> - Discrete System wrapper for Midpoint Variational Integrators</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="doptimizer.html"
+                        title="next chapter"><tt class="docutils literal"><span class="pre">DOptimizer</span></tt> - Discrete Trajectory Optimization</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="../_sources/ref/dcost.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="doptimizer.html" title="DOptimizer - Discrete Trajectory Optimization"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="dsystem.html" title="DSystem - Discrete System wrapper for Midpoint Variational Integrators"
+             >previous</a> |</li>
+        <li><a href="../index.html">trep documentation</a> &raquo;</li>
+          <li><a href="index.html" >API Reference</a> &raquo;</li>
+          <li><a href="optimal.html" ><tt class="docutils literal"><span class="pre">trep.discopt</span></tt> - Discrete Optimal Control</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2014, Elliot Johnson.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
+    </div>
+  </body>
+</html>

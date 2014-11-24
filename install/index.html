@@ -13,6 +13,7 @@ title: Trep Installation
         <li class="active"><a href="#linux" data-toggle="pill">Linux</a></li>
         <li><a href="#mac" data-toggle="pill">Mac</a></li>
         <li><a href="#windows" data-toggle="pill">Windows</a></li>
+        <li><a href="#ros" data-toggle="pill">ROS</a></li>
     </ul>
 
 
@@ -26,6 +27,9 @@ title: Trep Installation
         </div>
         <div class="tab-pane" id="windows">
             <p>{% capture m %}{% include windows-install.md %}{% endcapture %}{{ m | markdownify }}</p>
+        </div>
+        <div class="tab-pane" id="ros">
+            <p>{% capture m %}{% include ros-install.md %}{% endcapture %}{{ m | markdownify }}</p>
         </div>
     </div>
 </div>

@@ -1,0 +1,191 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>URDF Import Tool &mdash; trep documentation</title>
+    
+    <link rel="stylesheet" href="../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.92-dev',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="trep documentation" href="../index.html" />
+    <link rel="up" title="trep.ros - ROS Tools" href="ros.html" />
+    <link rel="next" title="ROSMidpointVI - ROS Midpoint Variational Integrator" href="rosmidpointvi.html" />
+    <link rel="prev" title="trep.ros - ROS Tools" href="ros.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="rosmidpointvi.html" title="ROSMidpointVI - ROS Midpoint Variational Integrator"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="ros.html" title="trep.ros - ROS Tools"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../index.html">trep documentation</a> &raquo;</li>
+          <li><a href="index.html" >API Reference</a> &raquo;</li>
+          <li><a href="ros.html" accesskey="U"><tt class="docutils literal"><span class="pre">trep.ros</span></tt> - ROS Tools</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+    <script type="math/tex">
+    \newcommand{\deriv}[2][]{\dfrac{\partial #1}{\partial #2}}
+\newcommand{\tderiv}[2][]{\tfrac{\partial #1}{\partial #2}}
+\newcommand{\fderiv}[2][]{\dfrac{d #1}{d #2}}
+\newcommand{\derivII}[3][]{\dfrac{\partial^2 #1}{\partial #2 \partial #3}}
+\newcommand{\tderivII}[3][]{\tfrac{\partial^2 #1}{\partial #2 \partial #3}}
+\newcommand{\derivIII}[4][]{\dfrac{\partial^3 #1}{\partial #2 \partial #3 \partial #4}}
+\newcommand{\tderivIII}[4][]{\tfrac{\partial^3 #1}{\partial #2 \partial #3 \partial #4}}
+\newcommand{\derivIV}[5][]{\dfrac{\partial^4 #1}{\partial #2 \partial #3 \partial #4 \partial #5}}
+
+\newcommand{\half}{\tfrac{1}{2}}  % Macro for 1/2
+
+\newcommand{\ud}{\mathrm{d}}
+
+\newcommand{\op}{\circ}
+\newcommand{\dq}{\dot{q}}
+\newcommand{\ddq}{\ddot{q}}
+
+\newcommand{\dt}{\Delta t}
+
+
+    </script>
+    
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="urdf-import-tool">
+<span id="trep-urdf"></span><h1>URDF Import Tool<a class="headerlink" href="#urdf-import-tool" title="Permalink to this headline">¶</a></h1>
+<p>The <a class="reference internal" href="ros.html#module-trep.ros" title="trep.ros: ROS Tools (Linux)"><tt class="xref py py-mod docutils literal"><span class="pre">trep.ros</span></tt></a> module provides several tools for working with the ROS environment.  The URDF import function allows trep to interface directly with the Unified Robot Description Format (URDF). See the <a class="reference external" href="http://wiki.ros.org/python_trep/">python_trep wiki page</a> for more details on supported URDF tags.</p>
+<dl class="function">
+<dt id="trep.ros.import_urdf">
+<tt class="descclassname">trep.ros.</tt><tt class="descname">import_urdf</tt><big>(</big><em>source</em>, <em>system=None</em>, <em>prefix=None</em><big>)</big><a class="headerlink" href="#trep.ros.import_urdf" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>source</strong> &#8211; string containing the URDF xml data</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><tt class="xref py py-mod docutils literal"><span class="pre">trep.system</span></tt> class</td>
+</tr>
+</tbody>
+</table>
+<p>This function creates the <tt class="xref py py-mod docutils literal"><span class="pre">trep.system</span></tt> class and fills in the frames and joints
+as defined in the URDF xml data.</p>
+<p><em>source</em> is a string containing the URDF data. May be loaded from the parameter server if using a launch file.</p>
+<p><em>system</em> is a previously defined <tt class="xref py py-mod docutils literal"><span class="pre">trep.system</span></tt> class.  If provided, the URDF will be imported into the existing system.</p>
+<p><em>prefix</em> is a string to be prefixed to all trep frames and configs created when importing the URDF. This is useful if importing the same URDF multiple times in a single system, ie. multiple robots.</p>
+<p>The function returns the trep system defining the URDF.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="trep.ros.import_urdf_file">
+<tt class="descclassname">trep.ros.</tt><tt class="descname">import_urdf_file</tt><big>(</big><em>filename</em>, <em>system=None</em>, <em>prefix=None</em><big>)</big><a class="headerlink" href="#trep.ros.import_urdf_file" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>filename</strong> (<em>string</em>) &#8211; path to URDF</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><tt class="xref py py-mod docutils literal"><span class="pre">trep.system</span></tt> class</td>
+</tr>
+</tbody>
+</table>
+<p>This function creates the <tt class="xref py py-mod docutils literal"><span class="pre">trep.system</span></tt> class and fills in the frames and joints
+as defined in the URDF file.</p>
+<p><em>filename</em> is the complete path to the URDF file.</p>
+<p><em>system</em> is a previously defined <tt class="xref py py-mod docutils literal"><span class="pre">trep.system</span></tt> class.  If provided, the URDF will be imported into the existing system.</p>
+<p><em>prefix</em> is a string to be prefixed to all trep frames and configs created when importing the URDF. This is useful if importing the same URDF multiple times in a single system, ie. multiple robots.</p>
+<p>The function returns the trep system defining the URDF.</p>
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+    <h2><a href="http://murpheylab.github.io/trep/">Project Website</a></h2>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="ros.html"
+                        title="previous chapter"><tt class="docutils literal"><span class="pre">trep.ros</span></tt> - ROS Tools</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="rosmidpointvi.html"
+                        title="next chapter"><tt class="docutils literal"><span class="pre">ROSMidpointVI</span></tt> - ROS Midpoint Variational Integrator</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="../_sources/ref/urdf.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="rosmidpointvi.html" title="ROSMidpointVI - ROS Midpoint Variational Integrator"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="ros.html" title="trep.ros - ROS Tools"
+             >previous</a> |</li>
+        <li><a href="../index.html">trep documentation</a> &raquo;</li>
+          <li><a href="index.html" >API Reference</a> &raquo;</li>
+          <li><a href="ros.html" ><tt class="docutils literal"><span class="pre">trep.ros</span></tt> - ROS Tools</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2014, Elliot Johnson.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
+    </div>
+  </body>
+</html>

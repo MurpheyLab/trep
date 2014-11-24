@@ -1,5 +1,5 @@
 name: Trep - Mechanical Simulation and Optimal Control
 markdown: kramdown
-pygments: true
+highlighter: rouge
 baseurl: /trep
 include: [_images,_static,_modules,_sources]
