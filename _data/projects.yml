@@ -5,3 +5,7 @@
 - title: NxR Rat Whisker Simulation
   url: http://nxr.northwestern.edu/research/mechanics-whiskers
   image: /images/whisker.jpg
+
+- title: ROS Demo Package
+  url: https://github.com/MurpheyLab/trep_urdf
+  image: /images/ros-demo.jpg

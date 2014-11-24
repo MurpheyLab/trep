@@ -3,7 +3,7 @@ Trep is a Python module for modeling articulated rigid body mechanical systems i
 
 Get started by [installing](install/) trep and checking out the [documentation](documentation/dev/). Source code for trep is available from the [GitHub repository](https://github.com/MurpheyLab/trep).
 
-ROS users can now get trep binaries directly from the ROS repositories. Check the python_trep [wiki page](http://wiki.ros.org/python_trep) for more information.
+ROS users can now get trep binaries directly from the ROS repositories. Check the *python_trep* [wiki page](http://wiki.ros.org/python_trep) for more information.
 
 Trep is designed to work with large mechanical systems in generalized coordinates. This video shows the progress of a discrete time trajectory optimization that was created with trep.
 
