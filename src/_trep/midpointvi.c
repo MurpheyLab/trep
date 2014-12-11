@@ -688,7 +688,7 @@ static int DEL_solved(MidpointVI *mvi)
     return 1;  
 }
 
-static int MidpointVI_solve_DEL(MidpointVI *mvi, int max_iterations)
+int MidpointVI_solve_DEL(MidpointVI *mvi, int max_iterations)
 {
     int iterations;
     int row;
