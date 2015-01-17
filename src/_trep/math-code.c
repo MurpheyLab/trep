@@ -17,7 +17,7 @@ PyObject* array_from_mat4x4(mat4x4 mat) {
     if(array == NULL)
         return NULL;
 
-    data = (double*)PyArray_DATA(array);
+    data = (double*)PyArray_DATA((PyArrayObject*) array);
     memcpy(data, mat, 16*sizeof(double));
     return array;    
 }
@@ -31,7 +31,7 @@ PyObject* array_from_vec4(vec4 vec) {
     if(array == NULL)
         return NULL;
 
-    data = (double*)PyArray_DATA(array);
+    data = (double*)PyArray_DATA((PyArrayObject*) array);
     memcpy(data, vec, 4*sizeof(double));
     return array;    
 }
