@@ -54,7 +54,7 @@ def add_child_frame(parent_name, parent_frame, links, joints, prefix):
             # Fixed Joint
             if joint.get('type') == 'fixed':
                 child_frame = joint_frame
-                child_frame.name = child_name
+                child_frame.name = prefix + child_name
             
             # Continuous Joint
             elif joint.get('type') == 'continuous':
