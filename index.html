@@ -2,15 +2,21 @@
 layout: default
 title: Trep - Mechanical Simulation and Optimal Control
 ---
-<div class="container">
+<div class="container-fluid">
 
-    <div class="row" style="margin: 0 auto;text-align:center;">
+    <div class="row">
+        <div class="row-same-height">
+            <div class="col-md-6 col-md-height col-middle" style="margin: 0 auto;text-align:center;">
+                <div class="videoContainer">
+                    <div class="videoWrapper">
+                    <iframe width="420" height="400" src="http://www.youtube.com/embed/1cjiZASgQ0k" frameborder="0" allowfullscreen></iframe>
+                    </div>
+                </div>
+            </div><!--
+        --><div class="col-md-6 col-md-height col-middle" style="margin: 0 auto;text-align:left;">
+                <p>{% capture m %}{% include front-page.md %}{% endcapture %}{{ m | markdownify }}</p>
+            </div>
 
-        <div class="col-md-6 vcenter" >
-            <iframe width="420" height="400" src="http://www.youtube.com/embed/1cjiZASgQ0k" frameborder="0" allowfullscreen></iframe>
-        </div><!--
-    --><div class="col-md-6 vcenter" style="margin: 0 auto;text-align:left;">
-            <p>{% capture m %}{% include front-page.md %}{% endcapture %}{{ m | markdownify }}</p>
         </div>
     </div>
 
