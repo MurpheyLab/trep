@@ -1,4 +1,5 @@
 from distance import Distance
-from point import PointOnPlane
+from plane import PointOnPlane
+from point import PointToPoint1D, PointToPoint2D, PointToPoint3D
 
 

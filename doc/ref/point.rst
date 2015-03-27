@@ -1,57 +1,76 @@
 
-:class:`PointOnPlane` - Constraint a point to a plane
-=====================================================
+:class:`PointToPoint` - Constrain the origins of two frames together
+=======================================================================
 
 .. currentmodule:: trep.constraints
 
-The :class:`PointOnPlane` constraint constraints a point (defined by
-the origin of a coordinate frame) to lie in a plane (defined by the
-origin of another coordinate frame and normal vector).
+The :class:`PointToPoint` constraints are designed to constrain the origin
+of one frame to the origin of another frame (maintaining zero distance between
+the frames).
 
 The constraint equation is:
 
 .. math::
 
-   h(q) =  (p_1 - p_2) \cdot (g_1 \cdot norm)
+   h(q) =  (p_1 - p_2) [i]
 
-where :math:`g_1` and :math:`p_1` are the transformation of the frame
-defining the plane and its origin, :math:`p_2` is the point being
-constrained, and :math:`norm` is the normal vector of the plane
-expressed in the local coordinates of :math:`g_1`.
+where :math:`p_1` and :math:`p_2` are the origin points of the two frames being constrained, and :math:`i` is
+the basis component of the error vector.  
 
-By defining two of :class:`PointOnPlane` constraints with normal
-plane, you can constrain a point to a line.  With three constraints,
-you can constraint a point to another point.
+.. note::
 
+    Defining a PointToPoint constraint creates multiple one-dimensional constraints for each axis being used.  
+    For example, if a system is defined in 3D, the PointToPoint3D method creates 3 PointToPoint constraints, one for each
+    axis.
 
 
 .. admonition:: Examples
 
-   ``pccd.py``, ``pypccd.py``, ``radial.py``, ``scissor.py``
+   ``scissor.py``
 
 
 
-.. class:: PointOnPlane(system, plane_frame, plane_normal, point_frame, name=None)
+.. class:: PointToPoint3D(system, frame1, frame2, name=None)
 
-   Create a new constraint to force the origin of *point_frame* to lie
-   in a plane.  The plane is coincident with the origin of
-   *plane_frame* and normal to the vector *plane_normal*.  The normal
-   is expresed in the coordinates of *plane_frame*.
+   :param frame1: First frame to constrain 
+   :type frame1: :class:`Frame`
+   :param frame2: Second frame to constrain 
+   :type frame2: :class:`Frame`
 
-
-.. attribute:: PointOnPlane.plane_frame
-               
-   This is the coordinate frame the defines the plane.
-
-   *(read-only)*
+   Create a new set of 3 constraints to force the origin of *frame1* to the origin of *frame2*.
+   The system must be defined in 3D, otherwise, for 2D systems, use :class:`PointToPoint2D`.
 
 
-.. attribute:: PointOnPlane.normal
 
-   This is the normal of the plane expressed in *plane_frame* coordinates.
+.. class:: PointToPoint2D(system, plane, frame1, frame2, name=None)
+
+   :param plane: 2D plane of system, ie. 'xy', 'xz', or 'yz'
+   :type plane: :class:`string`
+   :param frame1: First frame to constrain 
+   :type frame1: :class:`Frame`
+   :param frame2: Second frame to constrain 
+   :type frame2: :class:`Frame`
+
+   Create a new set of 2 constraints to force the origin of *frame1* to the origin of *frame2*.
+   The system must be defined in 2D, otherwise, for 3D systems, use :class:`PointToPoint3D`.
+
+.. class:: PointToPoint1D(system, axis, frame1, frame2, name=None)
+
+   :param axis: 1D axis of system, ie. 'x', 'y', or 'z'
+   :type axis: :class:`string`
+   :param frame1: First frame to constrain 
+   :type frame1: :class:`Frame`
+   :param frame2: Second frame to constrain 
+   :type frame2: :class:`Frame`
+
+   Create a new constraint to force the origin of *frame1* to the origin of *frame2*.
+   The system must be defined in 1D, otherwise, for 2D or 3D systems, use :class:`PointToPoint2D` or :class:`PointToPoint3D`.
 
 
-.. attribute:: PointOnPlane.point_frame
+.. method:: PointToPoint3D.get_actual_distance()
+            PointToPoint2D.get_actual_distance()
+            PointToPoint1D.get_actual_distance()
 
-   This is the coordinate frame that defines the point to be
-   constrained.
+   Calculate the current distance between the two coordinate frames.
+   If the constraint is currently satisfied, this is equal to 0.
+

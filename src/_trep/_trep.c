@@ -22,6 +22,7 @@ extern PyTypeObject TapeMeasureType;
 // Constraint Types defined in src/_trep/constraints/*
 extern PyTypeObject DistanceConstraintType;
 extern PyTypeObject PointOnPlaneConstraintType;
+extern PyTypeObject PointToPointConstraintType;
 
 // Potential Energy Types defined in src/_trep/potentials/*
 extern PyTypeObject GravityPotentialType;
@@ -73,6 +74,7 @@ PyMODINIT_FUNC init_trep(void)
         {"_Spline", &SplineType, 0},
         {"_DistanceConstraint", &DistanceConstraintType, 0},
         {"_PointOnPlaneConstraint", &PointOnPlaneConstraintType, 0},
+        {"_PointToPointConstraint", &PointToPointConstraintType, 0},
         {"_GravityPotential", &GravityPotentialType, 0},
         {"_LinearSpringPotential", &LinearSpringPotentialType, 0},
         {"_DampingForce", &DampingForceType, 0},
