@@ -766,6 +766,12 @@ PYEXPORT double TapeMeasure_length_dq(TapeMeasure *self, Config *q1);
 PYEXPORT double TapeMeasure_length_dqdq(TapeMeasure *self, Config *q1, Config *q2);
 PYEXPORT double TapeMeasure_length_dqdqdq(TapeMeasure *self, Config *q1, Config *q2, Config *q3);
 
+PYEXPORT double TapeMeasure_velocity(TapeMeasure *self);
+PYEXPORT double TapeMeasure_velocity_dq(TapeMeasure *self, Config *q1);
+PYEXPORT double TapeMeasure_velocity_dqdq(TapeMeasure *self, Config *q1, Config *q2);
+PYEXPORT double TapeMeasure_velocity_ddq(TapeMeasure *self, Config *dq1);
+PYEXPORT double TapeMeasure_velocity_ddqdq(TapeMeasure *self, Config *dq1, Config *q2);
+
 
 /*******************************************************************************
  * Misc.

@@ -31,6 +31,7 @@ extern PyTypeObject NonlinearConfigSpringType;
 
 // Force Types defined in src/_trep/forces/*
 extern PyTypeObject DampingForceType;
+extern PyTypeObject LinearDamperForceType;
 extern PyTypeObject ConfigForceType;
 extern PyTypeObject BodyWrenchForceType;
 extern PyTypeObject HybridWrenchForceType;
@@ -76,6 +77,7 @@ PyMODINIT_FUNC init_trep(void)
         {"_GravityPotential", &GravityPotentialType, 0},
         {"_LinearSpringPotential", &LinearSpringPotentialType, 0},
         {"_DampingForce", &DampingForceType, 0},
+        {"_LinearDamperForce", &LinearDamperForceType, 0},
         {"_ConfigForce", &ConfigForceType, 0},
         {"_BodyWrenchForce", &BodyWrenchForceType, 0},
         {"_HybridWrenchForce", &HybridWrenchForceType, 0},
