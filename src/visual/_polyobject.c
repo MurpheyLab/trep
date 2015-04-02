@@ -48,12 +48,12 @@ static PyObject* draw(PolyObject *self)
     if(self->vertices == NULL || self->normals == NULL || self->triangles == NULL)
         Py_RETURN_NONE;
 
-    num_triangles = PyArray_DIM(self->triangles, 0);
-    triangles = (int3*)PyArray_DATA(self->triangles);
-    vertices = (double3*)PyArray_DATA(self->vertices);
+    num_triangles = PyArray_DIM((PyArrayObject*) self->triangles, 0);
+    triangles = (int3*)PyArray_DATA((PyArrayObject*) self->triangles);
+    vertices = (double3*)PyArray_DATA((PyArrayObject*) self->vertices);
     
     if(self->normals != NULL && self->normals != Py_None) 
-        normals = (double3*)PyArray_DATA(self->normals);
+        normals = (double3*)PyArray_DATA((PyArrayObject*) self->normals);
     
 
     glBegin(GL_TRIANGLES);
