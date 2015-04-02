@@ -19,4 +19,5 @@ constraint in Python or C.
 
    distance
    point
+   plane
 

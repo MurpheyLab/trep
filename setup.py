@@ -172,6 +172,7 @@ _trep = Extension('trep._trep',
                       
                       # Constraints
                       'src/_trep/constraints/distance.c',
+                      'src/_trep/constraints/plane.c',
                       'src/_trep/constraints/point.c',
                       
                       # Potentials

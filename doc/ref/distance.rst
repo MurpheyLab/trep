@@ -19,8 +19,8 @@ frames and :math:`d` is the desired distance between them.
 .. warning::
 
    This constraint is undefined when :math:`d` = 0.  If you want to
-   constraint two points to be coincident, you can use three
-   :class:`PointOnPlane` constraints instead.
+   constraint two points to be coincident, you can use the
+   :class:`PointToPoint` constraint instead.
 
 .. admonition:: Examples
 
