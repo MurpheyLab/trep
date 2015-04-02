@@ -7,6 +7,7 @@ import dlqr
 
 import numpy.linalg
 from numpy import dot
+from collections import namedtuple
 
 try:
     import matplotlib.pyplot as pyplot
@@ -234,7 +235,16 @@ class DOptimizer(object):
         self.first_method_iterations = first_method_iterations
         self.first_method = 'quasi'
         self.second_method = 'newton'
-
+    
+        # Named tuples types for function returns
+        self.step_return = namedtuple('step', 'done nX nU dcost0 cost1')
+        self.optimize_return = namedtuple('optimize', 'converged X U')
+        self.check_dcost_return = namedtuple('check_dcost', 'result error cost1 cost0 approx_dcost exact_dcost')
+        self.check_ddcost_return = namedtuple('check_ddcost', 'result error cost1 cost0 approx_ddcost exact_ddcost')
+        self.model_return = namedtuple('descent_model', 'Q R S')
+        self.descent_return = namedtuple('calc_descent_direction', 'Kproj dX dU Q R S')
+        self.armijo_simulate_return = namedtuple('armijo_simulate', 'success nX nU')
+        self.armijo_search_return = namedtuple('armijo_search', 'nX nU cost1')
 
     def calc_cost(self, X, U):
         """Calculate the cost of a trajectory X,U."""
@@ -284,7 +294,7 @@ class DOptimizer(object):
         Q = np.eye(self.dsys.nX)
         R = np.eye(self.dsys.nU)
         S = np.zeros((self.dsys.nX, self.dsys.nU))
-        return (lambda k: Q, lambda k: R, lambda k: S)
+        return self.model_return(lambda k: Q, lambda k: R, lambda k: S)
 
 
     def calc_quasi_model(self, X, U):
@@ -303,7 +313,7 @@ class DOptimizer(object):
             S[k] = self.cost.l_dxdu(X[k], U[k], k)
             R[k] = self.cost.l_dudu(X[k], U[k], k)
             
-        return (lambda k: Q[k], lambda k: R[k], lambda k: S[k])
+        return self.model_return(lambda k: Q[k], lambda k: R[k], lambda k: S[k])
     
 
     def calc_newton_model(self, X, U, A, B, K):
@@ -332,7 +342,7 @@ class DOptimizer(object):
                  dot(self.cost.l_du(X[k], U[k], k), K[k]) +
                  dot(z, (A[k] - dot(B[k], K[k]))))
         
-        return (lambda k: Q[k], lambda k: R[k], lambda k: S[k])
+        return self.model_return(lambda k: Q[k], lambda k: R[k], lambda k: S[k])
         
     
     def calc_descent_direction(self, X, U, method='steepest'):
@@ -389,7 +399,7 @@ class DOptimizer(object):
             dU[k] = -dot(K[k],dX[k]) - C[k] 
             dX[k+1] = dot(A[k],dX[k]) + dot(B[k],dU[k])
             
-        return (Kproj, dX, dU, Q, R, S)
+        return self.descent_return(Kproj, dX, dU, Q, R, S)
 
 
     def armijo_simulate(self, bX, bU, Kproj):
@@ -415,7 +425,7 @@ class DOptimizer(object):
                 nX[k+1] = self.dsys.f()
         except trep.ConvergenceError:
             return (False, nX[:k], nU[:k])
-        return (True, nX, nU)
+        return self.armijo_simulate_return(True, nX, nU)
 
         
     def armijo_search(self, X, U, Kproj, dX, dU):
@@ -443,7 +453,7 @@ class DOptimizer(object):
             cost1 = self.calc_cost(nX, nU)
             self.monitor.armijo_evaluation(m, nX, nU, bX, bU, cost1, max_cost)
             if cost1 < max_cost:
-                return (nX, nU, cost1)
+                return self.armijo_search_return(nX, nU, cost1)
         else:
             self.monitor.armijo_search_failure(X, U, dX, dU, cost0, dcost0, Kproj)
             raise trep.ConvergenceError("Armijo Failed to Converge")
@@ -457,7 +467,7 @@ class DOptimizer(object):
         trajectory X,U.  Valid methods are defined in
         DOptimizer.calc_descent_direction().
 
-        Returns the tuple (done, nX, nU, dcost0, cost1) where:
+        Returns the named tuple (done, nX, nU, dcost0, cost1) where:
 
         'done' is a boolean that is True if the trajectory X,U cannot
         be improved (i.e, X,U is a local minimizer)
@@ -486,14 +496,14 @@ class DOptimizer(object):
         # Check for terminal condition
         if abs(dcost0) < self.descent_tolerance:
             self.monitor.step_termination(cost0, dcost0)
-            return (True, X, U, dcost0, cost0)
+            return self.step_return(True, X, U, dcost0, cost0)
 
         # Line search in descent direction
         (X, U, cost1) = self.armijo_search(X, U, Kproj, dX, dU)
 
         self.monitor.step_completed(method, cost1, X, U)
 
-        return (False, X, U, dcost0, cost1)
+        return self.step_return(False, X, U, dcost0, cost1)
 
 
     def select_method(self, iteration):
@@ -534,7 +544,7 @@ class DOptimizer(object):
         This function calls DOptimizer.step() until a local minimizer
         is found or 'max_steps' iterations were taken.
 
-        Returns (converged, X, U) where:
+        Returns the named tuple (converged, X, U) where:
 
         converged is a boolean indicating if the optimization finished
         on a local minimizer.
@@ -553,7 +563,7 @@ class DOptimizer(object):
                 break
 
         self.monitor.optimize_end(converged, X, U, cost)
-        return (converged, X, U)
+        return self.optimize_return(converged, X, U)
 
 
     def descent_plot(self, X, U, method='steepest', points=40, legend=True):
@@ -626,7 +636,7 @@ class DOptimizer(object):
         approx_dcost = (cost1 - cost0)/(2*delta)
         error = approx_dcost - exact_dcost
         result = (abs(error) <= tolerance)
-        return (result, error, cost1, cost0, approx_dcost, exact_dcost)
+        return self.check_dcost_return(result, error, cost1, cost0, approx_dcost, exact_dcost)
     
 
     def check_ddcost(self, X, U, method='steepest', delta=1e-6, tolerance=1e-5):
@@ -660,7 +670,7 @@ class DOptimizer(object):
         error = approx_ddcost - exact_ddcost
         result = (abs(error) <= tolerance)
         
-        return (result, error, dcost1, dcost0, approx_ddcost, exact_ddcost)
+        return self.check_ddcost_return(result, error, dcost1, dcost0, approx_ddcost, exact_ddcost)
 
         
             
