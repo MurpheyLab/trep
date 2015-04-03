@@ -566,7 +566,7 @@ double TapeMeasure_velocity_ddqdq(TapeMeasure *self, Config *dq1, Config *q2)
 {
     return (*(double (*)(TapeMeasure*, Config*, Config*)
                 ) trep_API[capi_TapeMeasure_velocity_ddqdq])(self, dq1, q2);
-
+}
 
 ATTRIBUTE_UNUSED
 void System_state_changed(System *sys)

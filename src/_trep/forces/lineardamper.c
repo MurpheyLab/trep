@@ -33,6 +33,8 @@ static double f_dq(LinearDamperForce *self, Config *q, Config *q1)
     if(!TapeMeasure_USES_CONFIG(self->path, q1))
         return 0.0;
 
+    v = TapeMeasure_velocity(self->path);
+    dv_dq1 = TapeMeasure_velocity_dq(self->path, q1);
     dx_dq = TapeMeasure_length_dq(self->path, q);
     dx_dqdq1 = TapeMeasure_length_dqdq(self->path, q, q1);
 
@@ -100,7 +102,6 @@ static double f_ddqdq(LinearDamperForce *self, Config *q, Config *dq1, Config *q
 }
 
 static double f_ddqddq(LinearDamperForce *self, Config *q, Config *dq1, Config *dq2) { return 0.0; }
-
 static double f_dudq(LinearDamperForce *self, Config *config, Input *u1, Config *q2) { return 0.0; }
 static double f_duddq(LinearDamperForce *self, Config *config, Input *u1, Config *dq2) { return 0.0; }
 static double f_dudu(LinearDamperForce *self, Config *config, Input *u1, Input *u2) { return 0.0; }
