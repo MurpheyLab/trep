@@ -8,10 +8,10 @@ def transform(xyz, rpy):
     r = rpy[0];
     p = rpy[1];
     y = rpy[2];
-    
-    return np.array([[cos(y)*cos(p), cos(y)*sin(p)*sin(r)-sin(y)*cos(r), cos(y)*sin(p)*cos(r)+sin(y)*sin(r)],
-            [sin(y)*cos(p), sin(y)*sin(p)*sin(r)+cos(y)*cos(r), sin(y)*sin(p)*cos(r)-cos(y)*sin(r)],
-            [-sin(p), cos(p)*sin(r), cos(p)*cos(r)],
+   
+    return np.array([[cos(y)*cos(p), cos(y)*sin(p)*sin(r)+sin(y)*cos(r), -cos(y)*sin(p)*cos(r)+sin(y)*sin(r)],
+            [-sin(y)*cos(p), -sin(y)*sin(p)*sin(r)+cos(y)*cos(r), sin(y)*sin(p)*cos(r)+cos(y)*sin(r)],
+            [sin(p), -cos(p)*sin(r), cos(p)*cos(r)],
             xyz])
 
 def rotate(axis):
