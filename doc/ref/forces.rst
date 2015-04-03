@@ -21,6 +21,7 @@ These are the types of forces currently built in to :mod:`trep`.
 
 .. toctree::
    damping
+   lineardamper
    configforce
    bodywrench
    hybridwrench

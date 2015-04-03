@@ -183,6 +183,7 @@ _trep = Extension('trep._trep',
                       
                       # Forces
                       'src/_trep/forces/damping.c',
+                      'src/_trep/forces/lineardamper.c',
                       'src/_trep/forces/configforce.c',
                       'src/_trep/forces/bodywrench.c',
                       'src/_trep/forces/hybridwrench.c', 

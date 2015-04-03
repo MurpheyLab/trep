@@ -83,6 +83,12 @@ enum {
     capi_TapeMeasure_length_dqdq,
     capi_TapeMeasure_length_dqdqdq,
     
+    capi_TapeMeasure_velocity,
+    capi_TapeMeasure_velocity_dq,
+    capi_TapeMeasure_velocity_dqdq,
+    capi_TapeMeasure_velocity_ddq,
+    capi_TapeMeasure_velocity_ddqdq,
+
     capi_size
     
 } capi_index;
@@ -526,7 +532,37 @@ double TapeMeasure_length_dqdqdq(TapeMeasure *self, Config *q1, Config *q2, Conf
     return (*(double (*)(TapeMeasure*, Config*, Config*, Config*)
                 ) trep_API[capi_TapeMeasure_length_dqdqdq])(self, q1, q2, q3);
 }
+ATTRIBUTE_UNUSED 
+double TapeMeasure_velocity(TapeMeasure *self)
+{
+    return (*(double (*)(TapeMeasure*)) trep_API[capi_TapeMeasure_velocity])(self);
+}
 
+ATTRIBUTE_UNUSED 
+double TapeMeasure_velocity_dq(TapeMeasure *self, Config *q1)
+{
+    return (*(double (*)(TapeMeasure*, Config*)) trep_API[capi_TapeMeasure_velocity_dq])(self, q1);
+}
+
+ATTRIBUTE_UNUSED 
+double TapeMeasure_velocity_dqdq(TapeMeasure *self, Config *q1, Config *q2)
+{
+    return (*(double (*)(TapeMeasure*, Config*, Config*)
+                ) trep_API[capi_TapeMeasure_velocity_dqdq])(self, q1, q2);
+}
+
+ATTRIBUTE_UNUSED 
+double TapeMeasure_velocity_ddq(TapeMeasure *self, Config *dq1)
+{
+    return (*(double (*)(TapeMeasure*, Config*)) trep_API[capi_TapeMeasure_velocity_ddq])(self, dq1);
+}
+
+ATTRIBUTE_UNUSED 
+double TapeMeasure_velocity_ddqdq(TapeMeasure *self, Config *dq1, Config *q2)
+{
+    return (*(double (*)(TapeMeasure*, Config*, Config*)
+                ) trep_API[capi_TapeMeasure_velocity_ddqdq])(self, dq1, q2);
+}
 
 #endif  /* TREP_MODULE not defined. */
 
@@ -620,6 +656,12 @@ static PyObject* export_trep(void)
     trep_API[capi_TapeMeasure_length_dq] = (void*)TapeMeasure_length_dq;
     trep_API[capi_TapeMeasure_length_dqdq] = (void*)TapeMeasure_length_dqdq;
     trep_API[capi_TapeMeasure_length_dqdqdq] = (void*)TapeMeasure_length_dqdqdq;
+
+    trep_API[capi_TapeMeasure_velocity] = (void*)TapeMeasure_velocity;
+    trep_API[capi_TapeMeasure_velocity_dq] = (void*)TapeMeasure_velocity_dq;
+    trep_API[capi_TapeMeasure_velocity_dqdq] = (void*)TapeMeasure_velocity_dqdq;
+    trep_API[capi_TapeMeasure_velocity_ddq] = (void*)TapeMeasure_velocity_ddq;
+    trep_API[capi_TapeMeasure_velocity_ddqdq] = (void*)TapeMeasure_velocity_ddqdq;
 
     trep_API_def.version = TREP_C_API_VERSION;
     trep_API_def.size = capi_size;
