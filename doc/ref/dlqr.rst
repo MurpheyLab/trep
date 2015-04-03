@@ -86,7 +86,7 @@ discrete Ricatti-like equation:
    :type Q: Function Q(k) returning numpy array, shape (nX, nX)
    :param R: Quadratic Input Cost
    :type R: Function R(k) returning numpy array, shape (nU, nU)
-   :rtype: tuple (K, P)
+   :rtype: named tuple (K, P)
 
    This function solve the time-varying discrete LQR problem for the
    linear system *A*, *B* and costs *Q* and *R*.
@@ -214,7 +214,7 @@ backwards difference equations:
    :type S: Function S(k) returning numpy array, shape (nX, nU)      
    :param R: Quadratic Input Cost
    :type R: Function R(k) returning numpy array, shape (nU, nU)
-   :rtype: tuple (K, C, P, b)
+   :rtype: named tuple (K, C, P, b)
 
    This function solve the time-varying discrete LQ problem for the
    linear system *A*, *B*.

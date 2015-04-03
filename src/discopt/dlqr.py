@@ -4,6 +4,7 @@ import scipy as sp
 import scipy.linalg
 
 from numpy import dot
+from collections import namedtuple
 
 def solve_tv_lqr(A, B, Q, R):
     """
@@ -32,7 +33,8 @@ def solve_tv_lqr(A, B, Q, R):
         P = Q(k) + dot(dot(A[k].T,P),A[k]) - dot(K_part.T,K[k])
         P = (P + P.T)/2.0  # Note: absolutely necessary for stability
 
-    return (K, P)
+    solve_tv_lqr_return = namedtuple('solve_tv_lqr', 'K P')
+    return solve_tv_lqr_return(K, P)
         
 
 def solve_tv_lq(A, B, q, r, Q, S, R):
@@ -75,4 +77,5 @@ def solve_tv_lq(A, B, q, r, Q, S, R):
         b = q[k] - dot(K[k].T,r[k]) + dot(A[k].T - dot(K[k].T,B[k].T),b)
         P = Q(k) + dot(dot(A[k].T,P),A[k]) - dot(K_part.T,K[k])
         P = (P + P.T)/2.0  # Note: absolutely necessary for stability
-    return (K, C, P, b)
+    solve_tv_lq_return = namedtuple('solve_tv_lq', 'K C P b')
+    return solve_tv_lq_return(K, C, P, b)

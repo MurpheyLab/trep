@@ -2,6 +2,7 @@ import trep
 import numpy as np
 import dlqr
 from numpy import dot
+from collections import namedtuple
 
 # There is a lot of input validation here because I've dealt with a
 # lot of headaches from mismatching array dimensions and shapes in the
@@ -50,6 +51,16 @@ class DSystem(object):
         self._slice_v = slice(self._nQ + self._np, self._nX)
         self._slice_u = slice(0, self._nu)
         self._slice_rho = slice(self._nu, self._nU)
+
+        # Named tuples types for function returns
+        self.trajectory_return = namedtuple('trajectory', 'X U')
+        self.tangent_trajectory_return = namedtuple('tangent_trajectory', 'dX dU')
+        self.split_state_return = namedtuple('split_state', 'Q p v')
+        self.split_input_return = namedtuple('split_input', 'u rho')
+        self.split_trajectory_return = namedtuple('split_trajectory', 'Q p v u rho')
+        self.linearization_return = namedtuple('linearization', 'A B')
+        self.error_return = namedtuple('errors', 'error exact_norm approx_norm')
+        self.feedback_return = namedtuple('feedback', 'Kproj A B')
 
     @property
     def nX(self):
@@ -164,7 +175,7 @@ class DSystem(object):
         if u is not None:   U[:,self._slice_u] = u
         if rho is not None: U[:,self._slice_rho] = rho
         
-        return X,U
+        return self.trajectory_return(X,U)
         
     def split_state(self, X=None):
         """
@@ -179,7 +190,7 @@ class DSystem(object):
         Q = X[self._slice_Q]
         p = X[self._slice_p]
         v = X[self._slice_v]
-        return (Q,p,v)
+        return self.split_state_return(Q,p,v)
 
     def split_input(self, U=None):
         """
@@ -191,7 +202,7 @@ class DSystem(object):
             U = np.zeros(self.nU)
         u = U[self._slice_u]
         rho = U[self._slice_rho]
-        return (u, rho)
+        return self.split_input_return(u, rho)
         
     def split_trajectory(self, X=None, U=None):
         """
@@ -212,7 +223,7 @@ class DSystem(object):
         v = X[:,self._slice_v]
         u = U[:,self._slice_u]
         rho = U[:,self._slice_rho]
-        return (Q,p,v,u,rho)
+        return self.split_trajectory_return(Q,p,v,u,rho)
 
         
     def set(self, xk, uk, k, xk_hint=None, lambda_hint=None):
@@ -409,7 +420,7 @@ class DSystem(object):
                      xk_hint=X[k+1])
             A[k] = self.fdx()
             B[k] = self.fdu()
-        return A,B
+        return self.linearization_return(A,B)
 
 
     def project(self, bX, bU, Kproj=None):
@@ -443,7 +454,7 @@ class DSystem(object):
                 self.step(nU[k], xk_hint=bX[k+1])
             nX[k+1] = self.f()
             
-        return nX, nU
+        return self.trajectory_return(nX, nU)
 
 
     def dproject(self, A, B, bdX, bdU, K):
@@ -457,7 +468,7 @@ class DSystem(object):
         for k in xrange(len(bdX)-1):
             dU[k] = bdU[k] - dot(K[k], dX[k] - bdX[k])
             dX[k+1] = dot(A[k],dX[k]) + dot(B[k],dU[k])
-        return dX, dU
+        return self.tangent_trajectory_return(dX, dU)
 
 
     def calc_feedback_controller(self, X, U, Q=None, R=None, return_linearization=False):
@@ -478,7 +489,7 @@ class DSystem(object):
         
         Kproj = dlqr.solve_tv_lqr(A, B, Q, R)[0]
         if return_linearization:
-            return (Kproj, A, B)
+            return self.feedback_return(Kproj, A, B)
         else:
             return Kproj
         
@@ -550,7 +561,7 @@ class DSystem(object):
         error = np.linalg.norm(fdx_exact - fdx_approx) #/np.linalg.norm(fdx_exact)
         exact_norm = np.linalg.norm(fdx_exact)
         approx_norm = np.linalg.norm(fdx_approx)        
-        return error, exact_norm, approx_norm
+        return self.error_return(error, exact_norm, approx_norm)
 
 
     def check_fdu(self, xk, uk, k, delta=1e-5):
@@ -579,7 +590,7 @@ class DSystem(object):
         error = np.linalg.norm(fdu_exact - fdu_approx) #/np.linalg.norm(fdu_exact)
         exact_norm = np.linalg.norm(fdu_exact)
         approx_norm = np.linalg.norm(fdu_approx)        
-        return error, exact_norm, approx_norm
+        return self.error_return(error, exact_norm, approx_norm)
 
 
     def check_fdxdx(self, xk, uk, k, delta=1e-5):
@@ -615,7 +626,7 @@ class DSystem(object):
         error = np.linalg.norm(fdxdx_exact - fdxdx_approx)
         exact_norm = np.linalg.norm(fdxdx_exact)
         approx_norm = np.linalg.norm(fdxdx_approx)
-        return error, exact_norm, approx_norm
+        return self.error_return(error, exact_norm, approx_norm)
 
         
     def check_fdxdu(self, xk, uk, k, delta=1e-5):
@@ -651,7 +662,7 @@ class DSystem(object):
         error = np.linalg.norm(fdxdu_exact - fdxdu_approx)
         exact_norm = np.linalg.norm(fdxdu_exact)
         approx_norm = np.linalg.norm(fdxdu_approx)
-        return error, exact_norm, approx_norm
+        return self.error_return(error, exact_norm, approx_norm)
         
         
     def check_fdudu(self, xk, uk, k, delta=1e-5):
@@ -687,4 +698,4 @@ class DSystem(object):
         error = np.linalg.norm(fdudu_exact - fdudu_approx)
         exact_norm = np.linalg.norm(fdudu_exact)
         approx_norm = np.linalg.norm(fdudu_approx)
-        return error, exact_norm, approx_norm
+        return self.error_return(error, exact_norm, approx_norm)

@@ -164,7 +164,7 @@ State and Trajectory Manipulation
    :type u: numpy array, shape (N-1, nu)
    :param rho: A kinematic input trajectory
    :type rho: numpy array, shape (N-1, nk)
-   :rtype: tuple of (*X*, *U*)
+   :rtype: named tuple of (*X*, *U*)
 
    Combine component trajectories into a state and input trajectories.
    The state length is the same as the time base, the input length is
@@ -178,7 +178,7 @@ State and Trajectory Manipulation
 
    :param X: A state vector for the system
    :type X: numpy array, shape (nX)
-   :rtype: tuple of (*Q*, *p*, *v*)
+   :rtype: named tuple of (*Q*, *p*, *v*)
    
    Split a state vector into its configuration, moementum, and
    kinematic velocity parts.  If *X* is :data:`None`, returns zero
@@ -189,7 +189,7 @@ State and Trajectory Manipulation
 
    :param U: An input vector for the system
    :type U: numpy array, shape (nU)
-   :rtype: tuple of (*u*, *rho*)
+   :rtype: named tuple of (*u*, *rho*)
             
    Split a state input vector *U* into its force and kinematic input
    parts, (*u*, *rho*).  If *U* is :data:`None`, returns zero arrays of the
@@ -202,7 +202,7 @@ State and Trajectory Manipulation
    :type X: numpy array, shape (N, nX)
    :param U: An input trajectory
    :type U: numpy array, shape (N-1, nU)
-   :rtype: tuple of (*Q*, *p*, *v*, *u*, *rho*)
+   :rtype: named tuple of (*Q*, *p*, *v*, *u*, *rho*)
 
    Split the state trajectory (*X*, *U*) into its *Q*, *p*, *v*, *u*,
    *rho* components.  If *X* or *U* are :data:`None`, the corresponding
@@ -217,7 +217,7 @@ State and Trajectory Manipulation
    :type X: numpy array, shape (N, nX)
    :param U: An input trajectory for *dsys_a*
    :type U: numpy array, shape (N, nU)
-   :rtype: trajectory for this system, tuple (*X*, *U*)
+   :rtype: trajectory for this system, named tuple (*X*, *U*)
 
    Convert the trajectory (*X*, *U*) for *dsys_a* into a trajectory
    for this system.  This reorders the trajectory components according
@@ -251,7 +251,7 @@ State and Trajectory Manipulation
 
    :param filename: Location of saved trajectory
    :type filename: string
-   :rtype: tuple of (X, U)
+   :rtype: named tuple of (X, U)
 
    Load a trajectory from a file that was stored with
    :meth:`save_state_trajectory` or
@@ -350,18 +350,18 @@ Linearization and Feedback Controllers
 
 .. method:: DSystem.linearize_trajectory(X, U)
 
-   :rtype: tuple (A, B)
+   :rtype: named tuple (A, B)
 
    Calculate the linearization of the system dynamics about a
    trajectory.  *X* and *U* do not have to be an exact trajectory of
    the system.
 
-   Returns the linearization in a tuple ``(A, B)``\ .
+   Returns the linearization in a named tuple ``(A, B)``\ .
 
 
 .. method:: DSystem.project(bX, bU[, Kproj=None])
 
-   :rtyple: tuple (X, U)
+   :rtyple: named tuple (X, U)
 
    Project *bX* and *bU* into a nearby trajectory for the system using
    a linear feedback law::
@@ -375,12 +375,12 @@ Linearization and Feedback Controllers
    typically a **bad idea** if *bX* and *bU* are not very close to an
    actual trajectory for the system.
 
-   Returns the projected trajectory in a tuple ``(X, U)``\ .
+   Returns the projected trajectory in a named tuple ``(X, U)``\ .
 
 
 .. method:: DSystem.dproject(A, B, bdX, bdU, K)
 
-   :rtyple: tuple (dX, dU)
+   :rtyple: named tuple (dX, dU)
 
    Project *bdX* and *bdU* into the tangent trajectory space of the
    system.  *A* and *B* are the linearization of the system about the
@@ -391,7 +391,7 @@ Linearization and Feedback Controllers
 
 .. method:: DSystem.calc_feedback_controller(X, U[, Q=None, R=None, return_linearization=False])
 
-   :rtype: K or tuple (K, A, B)
+   :rtype: K or named tuple (K, A, B)
 
    Calculate a stabilizing feedback controller for the system about a
    trajectory *X* and *U*.  The feedback law is calculated by solving
@@ -409,7 +409,7 @@ Linearization and Feedback Controllers
    feedback control law, *K*.  
 
    If *return_linearization* is :data:`True`, the method returns the
-   linearization as well in a tuple:  ``(K, A, B)``.
+   linearization as well in a named tuple:  ``(K, A, B)``.
 
 
 Checking the Derivatives
@@ -436,7 +436,7 @@ Checking the Derivatives
 
      approx_deriv = (f(x + delta) - f(x - delta)) / (2 * delta)
 
-   Each function returns a tuple ``(error, exact_norm, approx_norm)``
+   Each function returns a named tuple ``(error, exact_norm, approx_norm)``
    where ``error`` is the norm of the difference between the exact and
    approximate derivative, ``exact_norm`` is the norm of the exact
    derivative, ``approx_norm`` is the norm of the approximate derivative.

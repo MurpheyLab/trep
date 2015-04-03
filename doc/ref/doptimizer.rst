@@ -183,7 +183,7 @@ Descent Directions
 
       * "newton" - Use :meth:`calc_newton_model`
 
-   The method returns the tuple ``(Kproj, dX, dU, Q, R, S)``.
+   The method returns the named tuple ``(Kproj, dX, dU, Q, R, S)``.
 
 
 Armijo Line Search
@@ -219,7 +219,7 @@ Armijo Line Search
 .. method:: DOptimizer.armijo_search(X, U, Kproj, dX, dU)
             
    Perform an Armijo line search from the trajectory X,U along the
-   tangent trajectory dX, dU.  Returns the tuple ``(nX, nU, nCost)``
+   tangent trajectory dX, dU.  Returns the named tuple ``(nX, nU, nCost)``
    or raises :exc:`trep.ConvergenceError` if the search doesn't
    terminate before taking the maximum number of iterations.
 
@@ -247,7 +247,7 @@ Optimizing a Trajectory
    :class:`DOptimizerMonitor` when reporting the current step
    progress.
    
-   Returns the tuple ``(done, nX, nU, dcost0, cost1)`` where:
+   Returns the named tuple ``(done, nX, nU, dcost0, cost1)`` where:
 
       * *done* is a Boolean that is :data:`True` if the trajectory
         *X,U* cannot be improved (i.e, *X,U* is a local minimizer of
@@ -266,7 +266,7 @@ Optimizing a Trajectory
    is found or *max_steps* are taken.  The descent direction method
    used at each step is determined by :meth:`select_method`.
 
-   Returns the tuple ``(converged, X, U)`` where:
+   Returns the named tuple ``(converged, X, U)`` where:
 
       * *converged* is a Boolean indicating if the optimization
         finished on a local minimizer.
