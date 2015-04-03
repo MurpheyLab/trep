@@ -695,6 +695,7 @@ struct TapeMeasure_s {
     PyArrayObject *seg_table;
 };
 
+
 #define TapeMeasure_USES_CONFIG(self, q) ( ((int*)IDX1(self->seg_table, q->index))[0] != -1)
 
 
@@ -771,6 +772,15 @@ PYEXPORT double TapeMeasure_velocity_dq(TapeMeasure *self, Config *q1);
 PYEXPORT double TapeMeasure_velocity_dqdq(TapeMeasure *self, Config *q1, Config *q2);
 PYEXPORT double TapeMeasure_velocity_ddq(TapeMeasure *self, Config *dq1);
 PYEXPORT double TapeMeasure_velocity_ddqdq(TapeMeasure *self, Config *dq1, Config *q2);
+
+
+/*******************************************************************************
+ * Trep Cache/MVI Update Functions
+ */
+
+PYEXPORT void System_state_changed(System *system);
+PYEXPORT int update_trep_cache(System *sys, unsigned long flags);
+PYEXPORT int MidpointVI_solve_DEL(MidpointVI *mvi, int max_iterations);
 
 
 /*******************************************************************************
@@ -963,7 +973,6 @@ void build_vb_ddqdqdqdq_cache(System *system);
 
 
 /* Updates caching/performance values in the system. */
-void System_state_changed(System *system);
 double System_total_energy(System *system);
 double System_L(System *system);
 double System_L_dq(System *system, Config *q1);

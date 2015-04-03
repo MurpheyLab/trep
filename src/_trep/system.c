@@ -893,7 +893,7 @@ static void calc_f(System *sys)
 	System_DYN_CONFIG(sys, i1)->ddq = F(i1);
 }    
 
-static int calc_dynamics(System *sys)
+int calc_dynamics(System *sys)
 {
     if(sys->cache & SYSTEM_CACHE_DYNAMICS)
 	return 0;
@@ -1281,7 +1281,7 @@ static void calc_f_du(System *sys)
     }
 }    
 
-static int calc_dynamics_deriv1(System *sys)
+int calc_dynamics_deriv1(System *sys)
 {
     if(sys->cache & SYSTEM_CACHE_DYNAMICS_DERIV1)
 	return 0;
@@ -2028,6 +2028,53 @@ int calc_dynamics_deriv2(System *sys)
     return 0;
 }
 
+int update_trep_cache(System *sys, unsigned long flags)
+{
+    if(flags & SYSTEM_CACHE_LG)
+        build_lg_cache(sys);
+    if(flags & SYSTEM_CACHE_G)
+        build_g_cache(sys);
+    if(flags & SYSTEM_CACHE_G_DQ)
+        build_g_dq_cache(sys);
+    if(flags & SYSTEM_CACHE_G_DQDQ)
+        build_g_dqdq_cache(sys);
+    if(flags & SYSTEM_CACHE_G_DQDQDQ)
+        build_g_dqdqdq_cache(sys);
+    if(flags & SYSTEM_CACHE_G_DQDQDQDQ)
+        build_g_dqdqdqdq_cache(sys);
+    if(flags & SYSTEM_CACHE_G_INV)
+        build_g_inv_cache(sys);
+    if(flags & SYSTEM_CACHE_G_INV_DQ)
+        build_g_inv_dq_cache(sys);
+    if(flags & SYSTEM_CACHE_G_INV_DQDQ)
+        build_g_inv_dqdq_cache(sys);
+    if(flags & SYSTEM_CACHE_VB)
+        build_vb_cache(sys);
+    if(flags & SYSTEM_CACHE_VB_DQ)
+        build_vb_dq_cache(sys);
+    if(flags & SYSTEM_CACHE_VB_DQDQ)
+        build_vb_dqdq_cache(sys);
+    if(flags & SYSTEM_CACHE_VB_DQDQDQ)
+        build_vb_dqdqdq_cache(sys);
+    if(flags & SYSTEM_CACHE_VB_DDQ)
+        build_vb_ddq_cache(sys);
+    if(flags & SYSTEM_CACHE_VB_DDQDQ)
+        build_vb_ddqdq_cache(sys);
+    if(flags & SYSTEM_CACHE_VB_DDQDQDQ)
+        build_vb_ddqdqdq_cache(sys);
+    if(flags & SYSTEM_CACHE_VB_DDQDQDQDQ)
+        build_vb_ddqdqdqdq_cache(sys);
+    if(flags & SYSTEM_CACHE_DYNAMICS)
+        calc_dynamics(sys);
+    if(flags & SYSTEM_CACHE_DYNAMICS_DERIV1)
+        calc_dynamics_deriv1(sys);
+    if(flags & SYSTEM_CACHE_DYNAMICS_DERIV2)
+        calc_dynamics_deriv2(sys);
+    if(PyErr_Occurred())
+	    return -1;
+    return 0;
+}
+
 
 /***********************************************************************
  * Python API
@@ -2266,46 +2313,9 @@ static PyObject* update_cache(System *sys, PyObject *args)
     if(!PyArg_ParseTuple(args, "k", &flags))
         return NULL;
     CALLGRIND_START_INSTRUMENTATION;
-    if(flags & SYSTEM_CACHE_LG)
-        build_lg_cache(sys);
-    if(flags & SYSTEM_CACHE_G)
-        build_g_cache(sys);
-    if(flags & SYSTEM_CACHE_G_DQ)
-        build_g_dq_cache(sys);
-    if(flags & SYSTEM_CACHE_G_DQDQ)
-        build_g_dqdq_cache(sys);
-    if(flags & SYSTEM_CACHE_G_DQDQDQ)
-        build_g_dqdqdq_cache(sys);
-    if(flags & SYSTEM_CACHE_G_DQDQDQDQ)
-        build_g_dqdqdqdq_cache(sys);
-    if(flags & SYSTEM_CACHE_G_INV)
-        build_g_inv_cache(sys);
-    if(flags & SYSTEM_CACHE_G_INV_DQ)
-        build_g_inv_dq_cache(sys);
-    if(flags & SYSTEM_CACHE_G_INV_DQDQ)
-        build_g_inv_dqdq_cache(sys);
-    if(flags & SYSTEM_CACHE_VB)
-        build_vb_cache(sys);
-    if(flags & SYSTEM_CACHE_VB_DQ)
-        build_vb_dq_cache(sys);
-    if(flags & SYSTEM_CACHE_VB_DQDQ)
-        build_vb_dqdq_cache(sys);
-    if(flags & SYSTEM_CACHE_VB_DQDQDQ)
-        build_vb_dqdqdq_cache(sys);
-    if(flags & SYSTEM_CACHE_VB_DDQ)
-        build_vb_ddq_cache(sys);
-    if(flags & SYSTEM_CACHE_VB_DDQDQ)
-        build_vb_ddqdq_cache(sys);
-    if(flags & SYSTEM_CACHE_VB_DDQDQDQ)
-        build_vb_ddqdqdq_cache(sys);
-    if(flags & SYSTEM_CACHE_VB_DDQDQDQDQ)
-        build_vb_ddqdqdqdq_cache(sys);
-    if(flags & SYSTEM_CACHE_DYNAMICS)
-        calc_dynamics(sys);
-    if(flags & SYSTEM_CACHE_DYNAMICS_DERIV1)
-        calc_dynamics_deriv1(sys);
-    if(flags & SYSTEM_CACHE_DYNAMICS_DERIV2)
-        calc_dynamics_deriv2(sys);
+    update_trep_cache(sys, flags);
+    if(PyErr_Occurred())
+	    return NULL;
     CALLGRIND_STOP_INSTRUMENTATION;
     Py_RETURN_NONE;
 }
