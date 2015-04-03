@@ -1,4 +1,4 @@
-#define TREP_C_API_VERSION 2
+#define TREP_C_API_VERSION 3
 
 
 /* Please increment TREP_C_API_VERSION whenever anything in this file
@@ -82,6 +82,10 @@ enum {
     capi_TapeMeasure_length_dq,
     capi_TapeMeasure_length_dqdq,
     capi_TapeMeasure_length_dqdqdq,
+
+    capi_update_trep_cache,
+    capi_System_state_changed,
+    capi_MidpointVI_solve_DEL,
     
     capi_TapeMeasure_velocity,
     capi_TapeMeasure_velocity_dq,
@@ -155,17 +159,17 @@ static int import_trep(void)
         return -1;
 #endif
 
+    if(trep_api->version != TREP_C_API_VERSION) {
+        PyErr_Format(PyExc_ImportError, "trep API has unexpected version %d (expected %d)",
+                     trep_api->version, TREP_C_API_VERSION);
+        return -1;
+    }
+
     if(trep_api->size != capi_size) {
         PyErr_Format(PyExc_ImportError, "trep API has unexpected size %d (expected %d)",
                      trep_api->size, capi_size);
         return -1;
         
-    }
-
-    if(trep_api->version != TREP_C_API_VERSION) {
-        PyErr_Format(PyExc_ImportError, "trep API has unexpected version %d (expected %d)",
-                     trep_api->version, TREP_C_API_VERSION);
-        return -1;
     }
 
     trep_API = trep_api->API;
@@ -562,6 +566,27 @@ double TapeMeasure_velocity_ddqdq(TapeMeasure *self, Config *dq1, Config *q2)
 {
     return (*(double (*)(TapeMeasure*, Config*, Config*)
                 ) trep_API[capi_TapeMeasure_velocity_ddqdq])(self, dq1, q2);
+
+
+ATTRIBUTE_UNUSED
+void System_state_changed(System *sys)
+{
+    return (*(void (*)(System*)
+                ) trep_API[capi_System_state_changed])(sys);
+}
+
+ATTRIBUTE_UNUSED 
+int update_trep_cache(System *sys, unsigned long flags)
+{
+    return (*(int (*)(System*, unsigned long)
+                ) trep_API[capi_update_trep_cache])(sys, flags);
+}
+
+ATTRIBUTE_UNUSED 
+int MidpointVI_solve_DEL(MidpointVI *mvi, int max_iterations)
+{
+    return (*(int (*)(MidpointVI*, int)
+                ) trep_API[capi_MidpointVI_solve_DEL])(mvi, max_iterations);
 }
 
 #endif  /* TREP_MODULE not defined. */
@@ -662,6 +687,10 @@ static PyObject* export_trep(void)
     trep_API[capi_TapeMeasure_velocity_dqdq] = (void*)TapeMeasure_velocity_dqdq;
     trep_API[capi_TapeMeasure_velocity_ddq] = (void*)TapeMeasure_velocity_ddq;
     trep_API[capi_TapeMeasure_velocity_ddqdq] = (void*)TapeMeasure_velocity_ddqdq;
+
+    trep_API[capi_System_state_changed] = (void*)System_state_changed;
+    trep_API[capi_update_trep_cache] = (void*)update_trep_cache;
+    trep_API[capi_MidpointVI_solve_DEL] = (void*)MidpointVI_solve_DEL;
 
     trep_API_def.version = TREP_C_API_VERSION;
     trep_API_def.size = capi_size;
