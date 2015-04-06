@@ -7,7 +7,7 @@
 
 The :class:`ROSMidpointVI` class wraps the :class:`trep.MidpointVI` class to implement a variational integrator with a few extra features for use in a ROS environment. This class is a superset of the :class:`trep.MidpointVI` class, so see the :class:`trep.MidpointVI` documentation for a full listing of the class description.
 
-Initializing the :class:`ROSMidpointVI` class creates a :class:`rospy` publisher which will automatically publish the configurations to the the */joint_states* topic when :meth:`step` is called.
+Initializing the :class:`ROSMidpointVI` class creates a :class:`rospy` publisher which will automatically publish all trep frames to the /tf topic when :meth:`step` is called.
 
 
 .. class:: ROSMidpointVI(system, timestep, tolerance=1e-10, num_threads=None)
@@ -39,7 +39,7 @@ Simulation
    will be saved as the new state, available through :attr:`t2`,
    :attr:`q2`, and :attr:`p2`.  :attr:`lambda` will be updated with
    the new constraint force, and :attr:`u1` will be updated with the
-   value of *u1*.  The configurations are also published to the /joint_states topic.
+   value of *u1*.  The frames are also published to the /tf topic.
 
    *lambda1* and *q2* can be specified to seed the root solving
    algorithm.  If they are :data:`None`, the previous values will be

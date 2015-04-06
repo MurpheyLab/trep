@@ -1,6 +1,14 @@
 Trep Changelog
 ==============
 
+v1.0.0 (2015-04-06)
+-------------------
+* New public methods exposed in C-API version 3
+* Linear damper added [#22](https://github.com/MurpheyLab/trep/issues/22)
+* PointToPoint constraint type added
+* Named tuples added to DOptimizer returns [#3](https://github.com/MurpheyLab/trep/issues/3)
+* Bugfixes and updates to URDF parser
+
 v0.93.1 (2014-11-24)
 --------------------
 * Fixed a major bug with fixed RZ frame transformations

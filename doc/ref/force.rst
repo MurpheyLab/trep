@@ -18,8 +18,8 @@
    instantiating a specific type of force..
 
    See :ref:`builtin_forces` for the built-in types of
-   forces. :ref:`creating_forces` describes how to create
-   new forces in Python or C.
+   forces. Additional forces can be added through either the 
+   Python or C-API.
 
    Forces are used to include non-conservative and control forces in a
    mechanical system.  Forces must be expressed in the generalized

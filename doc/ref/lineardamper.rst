@@ -14,11 +14,11 @@ multiplied by the change in the damper's length (distance):
 
 .. math::
 
-   \ell = |p_1 - p_2|
+   x = ||p_1 - p_2||
 
-   f = -c \dot \ell
+   f = -c \dot x
 
-   F_{q_i} = f \deriv[\ell]{q_i}
+   F_{q_i} = f \deriv[x]{q_i}
 
 
 where :math:`p_1` and :math:`p_2` are the origins of two coordinate

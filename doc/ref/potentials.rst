@@ -4,7 +4,7 @@
 ===========================================
 
 .. module:: trep.potentials
-   :platform: Linux, Mac
+   :platform: Linux, Mac, Windows
    :synopsis: Built in potential energy types.
 
 

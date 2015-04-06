@@ -17,8 +17,8 @@
    energy.  
 
    See :ref:`builtin_potential_energies` for the built-in types of
-   potential energy.  :ref:`creating_potential_energies` describes how
-   to create new potential energies in Python or C.
+   potential energy. Additional potentials can be added through either the 
+   Python or C-API.
 
    Potential energies represent conservative forces in a mechanical
    system like gravity and springs.  Implementing these forces as

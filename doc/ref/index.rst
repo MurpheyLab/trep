@@ -27,5 +27,4 @@ derivatives of the dynamics.
    optimal
    ros
    misc
-   visualization
 

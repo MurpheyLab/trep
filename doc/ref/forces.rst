@@ -4,7 +4,7 @@
 ===========================
 
 .. module:: trep.forces
-   :platform: Linux, Mac
+   :platform: Linux, Mac, Windows
    :synopsis: Built in non-conservative force types.
 
 

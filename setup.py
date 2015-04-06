@@ -1,10 +1,13 @@
 #!/usr/bin/python
 
+try:
+    from setuptools import setup, Extension, convert_path
+except ImportError:
+    from distutils.core import setup
+    from distutils.util import convert_path
+    from distutils.extension import Extension
 import sys
 import subprocess
-from distutils.util import convert_path
-from distutils.core import setup
-from distutils.extension import Extension
 from distutils.sysconfig import get_python_inc, get_config_var
 import os.path
 import numpy

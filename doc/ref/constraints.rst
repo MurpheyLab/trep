@@ -4,15 +4,14 @@
 ===============================================
 
 .. module:: trep.constraints
-   :platform: Linux, Mac
+   :platform: Linux, Mac, Windows
    :synopsis: Built in holonomic constraint types.
 
 
 This module contains the built in types of holonomic constraints.
 
 These are the types of constraints currently built in to :mod:`trep`.
-:ref:`creating_constraints` describes how to create a new type of
-constraint in Python or C.
+Additional constraints can be added through either the Python or C-API.
 
 
 .. toctree::

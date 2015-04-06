@@ -17,8 +17,8 @@
    are created by instantiating a specific type of constraint.
 
    See :ref:`builtin_constraints` for the built-in types of
-   constraints. :ref:`creating_constraints` describes how to create
-   new constraints in Python or C.
+   constraints. Additional constraints can be added through either the 
+   Python or C-API.
 
    Holonomic constraints restrict the allowable configurations of a
    mechanical system.  Every constraint has an associated constraint
@@ -63,19 +63,6 @@ Constraint Objects
    Return the value of the constraint function at the system's current
    state.  This function should be implemented by derived Constraints.
 
-   .. table:: **Required for Calculations**
-
-      ===================    ========
-      Desired Calculation    Required
-      ===================    ========
-      Continuous Dynamics      Y
-      1st Derivative           Y
-      2nd Derivative           Y
-      Discrete Dynamics        Y
-      1st Derivative           Y
-      2nd Derivative           Y
-      ===================    ========
-
 
 .. method:: Constraint.h_dq(q1)
            
@@ -85,18 +72,6 @@ Constraint Objects
 
    Return the derivative of h with respect to *q1*.
 
-   .. table:: **Required for Calculations**
-
-      ===================    ========
-      Desired Calculation    Required
-      ===================    ========
-      Continuous Dynamics      ?
-      1st Derivative           ?
-      2nd Derivative           ?
-      Discrete Dynamics        ?
-      1st Derivative           ?
-      2nd Derivative           ?
-      ===================    ========
 
 .. method:: Constraint.h_dqdq(q1, q2)
            
@@ -108,18 +83,6 @@ Constraint Objects
 
    Return the second derivative of h with respect to *q1* and *q2*.
 
-   .. table:: **Required for Calculations**
-
-      ===================    ========
-      Desired Calculation    Required
-      ===================    ========
-      Continuous Dynamics      ?
-      1st Derivative           ?
-      2nd Derivative           ?
-      Discrete Dynamics        ?
-      1st Derivative           ?
-      2nd Derivative           ?
-      ===================    ========
    
 .. method:: Constraint.h_dqdqdq(q1, q2, q3)
            
@@ -134,18 +97,7 @@ Constraint Objects
    Return the third derivative of h with respect to *q1*, *q2*, and
    *q3*.
 
-   .. table:: **Required for Calculations**
 
-      ===================    ========
-      Desired Calculation    Required
-      ===================    ========
-      Continuous Dynamics      ?
-      1st Derivative           ?
-      2nd Derivative           ?
-      Discrete Dynamics        ?
-      1st Derivative           ?
-      2nd Derivative           ?
-      ===================    ========
 
 .. method:: Constraint.h_dqdqdqdq(q1, q2, q3, q4)
            
@@ -162,18 +114,6 @@ Constraint Objects
    Return the fourth derivative of h with respect to *q1*, *q2*, *q3*,
    and *q4*.
 
-   .. table:: **Required for Calculations**
-
-      ===================    ========
-      Desired Calculation    Required
-      ===================    ========
-      Continuous Dynamics      ?
-      1st Derivative           ?
-      2nd Derivative           ?
-      Discrete Dynamics        ?
-      1st Derivative           ?
-      2nd Derivative           ?
-      ===================    ========
 
 
 Verifying Derivatives of the Constraint

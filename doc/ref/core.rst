@@ -3,7 +3,7 @@
 =============================
 
 .. module:: trep
-   :platform: Linux, Mac
+   :platform: Linux, Mac, Windows
    :synopsis: Dynamics and Optimal Control Tools
 
 
