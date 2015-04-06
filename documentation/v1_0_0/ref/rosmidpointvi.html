@@ -1,0 +1,207 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>ROSMidpointVI - ROS Midpoint Variational Integrator &mdash; trep documentation</title>
+    
+    <link rel="stylesheet" href="../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.92-dev',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="trep documentation" href="../index.html" />
+    <link rel="up" title="trep.ros - ROS Tools" href="ros.html" />
+    <link rel="next" title="Misc. Components" href="misc.html" />
+    <link rel="prev" title="URDF Import Tool" href="urdf.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="misc.html" title="Misc. Components"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="urdf.html" title="URDF Import Tool"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../index.html">trep documentation</a> &raquo;</li>
+          <li><a href="index.html" >API Reference</a> &raquo;</li>
+          <li><a href="ros.html" accesskey="U"><tt class="docutils literal"><span class="pre">trep.ros</span></tt> - ROS Tools</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+    <script type="math/tex">
+    \newcommand{\deriv}[2][]{\dfrac{\partial #1}{\partial #2}}
+\newcommand{\tderiv}[2][]{\tfrac{\partial #1}{\partial #2}}
+\newcommand{\fderiv}[2][]{\dfrac{d #1}{d #2}}
+\newcommand{\derivII}[3][]{\dfrac{\partial^2 #1}{\partial #2 \partial #3}}
+\newcommand{\tderivII}[3][]{\tfrac{\partial^2 #1}{\partial #2 \partial #3}}
+\newcommand{\derivIII}[4][]{\dfrac{\partial^3 #1}{\partial #2 \partial #3 \partial #4}}
+\newcommand{\tderivIII}[4][]{\tfrac{\partial^3 #1}{\partial #2 \partial #3 \partial #4}}
+\newcommand{\derivIV}[5][]{\dfrac{\partial^4 #1}{\partial #2 \partial #3 \partial #4 \partial #5}}
+
+\newcommand{\half}{\tfrac{1}{2}}  % Macro for 1/2
+
+\newcommand{\ud}{\mathrm{d}}
+
+\newcommand{\op}{\circ}
+\newcommand{\dq}{\dot{q}}
+\newcommand{\ddq}{\ddot{q}}
+
+\newcommand{\dt}{\Delta t}
+
+
+    </script>
+    
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="rosmidpointvi-ros-midpoint-variational-integrator">
+<span id="trep-rosmidpointvi"></span><h1><tt class="xref py py-class docutils literal"><span class="pre">ROSMidpointVI</span></tt> - ROS Midpoint Variational Integrator<a class="headerlink" href="#rosmidpointvi-ros-midpoint-variational-integrator" title="Permalink to this headline">¶</a></h1>
+<p>The <a class="reference internal" href="#trep.ros.ROSMidpointVI" title="trep.ros.ROSMidpointVI"><tt class="xref py py-class docutils literal"><span class="pre">ROSMidpointVI</span></tt></a> class wraps the <a class="reference internal" href="midpointvi.html#trep.MidpointVI" title="trep.MidpointVI"><tt class="xref py py-class docutils literal"><span class="pre">trep.MidpointVI</span></tt></a> class to implement a variational integrator with a few extra features for use in a ROS environment. This class is a superset of the <a class="reference internal" href="midpointvi.html#trep.MidpointVI" title="trep.MidpointVI"><tt class="xref py py-class docutils literal"><span class="pre">trep.MidpointVI</span></tt></a> class, so see the <a class="reference internal" href="midpointvi.html#trep.MidpointVI" title="trep.MidpointVI"><tt class="xref py py-class docutils literal"><span class="pre">trep.MidpointVI</span></tt></a> documentation for a full listing of the class description.</p>
+<p>Initializing the <a class="reference internal" href="#trep.ros.ROSMidpointVI" title="trep.ros.ROSMidpointVI"><tt class="xref py py-class docutils literal"><span class="pre">ROSMidpointVI</span></tt></a> class creates a <tt class="xref py py-class docutils literal"><span class="pre">rospy</span></tt> publisher which will automatically publish all trep frames to the /tf topic when <tt class="xref py py-meth docutils literal"><span class="pre">step()</span></tt> is called.</p>
+<dl class="class">
+<dt id="trep.ros.ROSMidpointVI">
+<em class="property">class </em><tt class="descclassname">trep.ros.</tt><tt class="descname">ROSMidpointVI</tt><big>(</big><em>system</em>, <em>timestep</em>, <em>tolerance=1e-10</em>, <em>num_threads=None</em><big>)</big><a class="headerlink" href="#trep.ros.ROSMidpointVI" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a new empty mechanical system.  <em>system</em> is a valid
+<tt class="xref py py-class docutils literal"><span class="pre">System</span></tt> object that will be simulation.</p>
+<dl class="docutils">
+<dt><em>timestep</em> is a different requirement for the <a class="reference internal" href="#trep.ros.ROSMidpointVI" title="trep.ros.ROSMidpointVI"><tt class="xref py py-class docutils literal"><span class="pre">ROSMidpointVI</span></tt></a> class.  This</dt>
+<dd>sets the fixed timestep for the system simulation.  The value is in seconds, ie. 0.1.</dd>
+<dt><em>tolerance</em> sets the desired tolerance of the root solver when</dt>
+<dd><p class="first">solving the DEL equation to advance the integrator.</p>
+<p class="last"><tt class="xref py py-class docutils literal"><span class="pre">MidpointVI</span></tt> makes use of multithreading to speed up the
+calculations.  <em>num_threads</em> sets the number of threads used by
+this integrator.  If <em>num_threads</em> is <tt class="xref py py-data docutils literal"><span class="pre">None</span></tt>, the integrator
+will use the number of available processors reported by Python&#8217;s
+<tt class="xref py py-mod docutils literal"><span class="pre">multiprocessing</span></tt> module.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<div class="section" id="simulation">
+<h2>Simulation<a class="headerlink" href="#simulation" title="Permalink to this headline">¶</a></h2>
+<dl class="method">
+<dt id="trep.ros.ROSMidpointVI.step">
+<tt class="descclassname">ROSMidpointVI.</tt><tt class="descname">step</tt><big>(</big><em>u1=tuple()</em>, <em>k2=tuple()</em>, <em>max_iterations=200</em>, <em>lambda1_hint=None</em>, <em>q2_hint=None</em><big>)</big><a class="headerlink" href="#trep.ros.ROSMidpointVI.step" title="Permalink to this definition">¶</a></dt>
+<dd><p>Step the integrator forward by one timestep .  This advances the time
+and solves the DEL equation.  The current state will become the
+previous state (ie, <span class="math">\(t_2 \Rightarrow t_1\)</span>, <span class="math">\(q_2
+\Rightarrow q_1\)</span>, <span class="math">\(p_2 \Rightarrow p_1\)</span>).  The solution
+will be saved as the new state, available through <tt class="xref py py-attr docutils literal"><span class="pre">t2</span></tt>,
+<tt class="xref py py-attr docutils literal"><span class="pre">q2</span></tt>, and <tt class="xref py py-attr docutils literal"><span class="pre">p2</span></tt>.  <tt class="xref py py-attr docutils literal"><span class="pre">lambda</span></tt> will be updated with
+the new constraint force, and <tt class="xref py py-attr docutils literal"><span class="pre">u1</span></tt> will be updated with the
+value of <em>u1</em>.  The frames are also published to the /tf topic.</p>
+<p><em>lambda1</em> and <em>q2</em> can be specified to seed the root solving
+algorithm.  If they are <tt class="xref py py-data docutils literal"><span class="pre">None</span></tt>, the previous values will be
+used.</p>
+<p>The method returns the number of root solver iterations needed to
+find the solution.</p>
+<p>Raises a <tt class="xref py py-exc docutils literal"><span class="pre">ConvergenceError</span></tt> exception if the root solver
+cannot find a solution after <em>max_iterations</em>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="trep.ros.ROSMidpointVI.sleep">
+<tt class="descclassname">ROSMidpointVI.</tt><tt class="descname">sleep</tt><big>(</big><big>)</big><a class="headerlink" href="#trep.ros.ROSMidpointVI.sleep" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calls the <tt class="xref py py-meth docutils literal"><span class="pre">rospy.Rate.sleep()</span></tt> method set to <em>timestep</em> of the <a class="reference internal" href="#trep.ros.ROSMidpointVI" title="trep.ros.ROSMidpointVI"><tt class="xref py py-class docutils literal"><span class="pre">ROSMidpointVI</span></tt></a> class.  This method attempts to keep a loop at the specified frequency accounting for the time used by any operations during the loop.</p>
+<p>Raises a <tt class="xref py py-exc docutils literal"><span class="pre">rospy.ROSInterruptException</span></tt> exception if sleep is interrupted by shutdown.</p>
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+    <h2><a href="http://murpheylab.github.io/trep/">Project Website</a></h2>
+
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#"><tt class="docutils literal"><span class="pre">ROSMidpointVI</span></tt> - ROS Midpoint Variational Integrator</a><ul>
+<li><a class="reference internal" href="#simulation">Simulation</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="urdf.html"
+                        title="previous chapter">URDF Import Tool</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="misc.html"
+                        title="next chapter">Misc. Components</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="../_sources/ref/rosmidpointvi.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="misc.html" title="Misc. Components"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="urdf.html" title="URDF Import Tool"
+             >previous</a> |</li>
+        <li><a href="../index.html">trep documentation</a> &raquo;</li>
+          <li><a href="index.html" >API Reference</a> &raquo;</li>
+          <li><a href="ros.html" ><tt class="docutils literal"><span class="pre">trep.ros</span></tt> - ROS Tools</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2015, Elliot Johnson.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
+    </div>
+  </body>
+</html>

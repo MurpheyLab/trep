@@ -30,7 +30,7 @@ Please ensure that all dependencies are installed prior to installing Trep.
 
 Installers for trep can be downloaded from the [Releases page](https://github.com/MurpheyLab/trep/releases) on Github or with the following links:
 
-* v0.93.1: [[32 bit]](https://github.com/MurpheyLab/trep/releases/download/v0.93.1/trep-0.93.1.win32-py2.7.exe) [[64-bit]](https://github.com/MurpheyLab/trep/releases/download/v0.93.1/trep-0.93.1.win-amd64-py2.7.exe)
+* v1.0.0: [[32 bit]](https://github.com/MurpheyLab/trep/releases/download/v1.0.0/trep-1.0.0.win32-py2.7.exe) [[64-bit]](https://github.com/MurpheyLab/trep/releases/download/v1.0.0/trep-1.0.0.win-amd64-py2.7.exe)
 
 Following installation, you can check to see if trep is working by opening a python shell and running
 

@@ -1,0 +1,235 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>LinearDamper – Linear damper between two points &mdash; trep documentation</title>
+    
+    <link rel="stylesheet" href="../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.92-dev',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="trep documentation" href="../index.html" />
+    <link rel="up" title="trep.forces - Forces" href="forces.html" />
+    <link rel="next" title="ConfigForce – Apply forces to a configuration variable." href="configforce.html" />
+    <link rel="prev" title="Damping – Damping on Configuration Variables" href="damping.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="configforce.html" title="ConfigForce – Apply forces to a configuration variable."
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="damping.html" title="Damping – Damping on Configuration Variables"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../index.html">trep documentation</a> &raquo;</li>
+          <li><a href="index.html" >API Reference</a> &raquo;</li>
+          <li><a href="forces.html" accesskey="U"><tt class="docutils literal"><span class="pre">trep.forces</span></tt> - Forces</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+    <script type="math/tex">
+    \newcommand{\deriv}[2][]{\dfrac{\partial #1}{\partial #2}}
+\newcommand{\tderiv}[2][]{\tfrac{\partial #1}{\partial #2}}
+\newcommand{\fderiv}[2][]{\dfrac{d #1}{d #2}}
+\newcommand{\derivII}[3][]{\dfrac{\partial^2 #1}{\partial #2 \partial #3}}
+\newcommand{\tderivII}[3][]{\tfrac{\partial^2 #1}{\partial #2 \partial #3}}
+\newcommand{\derivIII}[4][]{\dfrac{\partial^3 #1}{\partial #2 \partial #3 \partial #4}}
+\newcommand{\tderivIII}[4][]{\tfrac{\partial^3 #1}{\partial #2 \partial #3 \partial #4}}
+\newcommand{\derivIV}[5][]{\dfrac{\partial^4 #1}{\partial #2 \partial #3 \partial #4 \partial #5}}
+
+\newcommand{\half}{\tfrac{1}{2}}  % Macro for 1/2
+
+\newcommand{\ud}{\mathrm{d}}
+
+\newcommand{\op}{\circ}
+\newcommand{\dq}{\dot{q}}
+\newcommand{\ddq}{\ddot{q}}
+
+\newcommand{\dt}{\Delta t}
+
+
+    </script>
+    
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="lineardamper-linear-damper-between-two-points">
+<h1><tt class="xref py py-class docutils literal"><span class="pre">LinearDamper</span></tt> &#8211; Linear damper between two points<a class="headerlink" href="#lineardamper-linear-damper-between-two-points" title="Permalink to this headline">¶</a></h1>
+<p><a class="reference internal" href="#trep.forces.LinearDamper" title="trep.forces.LinearDamper"><tt class="xref py py-class docutils literal"><span class="pre">LinearDamper</span></tt></a> creates a damping force between the origins of
+two coordinate frames in 3D space:</p>
+<p>We can derive a mapping from the damper force to a force in the
+generalized coordinates by looking at the work done by the damper.
+The virtual work done by a damper is simply the damper force
+multiplied by the change in the damper&#8217;s length (distance):</p>
+<div class="math">
+\[x = ||p_1 - p_2||\]\[f = -c \dot x\]\[F_{q_i} = f \deriv[x]{q_i}\]</div>
+<p>where <span class="math">\(p_1\)</span> and <span class="math">\(p_2\)</span> are the origins of two coordinate
+frames and <span class="math">\(c\)</span> is the damper coefficient.</p>
+<blockquote>
+<div><table border="1" class="docutils">
+<caption><strong>Implemented Calculations</strong></caption>
+<colgroup>
+<col width="50%" />
+<col width="50%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Calculation</th>
+<th class="head">Implemented</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>f</td>
+<td>Y</td>
+</tr>
+<tr class="row-odd"><td>f_dq</td>
+<td>Y</td>
+</tr>
+<tr class="row-even"><td>f_ddq</td>
+<td>Y</td>
+</tr>
+<tr class="row-odd"><td>f_du</td>
+<td>Y</td>
+</tr>
+<tr class="row-even"><td>f_dqdq</td>
+<td>Y</td>
+</tr>
+<tr class="row-odd"><td>f_ddqdq</td>
+<td>Y</td>
+</tr>
+<tr class="row-even"><td>f_ddqddq</td>
+<td>Y</td>
+</tr>
+<tr class="row-odd"><td>f_dudq</td>
+<td>Y</td>
+</tr>
+<tr class="row-even"><td>f_duddq</td>
+<td>Y</td>
+</tr>
+<tr class="row-odd"><td>f_dudu</td>
+<td>Y</td>
+</tr>
+</tbody>
+</table>
+</div></blockquote>
+<div class="admonition-examples admonition">
+<p class="first admonition-title">Examples</p>
+<p class="last"><tt class="docutils literal"><span class="pre">dual_pendulums.py</span></tt></p>
+</div>
+<dl class="class">
+<dt id="trep.forces.LinearDamper">
+<em class="property">class </em><tt class="descclassname">trep.forces.</tt><tt class="descname">LinearDamper</tt><big>(</big><em>system</em>, <em>frame1</em>, <em>frame2</em>, <em>c</em><span class="optional">[</span>, <em>name=None</em><span class="optional">]</span><big>)</big><a class="headerlink" href="#trep.forces.LinearDamper" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a new damper between <em>frame1</em> and <em>frame2</em>.  The frames must
+already exist in the system.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="trep.forces.LinearDamper.frame1">
+<tt class="descclassname">LinearDamper.</tt><tt class="descname">frame1</tt><a class="headerlink" href="#trep.forces.LinearDamper.frame1" title="Permalink to this definition">¶</a></dt>
+<dd><p>The coordinate frame at one end of the damper.</p>
+<p><em>(read only)</em></p>
+</dd></dl>
+
+<dl class="attribute">
+<dt>
+<tt class="descclassname">LinearDamper.</tt><tt class="descname">frame1</tt></dt>
+<dd><p>The coordinate frame at the other end of the damper.</p>
+<p><em>(read only)</em></p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="trep.forces.LinearDamper.c">
+<tt class="descclassname">LinearDamper.</tt><tt class="descname">c</tt><a class="headerlink" href="#trep.forces.LinearDamper.c" title="Permalink to this definition">¶</a></dt>
+<dd><p>The damping coefficient of the damper.</p>
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+    <h2><a href="http://murpheylab.github.io/trep/">Project Website</a></h2>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="damping.html"
+                        title="previous chapter"><tt class="docutils literal"><span class="pre">Damping</span></tt> &#8211; Damping on Configuration Variables</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="configforce.html"
+                        title="next chapter"><tt class="docutils literal"><span class="pre">ConfigForce</span></tt> &#8211; Apply forces to a configuration variable.</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="../_sources/ref/lineardamper.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="configforce.html" title="ConfigForce – Apply forces to a configuration variable."
+             >next</a> |</li>
+        <li class="right" >
+          <a href="damping.html" title="Damping – Damping on Configuration Variables"
+             >previous</a> |</li>
+        <li><a href="../index.html">trep documentation</a> &raquo;</li>
+          <li><a href="index.html" >API Reference</a> &raquo;</li>
+          <li><a href="forces.html" ><tt class="docutils literal"><span class="pre">trep.forces</span></tt> - Forces</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2015, Elliot Johnson.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
+    </div>
+  </body>
+</html>

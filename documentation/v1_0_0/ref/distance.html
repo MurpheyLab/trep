@@ -1,0 +1,218 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Distance - Maintain a specific distance between points &mdash; trep documentation</title>
+    
+    <link rel="stylesheet" href="../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.92-dev',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="trep documentation" href="../index.html" />
+    <link rel="up" title="trep.constraints - Holonomic Constraints" href="constraints.html" />
+    <link rel="next" title="PointToPoint - Constrain the origins of two frames together" href="point.html" />
+    <link rel="prev" title="trep.constraints - Holonomic Constraints" href="constraints.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="point.html" title="PointToPoint - Constrain the origins of two frames together"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="constraints.html" title="trep.constraints - Holonomic Constraints"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../index.html">trep documentation</a> &raquo;</li>
+          <li><a href="index.html" >API Reference</a> &raquo;</li>
+          <li><a href="constraints.html" accesskey="U"><tt class="docutils literal"><span class="pre">trep.constraints</span></tt> - Holonomic Constraints</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+    <script type="math/tex">
+    \newcommand{\deriv}[2][]{\dfrac{\partial #1}{\partial #2}}
+\newcommand{\tderiv}[2][]{\tfrac{\partial #1}{\partial #2}}
+\newcommand{\fderiv}[2][]{\dfrac{d #1}{d #2}}
+\newcommand{\derivII}[3][]{\dfrac{\partial^2 #1}{\partial #2 \partial #3}}
+\newcommand{\tderivII}[3][]{\tfrac{\partial^2 #1}{\partial #2 \partial #3}}
+\newcommand{\derivIII}[4][]{\dfrac{\partial^3 #1}{\partial #2 \partial #3 \partial #4}}
+\newcommand{\tderivIII}[4][]{\tfrac{\partial^3 #1}{\partial #2 \partial #3 \partial #4}}
+\newcommand{\derivIV}[5][]{\dfrac{\partial^4 #1}{\partial #2 \partial #3 \partial #4 \partial #5}}
+
+\newcommand{\half}{\tfrac{1}{2}}  % Macro for 1/2
+
+\newcommand{\ud}{\mathrm{d}}
+
+\newcommand{\op}{\circ}
+\newcommand{\dq}{\dot{q}}
+\newcommand{\ddq}{\ddot{q}}
+
+\newcommand{\dt}{\Delta t}
+
+
+    </script>
+    
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="distance-maintain-a-specific-distance-between-points">
+<h1><tt class="xref py py-class docutils literal"><span class="pre">Distance</span></tt> - Maintain a specific distance between points<a class="headerlink" href="#distance-maintain-a-specific-distance-between-points" title="Permalink to this headline">¶</a></h1>
+<p>The <a class="reference internal" href="#trep.constraints.Distance" title="trep.constraints.Distance"><tt class="xref py py-class docutils literal"><span class="pre">Distance</span></tt></a> constraint maintains a specific distance between
+the origins of two coordinate frames.  The distance can be a fixed
+number or controlled by a kinematic configuration variable.</p>
+<p>The constraint equation is:</p>
+<div class="math">
+\[d^2 = (p_1 - p_2)^T (p_1 - p_2)\]</div>
+<p>where <span class="math">\(p_1\)</span> and <span class="math">\(p_2\)</span> are the origins of two coordinate
+frames and <span class="math">\(d\)</span> is the desired distance between them.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">This constraint is undefined when <span class="math">\(d\)</span> = 0.  If you want to
+constraint two points to be coincident, you can use the
+<tt class="xref py py-class docutils literal"><span class="pre">PointToPoint</span></tt> constraint instead.</p>
+</div>
+<div class="admonition-examples admonition">
+<p class="first admonition-title">Examples</p>
+<p class="last"><tt class="docutils literal"><span class="pre">puppet-basic.py</span></tt>, <tt class="docutils literal"><span class="pre">puppet-continuous-moving.py</span></tt>, <tt class="docutils literal"><span class="pre">puppet-moving.py</span></tt></p>
+</div>
+<dl class="class">
+<dt id="trep.constraints.Distance">
+<em class="property">class </em><tt class="descclassname">trep.constraints.</tt><tt class="descname">Distance</tt><big>(</big><em>system</em>, <em>frame1</em>, <em>frame2</em>, <em>distance</em>, <em>name=None</em><big>)</big><a class="headerlink" href="#trep.constraints.Distance" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a new constraint to maintain the distance between <em>frame1</em>
+and <em>frame2</em>.</p>
+<p><em>frame1</em> and <em>frame2</em> should be existing coordinate frames in
+<em>system</em>.  They can be the <tt class="xref py py-class docutils literal"><span class="pre">Frame</span></tt> objects themselves or
+their names.</p>
+<p><em>distance</em> can be a real number or a string.  If it is a string,
+the constraint will create a new kinematic configuration variable
+with that name.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="trep.constraints.Distance.config">
+<tt class="descclassname">Distance.</tt><tt class="descname">config</tt><a class="headerlink" href="#trep.constraints.Distance.config" title="Permalink to this definition">¶</a></dt>
+<dd><p>This is the kinematic configuration variable that controls the
+distance, or <tt class="xref py py-data docutils literal"><span class="pre">None</span></tt> for a fixed distance constraint.</p>
+<p><em>(read-only)</em></p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="trep.constraints.Distance.frame1">
+<tt class="descclassname">Distance.</tt><tt class="descname">frame1</tt><a class="headerlink" href="#trep.constraints.Distance.frame1" title="Permalink to this definition">¶</a></dt>
+<dt id="trep.constraints.Distance.frame2">
+<tt class="descclassname">Distance.</tt><tt class="descname">frame2</tt><a class="headerlink" href="#trep.constraints.Distance.frame2" title="Permalink to this definition">¶</a></dt>
+<dd><p>These are the two <tt class="xref py py-class docutils literal"><span class="pre">Frame</span></tt> objects being constrained.</p>
+<p><em>(read-only)</em></p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="trep.constraints.Distance.distance">
+<tt class="descclassname">Distance.</tt><tt class="descname">distance</tt><a class="headerlink" href="#trep.constraints.Distance.distance" title="Permalink to this definition">¶</a></dt>
+<dd><p>This is the <em>desired</em> constraint between the two coordinate frames.
+This is either the fixed value or the value of the configuration
+variable.  If you set the distance, the appropriate value will be
+updated.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="trep.constraints.Distance.get_actual_distance">
+<tt class="descclassname">Distance.</tt><tt class="descname">get_actual_distance</tt><big>(</big><big>)</big><a class="headerlink" href="#trep.constraints.Distance.get_actual_distance" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate the current distance between the two coordinate frames.
+If the constraint is currently satisfied, this is equal to
+<a class="reference internal" href="#trep.constraints.Distance.distance" title="trep.constraints.Distance.distance"><tt class="xref py py-attr docutils literal"><span class="pre">distance</span></tt></a>.</p>
+<p>If you have the system in a configuration you like, you can use
+this to set the correct distance:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">constraint</span><span class="o">.</span><span class="n">distance</span> <span class="o">=</span> <span class="n">constraint</span><span class="o">.</span><span class="n">get_actual_distance</span><span class="p">()</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+    <h2><a href="http://murpheylab.github.io/trep/">Project Website</a></h2>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="constraints.html"
+                        title="previous chapter"><tt class="docutils literal"><span class="pre">trep.constraints</span></tt> - Holonomic Constraints</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="point.html"
+                        title="next chapter"><tt class="docutils literal"><span class="pre">PointToPoint</span></tt> - Constrain the origins of two frames together</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="../_sources/ref/distance.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="point.html" title="PointToPoint - Constrain the origins of two frames together"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="constraints.html" title="trep.constraints - Holonomic Constraints"
+             >previous</a> |</li>
+        <li><a href="../index.html">trep documentation</a> &raquo;</li>
+          <li><a href="index.html" >API Reference</a> &raquo;</li>
+          <li><a href="constraints.html" ><tt class="docutils literal"><span class="pre">trep.constraints</span></tt> - Holonomic Constraints</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2015, Elliot Johnson.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
+    </div>
+  </body>
+</html>
