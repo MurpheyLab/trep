@@ -7,5 +7,9 @@
   image: /images/whisker.jpg
 
 - title: ROS Demo Package
-  url: https://github.com/MurpheyLab/trep_urdf
+  url: https://github.com/MurpheyLab/trep_urdf_demo
   image: /images/ros-demo.jpg
+
+- title: Phantom Omni ROS Simulator
+  url: https://github.com/MurpheyLab/trep_omni
+  image: /images/trep-omni.jpg

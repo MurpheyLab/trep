@@ -28,11 +28,12 @@ title: Trep - Mechanical Simulation and Optimal Control
 
         {% for project in site.data.projects %}
         <div class="col-sm-3 col-xs-6">
-                <a href="{{ project.url }}">
+                <a color: #FFFFFF; href="{{ project.url }}">
                     <img class="img-responsive portfolio-item" src="{{ site.baseurl }}{{ project.image}}">
                 </a>
-                <span>{{ project.title }}</span>
+                <div style="margin-bottom: 20px; text-align: center;">{{ project.title }}</div>        
         </div>
+
         {% endfor %}
 
     </div>

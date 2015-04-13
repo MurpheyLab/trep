@@ -1,4 +1,4 @@
-### 1. Install from ROS repository
+### 1. Installing from the ROS repository
 
 Trep is available for the ROS Hydro and Indigo distributions. First, follow the ROS installation instructions available at [http://wiki.ros.org/ROS/Installation/](http://wiki.ros.org/ROS/Installation/).
 
