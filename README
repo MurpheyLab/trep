@@ -5,7 +5,7 @@ See http://nxr.northwestern.edu/trep for more information.
 
 Build trep:             python setup.py build
 
-Install trep:           sudo python setup.py install
+Install trep w/headers: sudo python setup.py install install_headers
 
 Build documentation:    python setup.py build_sphinx
 

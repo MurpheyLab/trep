@@ -100,3 +100,12 @@ def dynamics_indexing_decorator(type_string):
         return wrapper
     return decorator
 
+def get_include():
+    """
+    Return the directory that contains the trep \\*.h header files.
+    Extension modules that need to compile against trep should use this
+    function to locate the appropriate include directory.
+    """
+    import trep, os.path
+    return os.path.join(os.path.dirname(trep.__file__), '_trep')
+

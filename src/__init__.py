@@ -22,6 +22,7 @@ except ImportError:
     pass
 
 from system import save_trajectory, load_trajectory
+from util import get_include
 
 import potentials
 import constraints
