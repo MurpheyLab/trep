@@ -1,6 +1,10 @@
 Trep Changelog
 ==============
 
+v1.0.1 (2015-05-04)
+-------------------
+* Method added to get trep include path [#31](https://github.com/MurpheyLab/trep/issues/31)
+
 v1.0.0 (2015-04-06)
 -------------------
 * New public methods exposed in C-API version 3

@@ -3,7 +3,7 @@
 Tutorial
 ========================================
 More information on trep can be found on the `trep project website
-<http://nxr.northwestern.edu/trep>`_.
+<http://murpheylab.github.io/trep>`_.
 
 This tutorial is meant to be an introduction to :mod:`trep` by walking the
 reader through extended examples. This tutorial will use a Python shell known as

@@ -15,7 +15,10 @@ import numpy
 
 def has_header(path):
     INCLUDE = get_config_var('INCLUDEDIR')
-    return os.path.exists(os.path.join(INCLUDE, *path))
+    if INCLUDE is None:
+        return False
+    else:
+        return os.path.exists(os.path.join(INCLUDE, *path))
 
 
 include_dirs = [numpy.get_include()]
@@ -24,6 +27,10 @@ ldflags=[]
 define_macros=[]
 cmd_class = {}
 cmd_options = {}
+
+if sys.platform == 'win32':
+    cflags+=['-static-libgcc', '-static-libstdc++']
+    ldflags+=['-lpthread']
 
 
 # Use safe indexing to force bounds and type checks in our numpy array
@@ -116,7 +123,7 @@ try:
     from sphinx.setup_command import BuildDoc
     cmd_class['build_sphinx'] = BuildDoc
     cmd_options['build_sphinx'] = {
-        'version' : ('setup.py', get_approx_version()),
+        'version' : ('setup.py', get_approx_version()[1:]),
         'release' : ('setup.py', '')
         }
     # See docstring for BuildDoc on how to set default options here.
@@ -176,19 +183,21 @@ ext_modules += [_trep]
 # Check for OpenGL headers.  If we can't find anything, just don't
 # build _polyobject.  There is a python implementation to fallback on.
 if sys.platform == 'darwin':
+    opengl_link=['/System/Library/Frameworks/OpenGL.framework/OpenGL']
+elif sys.platform == 'win32' and os.path.exists('C:\Windows\System32\opengl32.dll'):
+    opengl_link=['-lopengl32']
+elif has_header(['GL', 'gl.h']):
+    opengl_link=['-lGL']
+else:
+    opengl_link=None
+
+if opengl_link is not None:
     _polyobject = Extension('trep.visual._polyobject',
                             include_dirs=include_dirs,
                             extra_compile_args=[],
-                            extra_link_args=['/System/Library/Frameworks/OpenGL.framework/OpenGL'],
+                            extra_link_args=opengl_link,
                             sources = ['src/visual/_polyobject.c'])
     ext_modules += [_polyobject]
-else:
-    if has_header(['GL', 'gl.h']):
-        _polyobject = Extension('trep.visual._polyobject',
-                                extra_compile_args=[],
-                                extra_link_args=['-lGL'],
-                                sources = ['src/visual/_polyobject.c'])
-        ext_modules += [_polyobject]
 
 
 setup (name = 'trep',

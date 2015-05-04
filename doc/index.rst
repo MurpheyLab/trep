@@ -6,7 +6,7 @@
 Trep: Dynamic Simulation and Optimal Control
 ============================================
 
-:Release: |version|
+:Release: v\ |version|
 :Date: |today|
 
 Trep is a Python module for modeling rigid body mechanical systems in
@@ -15,8 +15,7 @@ and discrete dynamics (based on a midpoint variational integrator),
 and the first and second derivatives of both.  Tools for trajectory
 optimization and other basic optimal control methods are also available.
 
-We're still getting all of this documentation together.  You can find
-detailed `installation instructions
+You can find detailed `installation instructions
 <http://murpheylab.github.io/trep/install/>`_ on our website.
 Many examples are included with the source code (`browse online
 <https://github.com/MurpheyLab/trep/tree/master/examples>`_).
