@@ -1,0 +1,820 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>trep.discopt.dsystem &mdash; trep documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="trep documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">trep documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+    <script type="math/tex">
+    \newcommand{\deriv}[2][]{\dfrac{\partial #1}{\partial #2}}
+\newcommand{\tderiv}[2][]{\tfrac{\partial #1}{\partial #2}}
+\newcommand{\fderiv}[2][]{\dfrac{d #1}{d #2}}
+\newcommand{\derivII}[3][]{\dfrac{\partial^2 #1}{\partial #2 \partial #3}}
+\newcommand{\tderivII}[3][]{\tfrac{\partial^2 #1}{\partial #2 \partial #3}}
+\newcommand{\derivIII}[4][]{\dfrac{\partial^3 #1}{\partial #2 \partial #3 \partial #4}}
+\newcommand{\tderivIII}[4][]{\tfrac{\partial^3 #1}{\partial #2 \partial #3 \partial #4}}
+\newcommand{\derivIV}[5][]{\dfrac{\partial^4 #1}{\partial #2 \partial #3 \partial #4 \partial #5}}
+
+\newcommand{\half}{\tfrac{1}{2}}  % Macro for 1/2
+
+\newcommand{\ud}{\mathrm{d}}
+
+\newcommand{\op}{\circ}
+\newcommand{\dq}{\dot{q}}
+\newcommand{\ddq}{\ddot{q}}
+
+\newcommand{\dt}{\Delta t}
+
+
+    </script>
+    
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for trep.discopt.dsystem</h1><div class="highlight"><pre>
+<span class="kn">import</span> <span class="nn">trep</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">dlqr</span>
+<span class="kn">from</span> <span class="nn">numpy</span> <span class="kn">import</span> <span class="n">dot</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">namedtuple</span>
+
+<span class="c"># There is a lot of input validation here because I&#39;ve dealt with a</span>
+<span class="c"># lot of headaches from mismatching array dimensions and shapes in the</span>
+<span class="c"># past.</span>
+
+<div class="viewcode-block" id="DSystem"><a class="viewcode-back" href="../../../ref/dsystem.html#trep.discopt.DSystem">[docs]</a><span class="k">class</span> <span class="nc">DSystem</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Wrapper to treat a trep variational integrator as an arbitrary</span>
+<span class="sd">    discrete system with</span>
+<span class="sd">      X[k+1] = f(X[k], U[k], k)</span>
+<span class="sd">    where</span>
+<span class="sd">      X[k] = [ Q[k] ; p[k] ; v[k] ]</span>
+<span class="sd">         v[k] = (rho[k] - rho[k-1]) / (t[k]-t[k-1])         </span>
+<span class="sd">      U[k] = [ u[k] ; rho[k+1] ]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c"># State is X[k] = [ Q[k] ; p[k] ; v[k] ]</span>
+    <span class="c"># Input is U[k] = [ u[k] ; rho[k+1] ]</span>
+
+    <span class="c"># You have to provide the time vector to the discrete system so it</span>
+    <span class="c"># can correctly calculate the vk[k] part of the state and provide</span>
+    <span class="c"># the time to the variational integrator while presenting the</span>
+    <span class="c"># f(x[k], u[k], k) interface.</span>
+    
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">varint</span><span class="p">,</span> <span class="n">t</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">varint</span> <span class="o">=</span> <span class="n">varint</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_xk</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_uk</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_time</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">t</span><span class="p">)</span><span class="o">.</span><span class="n">squeeze</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_k</span> <span class="o">=</span> <span class="bp">None</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_nQ</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">system</span><span class="o">.</span><span class="n">configs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_np</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">system</span><span class="o">.</span><span class="n">dyn_configs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_nv</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">system</span><span class="o">.</span><span class="n">kin_configs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_nu</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">system</span><span class="o">.</span><span class="n">inputs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_nrho</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">system</span><span class="o">.</span><span class="n">kin_configs</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_nX</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_nQ</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_np</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_nv</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_nU</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_nu</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_nrho</span>
+
+        <span class="c"># Slices of the components in the appropriate vector</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_slice_Q</span> <span class="o">=</span> <span class="nb">slice</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_nQ</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_slice_Qd</span> <span class="o">=</span> <span class="nb">slice</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_np</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_slice_Qk</span> <span class="o">=</span> <span class="nb">slice</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_np</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_nQ</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_slice_p</span> <span class="o">=</span> <span class="nb">slice</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_nQ</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_nQ</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_np</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_slice_v</span> <span class="o">=</span> <span class="nb">slice</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_nQ</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_np</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_nX</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_slice_u</span> <span class="o">=</span> <span class="nb">slice</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_nu</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_slice_rho</span> <span class="o">=</span> <span class="nb">slice</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_nu</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_nU</span><span class="p">)</span>
+
+        <span class="c"># Named tuples types for function returns</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">trajectory_return</span> <span class="o">=</span> <span class="n">namedtuple</span><span class="p">(</span><span class="s">&#39;trajectory&#39;</span><span class="p">,</span> <span class="s">&#39;X U&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tangent_trajectory_return</span> <span class="o">=</span> <span class="n">namedtuple</span><span class="p">(</span><span class="s">&#39;tangent_trajectory&#39;</span><span class="p">,</span> <span class="s">&#39;dX dU&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">split_state_return</span> <span class="o">=</span> <span class="n">namedtuple</span><span class="p">(</span><span class="s">&#39;split_state&#39;</span><span class="p">,</span> <span class="s">&#39;Q p v&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">split_input_return</span> <span class="o">=</span> <span class="n">namedtuple</span><span class="p">(</span><span class="s">&#39;split_input&#39;</span><span class="p">,</span> <span class="s">&#39;u rho&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">split_trajectory_return</span> <span class="o">=</span> <span class="n">namedtuple</span><span class="p">(</span><span class="s">&#39;split_trajectory&#39;</span><span class="p">,</span> <span class="s">&#39;Q p v u rho&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">linearization_return</span> <span class="o">=</span> <span class="n">namedtuple</span><span class="p">(</span><span class="s">&#39;linearization&#39;</span><span class="p">,</span> <span class="s">&#39;A B&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">error_return</span> <span class="o">=</span> <span class="n">namedtuple</span><span class="p">(</span><span class="s">&#39;errors&#39;</span><span class="p">,</span> <span class="s">&#39;error exact_norm approx_norm&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">feedback_return</span> <span class="o">=</span> <span class="n">namedtuple</span><span class="p">(</span><span class="s">&#39;feedback&#39;</span><span class="p">,</span> <span class="s">&#39;Kproj A B&#39;</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">nX</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Number of states to the discrete system.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_nX</span>
+    
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">nU</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Number of inputs to the discrete system.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_nU</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">system</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;The mechanical system modeled by the variational integrator.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">varint</span><span class="o">.</span><span class="n">system</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">time</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;The time of the discrete steps.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_time</span>
+
+    <span class="nd">@time.setter</span>
+    <span class="k">def</span> <span class="nf">time</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">t</span><span class="p">):</span>
+        <span class="n">t</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">t</span><span class="p">)</span><span class="o">.</span><span class="n">squeeze</span><span class="p">()</span>
+        <span class="k">assert</span> <span class="n">t</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_time</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">t</span><span class="p">)</span><span class="o">.</span><span class="n">squeeze</span><span class="p">()</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">xk</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Current state of the system.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_xk</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">uk</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Current input of the system.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_uk</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">k</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Current discrete time of the system.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_k</span>
+    
+
+<div class="viewcode-block" id="DSystem.kf"><a class="viewcode-back" href="../../../ref/dsystem.html#trep.discopt.DSystem.kf">[docs]</a>    <span class="k">def</span> <span class="nf">kf</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the last available state that the system can be set to.</span>
+<span class="sd">        This is one less than len(self.time).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_time</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span>
+
+</div>
+<div class="viewcode-block" id="DSystem.build_state"><a class="viewcode-back" href="../../../ref/dsystem.html#trep.discopt.DSystem.build_state">[docs]</a>    <span class="k">def</span> <span class="nf">build_state</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">Q</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">p</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">v</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Build a state vector from components.  Unspecified components</span>
+<span class="sd">        are set to zero.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">X</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">_nX</span><span class="p">,</span> <span class="p">))</span>
+
+        <span class="k">if</span> <span class="n">Q</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span> <span class="n">X</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_slice_Q</span><span class="p">]</span> <span class="o">=</span> <span class="n">Q</span>
+        <span class="k">if</span> <span class="n">p</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span> <span class="n">X</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_slice_p</span><span class="p">]</span> <span class="o">=</span> <span class="n">p</span>
+        <span class="k">if</span> <span class="n">v</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span> <span class="n">X</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_slice_v</span><span class="p">]</span> <span class="o">=</span> <span class="n">v</span>
+        <span class="k">return</span> <span class="n">X</span>         
+</div>
+<div class="viewcode-block" id="DSystem.build_input"><a class="viewcode-back" href="../../../ref/dsystem.html#trep.discopt.DSystem.build_input">[docs]</a>    <span class="k">def</span> <span class="nf">build_input</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">u</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">rho</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Build an input vector from components.  Unspecified components</span>
+<span class="sd">        are set to zero.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">U</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">_nU</span><span class="p">,</span> <span class="p">))</span>
+
+        <span class="k">if</span> <span class="n">u</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span> <span class="n">U</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_slice_u</span><span class="p">]</span> <span class="o">=</span> <span class="n">u</span>
+        <span class="k">if</span> <span class="n">rho</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span> <span class="n">U</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_slice_rho</span><span class="p">]</span> <span class="o">=</span> <span class="n">rho</span>
+        <span class="k">return</span> <span class="n">U</span>
+</div>
+<div class="viewcode-block" id="DSystem.build_trajectory"><a class="viewcode-back" href="../../../ref/dsystem.html#trep.discopt.DSystem.build_trajectory">[docs]</a>    <span class="k">def</span> <span class="nf">build_trajectory</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">Q</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">p</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">v</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">u</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">rho</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Combine component trajectories into a state and input</span>
+<span class="sd">        trajectories.  The state length is the same as the time base,</span>
+<span class="sd">        the input length is one less than the time base.  Unspecified</span>
+<span class="sd">        components are set to zero.</span>
+
+<span class="sd">        dsys.build_trajectory() -&gt; all zero state and input trajectories</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">def</span> <span class="nf">bad_arguments</span><span class="p">(</span><span class="n">reason</span><span class="p">):</span>
+            <span class="n">string</span> <span class="o">=</span> <span class="n">reason</span> <span class="o">+</span> <span class="s">&quot;</span><span class="se">\n</span><span class="s">&quot;</span>
+            <span class="n">string</span> <span class="o">+=</span> <span class="s">&quot;Arguments: </span><span class="se">\n</span><span class="s">&quot;</span>
+            <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="p">[</span> <span class="p">(</span><span class="s">&#39;Q&#39;</span><span class="p">,</span><span class="n">Q</span><span class="p">),</span> <span class="p">(</span><span class="s">&#39;p&#39;</span><span class="p">,</span><span class="n">p</span><span class="p">),</span> <span class="p">(</span><span class="s">&#39;v&#39;</span><span class="p">,</span><span class="n">v</span><span class="p">),</span> <span class="p">(</span><span class="s">&#39;u&#39;</span><span class="p">,</span><span class="n">u</span><span class="p">),</span> <span class="p">(</span><span class="s">&#39;rho&#39;</span><span class="p">,</span> <span class="n">rho</span><span class="p">)</span> <span class="p">]:</span>
+                <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+                    <span class="n">string</span> <span class="o">+=</span> <span class="s">&quot;  </span><span class="si">%s</span><span class="s">: None</span><span class="se">\n</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">name</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">string</span> <span class="o">+=</span> <span class="s">&quot;  </span><span class="si">%s</span><span class="s">: </span><span class="si">%r</span><span class="s">, shape=</span><span class="si">%r</span><span class="se">\n</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="nb">type</span><span class="p">(</span><span class="n">Q</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">copy</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">StandardError</span><span class="p">(</span><span class="n">string</span><span class="p">)</span>
+
+        <span class="c"># Check the lengths for consistency</span>
+        <span class="k">if</span> <span class="n">Q</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">Q</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_time</span><span class="p">):</span>
+            <span class="n">bad_arguments</span><span class="p">(</span><span class="s">&quot;Invalid length for Q (expected </span><span class="si">%d</span><span class="s">)&quot;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_time</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">p</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">p</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_time</span><span class="p">):</span>
+            <span class="n">bad_arguments</span><span class="p">(</span><span class="s">&quot;Invalid length for p (expected </span><span class="si">%d</span><span class="s">)&quot;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_time</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">v</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_time</span><span class="p">):</span>
+            <span class="n">bad_arguments</span><span class="p">(</span><span class="s">&quot;Invalid length for v (expected </span><span class="si">%d</span><span class="s">)&quot;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_time</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">u</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">u</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_time</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+            <span class="n">bad_arguments</span><span class="p">(</span><span class="s">&quot;Invalid length for u (expected </span><span class="si">%d</span><span class="s">)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_time</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">rho</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">rho</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_time</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+            <span class="n">bad_arguments</span><span class="p">(</span><span class="s">&quot;Invalid length for rho (expected </span><span class="si">%d</span><span class="s">)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_time</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">))</span>
+
+        <span class="n">X</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_time</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_nX</span><span class="p">))</span>
+        <span class="n">U</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_time</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_nU</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">Q</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span> <span class="n">X</span><span class="p">[:,</span><span class="bp">self</span><span class="o">.</span><span class="n">_slice_Q</span><span class="p">]</span> <span class="o">=</span> <span class="n">Q</span>
+        <span class="k">if</span> <span class="n">p</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span> <span class="n">X</span><span class="p">[:,</span><span class="bp">self</span><span class="o">.</span><span class="n">_slice_p</span><span class="p">]</span> <span class="o">=</span> <span class="n">p</span>
+        <span class="k">if</span> <span class="n">v</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span> <span class="n">X</span><span class="p">[:,</span><span class="bp">self</span><span class="o">.</span><span class="n">_slice_v</span><span class="p">]</span> <span class="o">=</span> <span class="n">v</span>
+        <span class="k">if</span> <span class="n">u</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>   <span class="n">U</span><span class="p">[:,</span><span class="bp">self</span><span class="o">.</span><span class="n">_slice_u</span><span class="p">]</span> <span class="o">=</span> <span class="n">u</span>
+        <span class="k">if</span> <span class="n">rho</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span> <span class="n">U</span><span class="p">[:,</span><span class="bp">self</span><span class="o">.</span><span class="n">_slice_rho</span><span class="p">]</span> <span class="o">=</span> <span class="n">rho</span>
+        
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">trajectory_return</span><span class="p">(</span><span class="n">X</span><span class="p">,</span><span class="n">U</span><span class="p">)</span>
+        </div>
+<div class="viewcode-block" id="DSystem.split_state"><a class="viewcode-back" href="../../../ref/dsystem.html#trep.discopt.DSystem.split_state">[docs]</a>    <span class="k">def</span> <span class="nf">split_state</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Split a state vector into its configuration, moementum, and</span>
+<span class="sd">        kinematic velocity parts.  If X is None, returns zero arrays</span>
+<span class="sd">        for each component.</span>
+
+<span class="sd">        Returns (Q,p,v)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">X</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">X</span> <span class="o">=</span> <span class="n">nd</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nX</span><span class="p">)</span>
+        <span class="n">Q</span> <span class="o">=</span> <span class="n">X</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_slice_Q</span><span class="p">]</span>
+        <span class="n">p</span> <span class="o">=</span> <span class="n">X</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_slice_p</span><span class="p">]</span>
+        <span class="n">v</span> <span class="o">=</span> <span class="n">X</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_slice_v</span><span class="p">]</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">split_state_return</span><span class="p">(</span><span class="n">Q</span><span class="p">,</span><span class="n">p</span><span class="p">,</span><span class="n">v</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="DSystem.split_input"><a class="viewcode-back" href="../../../ref/dsystem.html#trep.discopt.DSystem.split_input">[docs]</a>    <span class="k">def</span> <span class="nf">split_input</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">U</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Split a state input vector U into its force and kinematic</span>
+<span class="sd">        input parts, (u, rho).  If U is empty, returns zero arrays of</span>
+<span class="sd">        the appropriate size.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">U</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">U</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nU</span><span class="p">)</span>
+        <span class="n">u</span> <span class="o">=</span> <span class="n">U</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_slice_u</span><span class="p">]</span>
+        <span class="n">rho</span> <span class="o">=</span> <span class="n">U</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_slice_rho</span><span class="p">]</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">split_input_return</span><span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="n">rho</span><span class="p">)</span>
+        </div>
+<div class="viewcode-block" id="DSystem.split_trajectory"><a class="viewcode-back" href="../../../ref/dsystem.html#trep.discopt.DSystem.split_trajectory">[docs]</a>    <span class="k">def</span> <span class="nf">split_trajectory</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">U</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Split an X,U state trajectory into its Q,p,v,u,rho components.</span>
+<span class="sd">        If X or U are None, the corresponding components are arrays of</span>
+<span class="sd">        zero.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">X</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">and</span> <span class="n">U</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">X</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_time</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">nX</span><span class="p">))</span>
+            <span class="n">U</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_time</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nU</span><span class="p">))</span>            
+        <span class="k">elif</span> <span class="n">X</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">X</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">U</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nX</span><span class="p">))</span>
+        <span class="k">elif</span> <span class="n">U</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">U</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nU</span><span class="p">))</span>
+            
+        <span class="n">Q</span> <span class="o">=</span> <span class="n">X</span><span class="p">[:,</span><span class="bp">self</span><span class="o">.</span><span class="n">_slice_Q</span><span class="p">]</span>
+        <span class="n">p</span> <span class="o">=</span> <span class="n">X</span><span class="p">[:,</span><span class="bp">self</span><span class="o">.</span><span class="n">_slice_p</span><span class="p">]</span>
+        <span class="n">v</span> <span class="o">=</span> <span class="n">X</span><span class="p">[:,</span><span class="bp">self</span><span class="o">.</span><span class="n">_slice_v</span><span class="p">]</span>
+        <span class="n">u</span> <span class="o">=</span> <span class="n">U</span><span class="p">[:,</span><span class="bp">self</span><span class="o">.</span><span class="n">_slice_u</span><span class="p">]</span>
+        <span class="n">rho</span> <span class="o">=</span> <span class="n">U</span><span class="p">[:,</span><span class="bp">self</span><span class="o">.</span><span class="n">_slice_rho</span><span class="p">]</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">split_trajectory_return</span><span class="p">(</span><span class="n">Q</span><span class="p">,</span><span class="n">p</span><span class="p">,</span><span class="n">v</span><span class="p">,</span><span class="n">u</span><span class="p">,</span><span class="n">rho</span><span class="p">)</span>
+
+        </div>
+<div class="viewcode-block" id="DSystem.set"><a class="viewcode-back" href="../../../ref/dsystem.html#trep.discopt.DSystem.set">[docs]</a>    <span class="k">def</span> <span class="nf">set</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xk</span><span class="p">,</span> <span class="n">uk</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">xk_hint</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">lambda_hint</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Set the current state, input, and time of the discrete system.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_k</span> <span class="o">=</span> <span class="n">k</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_xk</span> <span class="o">=</span> <span class="n">xk</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_uk</span> <span class="o">=</span> <span class="n">uk</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="p">(</span><span class="n">q1</span><span class="p">,</span> <span class="n">p1</span><span class="p">,</span> <span class="n">v1</span><span class="p">)</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">split_state</span><span class="p">(</span><span class="n">xk</span><span class="p">)</span>
+        <span class="p">(</span><span class="n">u1</span><span class="p">,</span> <span class="n">rho2</span><span class="p">)</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">split_input</span><span class="p">(</span><span class="n">uk</span><span class="p">)</span>
+        <span class="n">t1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_time</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_k</span><span class="o">+</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">t2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_time</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_k</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="n">xk_hint</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">q2_hint</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">split_state</span><span class="p">(</span><span class="n">xk_hint</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">q2_hint</span> <span class="o">=</span> <span class="n">q2_hint</span><span class="p">[:</span><span class="bp">self</span><span class="o">.</span><span class="n">varint</span><span class="o">.</span><span class="n">nd</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">q2_hint</span> <span class="o">=</span> <span class="bp">None</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">varint</span><span class="o">.</span><span class="n">initialize_from_state</span><span class="p">(</span><span class="n">t1</span><span class="p">,</span> <span class="n">q1</span><span class="p">,</span> <span class="n">p1</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">varint</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="n">t2</span><span class="p">,</span> <span class="n">u1</span><span class="p">,</span> <span class="n">rho2</span><span class="p">,</span>
+                         <span class="n">q2_hint</span><span class="o">=</span><span class="n">q2_hint</span><span class="p">,</span>
+                         <span class="n">lambda1_hint</span><span class="o">=</span><span class="n">lambda_hint</span><span class="p">)</span>
+
+        </div>
+<div class="viewcode-block" id="DSystem.step"><a class="viewcode-back" href="../../../ref/dsystem.html#trep.discopt.DSystem.step">[docs]</a>    <span class="k">def</span> <span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">uk</span><span class="p">,</span>
+             <span class="n">xk_hint</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+             <span class="n">lambda_hint</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Advance the system to the next discrete time using the given</span>
+<span class="sd">        values for the input.  </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_xk</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">f</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_uk</span> <span class="o">=</span> <span class="n">uk</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_k</span> <span class="o">+=</span> <span class="mi">1</span>        
+        <span class="p">(</span><span class="n">u1</span><span class="p">,</span> <span class="n">rho2</span><span class="p">)</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">split_input</span><span class="p">(</span><span class="n">uk</span><span class="p">)</span>
+        <span class="n">t2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_time</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_k</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="n">xk_hint</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">q2_hint</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">split_state</span><span class="p">(</span><span class="n">xk_hint</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">q2_hint</span> <span class="o">=</span> <span class="n">q2_hint</span><span class="p">[:</span><span class="bp">self</span><span class="o">.</span><span class="n">varint</span><span class="o">.</span><span class="n">nd</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">q2_hint</span> <span class="o">=</span> <span class="bp">None</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">varint</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="n">t2</span><span class="p">,</span> <span class="n">u1</span><span class="p">,</span> <span class="n">rho2</span><span class="p">,</span>
+                         <span class="n">q2_hint</span><span class="o">=</span><span class="n">q2_hint</span><span class="p">,</span>
+                         <span class="n">lambda1_hint</span><span class="o">=</span><span class="n">lambda_hint</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="DSystem.f"><a class="viewcode-back" href="../../../ref/dsystem.html#trep.discopt.DSystem.f">[docs]</a>    <span class="k">def</span> <span class="nf">f</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the next state of the system.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">build_state</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">varint</span><span class="o">.</span><span class="n">q2</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">varint</span><span class="o">.</span><span class="n">p2</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">varint</span><span class="o">.</span><span class="n">v2</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="DSystem.fdx"><a class="viewcode-back" href="../../../ref/dsystem.html#trep.discopt.DSystem.fdx">[docs]</a>    <span class="k">def</span> <span class="nf">fdx</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the derivative of the f() with respect to the state.</span>
+<span class="sd">        Returns a numpy array with derivatives across the rows.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="c"># Initialize with diagonal matrix of -1/dt to get dv/dv block.</span>
+        <span class="c"># The other diagonal terms will be overwritten.</span>
+        <span class="n">dt</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_time</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_k</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_time</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_k</span><span class="o">+</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">fdx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">_nX</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_nX</span><span class="p">))</span>
+        <span class="n">fdx</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_slice_Qd</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_slice_Q</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">varint</span><span class="o">.</span><span class="n">q2_dq1</span><span class="p">()</span>
+        <span class="n">fdx</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_slice_Qd</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_slice_p</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">varint</span><span class="o">.</span><span class="n">q2_dp1</span><span class="p">()</span>
+        <span class="c"># Qk derivatives are all zero</span>
+        <span class="n">fdx</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_slice_p</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_slice_Q</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">varint</span><span class="o">.</span><span class="n">p2_dq1</span><span class="p">()</span>
+        <span class="n">fdx</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_slice_p</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_slice_p</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">varint</span><span class="o">.</span><span class="n">p2_dp1</span><span class="p">()</span>
+        <span class="n">fdx</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_slice_v</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_slice_Qk</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">diag</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_nv</span><span class="p">)</span> <span class="o">*</span> <span class="o">-</span><span class="mf">1.0</span><span class="o">/</span><span class="n">dt</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">fdx</span>
+
+</div>
+<div class="viewcode-block" id="DSystem.fdu"><a class="viewcode-back" href="../../../ref/dsystem.html#trep.discopt.DSystem.fdu">[docs]</a>    <span class="k">def</span> <span class="nf">fdu</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the derivative of the f() with respect to the input.</span>
+<span class="sd">        Returns a numpy array with derivatives across the rows.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="n">dt</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_time</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_k</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_time</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_k</span><span class="o">+</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">fdu</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">_nX</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_nU</span><span class="p">))</span>
+        <span class="n">fdu</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_slice_Qd</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_slice_u</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">varint</span><span class="o">.</span><span class="n">q2_du1</span><span class="p">()</span>
+        <span class="n">fdu</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_slice_Qd</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_slice_rho</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">varint</span><span class="o">.</span><span class="n">q2_dk2</span><span class="p">()</span>
+        <span class="n">fdu</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_slice_Qk</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_slice_rho</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_nrho</span><span class="p">)</span>
+        <span class="n">fdu</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_slice_p</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_slice_u</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">varint</span><span class="o">.</span><span class="n">p2_du1</span><span class="p">()</span>
+        <span class="n">fdu</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_slice_p</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_slice_rho</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">varint</span><span class="o">.</span><span class="n">p2_dk2</span><span class="p">()</span>
+        <span class="n">fdu</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_slice_v</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_slice_rho</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">diag</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_nrho</span><span class="p">)</span> <span class="o">*</span> <span class="mf">1.0</span><span class="o">/</span><span class="n">dt</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">fdu</span>
+
+</div>
+<div class="viewcode-block" id="DSystem.fdxdx"><a class="viewcode-back" href="../../../ref/dsystem.html#trep.discopt.DSystem.fdxdx">[docs]</a>    <span class="k">def</span> <span class="nf">fdxdx</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">z</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the second derivative of f with respect to the state, with</span>
+<span class="sd">        the outputs multiplied by vector z.  Returns a [nX x nX] numpy</span>
+<span class="sd">        array.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">zQd</span> <span class="o">=</span> <span class="n">z</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_slice_Qd</span><span class="p">]</span>
+        <span class="n">zp</span> <span class="o">=</span> <span class="n">z</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_slice_p</span><span class="p">]</span>
+        <span class="c"># Don&#39;t care about zv or zQk because second derivative is always zero.</span>
+
+        <span class="n">fdxdx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">_nX</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_nX</span><span class="p">))</span>
+        <span class="n">fdxdx</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_slice_Q</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_slice_Q</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">inner</span><span class="p">(</span><span class="n">zQd</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">varint</span><span class="o">.</span><span class="n">q2_dq1dq1</span><span class="p">())</span> <span class="o">+</span>
+                                               <span class="n">np</span><span class="o">.</span><span class="n">inner</span><span class="p">(</span> <span class="n">zp</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">varint</span><span class="o">.</span><span class="n">p2_dq1dq1</span><span class="p">()))</span>            
+        <span class="n">fdxdx</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_slice_Q</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_slice_p</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">inner</span><span class="p">(</span><span class="n">zQd</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">varint</span><span class="o">.</span><span class="n">q2_dq1dp1</span><span class="p">())</span> <span class="o">+</span>
+                                               <span class="n">np</span><span class="o">.</span><span class="n">inner</span><span class="p">(</span> <span class="n">zp</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">varint</span><span class="o">.</span><span class="n">p2_dq1dp1</span><span class="p">()))</span>
+        <span class="n">fdxdx</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_slice_p</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_slice_Q</span><span class="p">]</span> <span class="o">=</span> <span class="n">fdxdx</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_slice_Q</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_slice_p</span><span class="p">]</span><span class="o">.</span><span class="n">T</span>
+
+        <span class="n">fdxdx</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_slice_p</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_slice_p</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">inner</span><span class="p">(</span><span class="n">zQd</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">varint</span><span class="o">.</span><span class="n">q2_dp1dp1</span><span class="p">())</span> <span class="o">+</span>
+                                               <span class="n">np</span><span class="o">.</span><span class="n">inner</span><span class="p">(</span> <span class="n">zp</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">varint</span><span class="o">.</span><span class="n">p2_dp1dp1</span><span class="p">()))</span>
+        <span class="k">return</span> <span class="n">fdxdx</span>
+
+        </div>
+<div class="viewcode-block" id="DSystem.fdxdu"><a class="viewcode-back" href="../../../ref/dsystem.html#trep.discopt.DSystem.fdxdu">[docs]</a>    <span class="k">def</span> <span class="nf">fdxdu</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">z</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the second derivative of f with respect to the state and</span>
+<span class="sd">        input, with the outputs multiplied by vector z. Returns a [nX</span>
+<span class="sd">        x nU] numpy array.</span>
+<span class="sd">        &quot;&quot;&quot;</span>        
+
+        <span class="n">zQd</span> <span class="o">=</span> <span class="n">z</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_slice_Qd</span><span class="p">]</span>
+        <span class="n">zp</span> <span class="o">=</span> <span class="n">z</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_slice_p</span><span class="p">]</span>
+        <span class="c"># Don&#39;t care about zv or zQk because second derivative is always</span>
+        <span class="c"># zero.</span>
+
+        <span class="n">fdxdu</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">_nX</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_nU</span><span class="p">))</span>
+        <span class="n">fdxdu</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_slice_Q</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_slice_u</span><span class="p">]</span>   <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">inner</span><span class="p">(</span><span class="n">zQd</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">varint</span><span class="o">.</span><span class="n">q2_dq1du1</span><span class="p">())</span> <span class="o">+</span>
+                                                 <span class="n">np</span><span class="o">.</span><span class="n">inner</span><span class="p">(</span> <span class="n">zp</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">varint</span><span class="o">.</span><span class="n">p2_dq1du1</span><span class="p">()))</span>
+        <span class="n">fdxdu</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_slice_Q</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_slice_rho</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">inner</span><span class="p">(</span><span class="n">zQd</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">varint</span><span class="o">.</span><span class="n">q2_dq1dk2</span><span class="p">())</span> <span class="o">+</span>
+                                                 <span class="n">np</span><span class="o">.</span><span class="n">inner</span><span class="p">(</span> <span class="n">zp</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">varint</span><span class="o">.</span><span class="n">p2_dq1dk2</span><span class="p">()))</span>
+        <span class="n">fdxdu</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_slice_p</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_slice_u</span><span class="p">]</span>   <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">inner</span><span class="p">(</span><span class="n">zQd</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">varint</span><span class="o">.</span><span class="n">q2_dp1du1</span><span class="p">())</span> <span class="o">+</span>
+                                                 <span class="n">np</span><span class="o">.</span><span class="n">inner</span><span class="p">(</span> <span class="n">zp</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">varint</span><span class="o">.</span><span class="n">p2_dp1du1</span><span class="p">()))</span>
+        <span class="n">fdxdu</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_slice_p</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_slice_rho</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">inner</span><span class="p">(</span><span class="n">zQd</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">varint</span><span class="o">.</span><span class="n">q2_dp1dk2</span><span class="p">())</span> <span class="o">+</span>
+                                                 <span class="n">np</span><span class="o">.</span><span class="n">inner</span><span class="p">(</span> <span class="n">zp</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">varint</span><span class="o">.</span><span class="n">p2_dp1dk2</span><span class="p">()))</span>
+        <span class="k">return</span> <span class="n">fdxdu</span>
+
+</div>
+<div class="viewcode-block" id="DSystem.fdudu"><a class="viewcode-back" href="../../../ref/dsystem.html#trep.discopt.DSystem.fdudu">[docs]</a>    <span class="k">def</span> <span class="nf">fdudu</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">z</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the second derivative of f with respect to the input, with</span>
+<span class="sd">        the outputs multiplied by vector z.  Returns a [nU x nU] numpy</span>
+<span class="sd">        array.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">zQd</span> <span class="o">=</span> <span class="n">z</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_slice_Qd</span><span class="p">]</span>
+        <span class="n">zp</span> <span class="o">=</span> <span class="n">z</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_slice_p</span><span class="p">]</span>
+        <span class="c"># Don&#39;t care about zv or zQk because second derivative is always zero.</span>
+
+        <span class="n">fdudu</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">_nU</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_nU</span><span class="p">))</span>
+        <span class="n">fdudu</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_slice_u</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_slice_u</span><span class="p">]</span>   <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">inner</span><span class="p">(</span><span class="n">zQd</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">varint</span><span class="o">.</span><span class="n">q2_du1du1</span><span class="p">())</span> <span class="o">+</span>
+                                                 <span class="n">np</span><span class="o">.</span><span class="n">inner</span><span class="p">(</span> <span class="n">zp</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">varint</span><span class="o">.</span><span class="n">p2_du1du1</span><span class="p">()))</span>
+        <span class="n">fdudu</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_slice_u</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_slice_rho</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">inner</span><span class="p">(</span><span class="n">zQd</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">varint</span><span class="o">.</span><span class="n">q2_du1dk2</span><span class="p">())</span> <span class="o">+</span>
+                                                 <span class="n">np</span><span class="o">.</span><span class="n">inner</span><span class="p">(</span> <span class="n">zp</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">varint</span><span class="o">.</span><span class="n">p2_du1dk2</span><span class="p">()))</span>
+        <span class="n">fdudu</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_slice_rho</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_slice_u</span><span class="p">]</span>   <span class="o">=</span> <span class="n">fdudu</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_slice_u</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_slice_rho</span><span class="p">]</span><span class="o">.</span><span class="n">T</span>
+        <span class="n">fdudu</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_slice_rho</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_slice_rho</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">inner</span><span class="p">(</span><span class="n">zQd</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">varint</span><span class="o">.</span><span class="n">q2_dk2dk2</span><span class="p">())</span> <span class="o">+</span>
+                                                   <span class="n">np</span><span class="o">.</span><span class="n">inner</span><span class="p">(</span> <span class="n">zp</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">varint</span><span class="o">.</span><span class="n">p2_dk2dk2</span><span class="p">()))</span>
+        <span class="k">return</span> <span class="n">fdudu</span>
+    
+</div>
+<div class="viewcode-block" id="DSystem.save_state_trajectory"><a class="viewcode-back" href="../../../ref/dsystem.html#trep.discopt.DSystem.save_state_trajectory">[docs]</a>    <span class="k">def</span> <span class="nf">save_state_trajectory</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">,</span> <span class="n">X</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">U</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Save a trajectory to a file.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="p">(</span><span class="n">Q</span><span class="p">,</span><span class="n">p</span><span class="p">,</span><span class="n">v</span><span class="p">,</span><span class="n">u</span><span class="p">,</span><span class="n">rho</span><span class="p">)</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">split_trajectory</span><span class="p">(</span><span class="n">X</span><span class="p">,</span><span class="n">U</span><span class="p">)</span>
+        <span class="n">trep</span><span class="o">.</span><span class="n">save_trajectory</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">system</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_time</span><span class="p">,</span> <span class="n">Q</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">rho</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="DSystem.load_state_trajectory"><a class="viewcode-back" href="../../../ref/dsystem.html#trep.discopt.DSystem.load_state_trajectory">[docs]</a>    <span class="k">def</span> <span class="nf">load_state_trajectory</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Load a trajectory from a file.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="p">(</span><span class="n">t</span><span class="p">,</span><span class="n">Q</span><span class="p">,</span><span class="n">p</span><span class="p">,</span><span class="n">v</span><span class="p">,</span><span class="n">u</span><span class="p">,</span><span class="n">rho</span><span class="p">)</span> <span class="o">=</span> <span class="n">trep</span><span class="o">.</span><span class="n">load_trajectory</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">system</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">time</span> <span class="o">=</span> <span class="n">t</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">build_trajectory</span><span class="p">(</span><span class="n">Q</span><span class="p">,</span><span class="n">p</span><span class="p">,</span><span class="n">v</span><span class="p">,</span><span class="n">u</span><span class="p">,</span><span class="n">rho</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="DSystem.linearize_trajectory"><a class="viewcode-back" href="../../../ref/dsystem.html#trep.discopt.DSystem.linearize_trajectory">[docs]</a>    <span class="k">def</span> <span class="nf">linearize_trajectory</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">U</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculate the linearization about a trajectory.  X and U do</span>
+<span class="sd">        not have to be an exact trajectory of the system.</span>
+
+<span class="sd">        Returns (A, B) </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c"># Setting the state at every timestep instead of just</span>
+        <span class="c"># simulating from the initial condition is more stable and</span>
+        <span class="c"># versatile.</span>
+        <span class="n">A</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">X</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nX</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nX</span><span class="p">))</span>
+        <span class="n">B</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">X</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nX</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nU</span><span class="p">))</span>
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">X</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">X</span><span class="p">[</span><span class="n">k</span><span class="p">],</span> <span class="n">U</span><span class="p">[</span><span class="n">k</span><span class="p">],</span> <span class="n">k</span><span class="p">,</span>
+                     <span class="n">xk_hint</span><span class="o">=</span><span class="n">X</span><span class="p">[</span><span class="n">k</span><span class="o">+</span><span class="mi">1</span><span class="p">])</span>
+            <span class="n">A</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fdx</span><span class="p">()</span>
+            <span class="n">B</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fdu</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">linearization_return</span><span class="p">(</span><span class="n">A</span><span class="p">,</span><span class="n">B</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="DSystem.project"><a class="viewcode-back" href="../../../ref/dsystem.html#trep.discopt.DSystem.project">[docs]</a>    <span class="k">def</span> <span class="nf">project</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">bX</span><span class="p">,</span> <span class="n">bU</span><span class="p">,</span> <span class="n">Kproj</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Project bX and bU into a nearby trajectory for the system</span>
+<span class="sd">        using a linear feedback law:</span>
+
+<span class="sd">        X[0] = bX[0]</span>
+<span class="sd">        U[k] = bU[k] - Kproj * (X[k] - bU[k])</span>
+<span class="sd">        X[k+1] = f(X[k], U[k], k)</span>
+
+<span class="sd">        If no feedback law is specified, one will be created from the</span>
+<span class="sd">        LQR solution to the linearization of the system about bX and</span>
+<span class="sd">        bU.  This is typically a bad idea if bX and bU are not very</span>
+<span class="sd">        close to an actual trajectory for the system.</span>
+<span class="sd">        &quot;&quot;&quot;</span>        
+        <span class="k">if</span> <span class="n">Kproj</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="c"># Not necessarily a good idea!</span>
+            <span class="n">Kproj</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">calc_feedback_controller</span><span class="p">(</span><span class="n">bX</span><span class="p">,</span> <span class="n">bU</span><span class="p">)</span>
+        
+        <span class="n">nX</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">bX</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+        <span class="n">nU</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">bU</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+
+        <span class="n">nX</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">bX</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">bX</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">):</span>
+            <span class="n">nU</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">bU</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">-</span> <span class="n">dot</span><span class="p">(</span><span class="n">Kproj</span><span class="p">[</span><span class="n">k</span><span class="p">],</span> <span class="n">nX</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">-</span> <span class="n">bX</span><span class="p">[</span><span class="n">k</span><span class="p">])</span>
+            <span class="k">if</span> <span class="n">k</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">nX</span><span class="p">[</span><span class="n">k</span><span class="p">],</span> <span class="n">nU</span><span class="p">[</span><span class="n">k</span><span class="p">],</span> <span class="n">k</span><span class="p">,</span>
+                         <span class="n">xk_hint</span><span class="o">=</span><span class="n">bX</span><span class="p">[</span><span class="n">k</span><span class="o">+</span><span class="mi">1</span><span class="p">])</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="n">nU</span><span class="p">[</span><span class="n">k</span><span class="p">],</span> <span class="n">xk_hint</span><span class="o">=</span><span class="n">bX</span><span class="p">[</span><span class="n">k</span><span class="o">+</span><span class="mi">1</span><span class="p">])</span>
+            <span class="n">nX</span><span class="p">[</span><span class="n">k</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">f</span><span class="p">()</span>
+            
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">trajectory_return</span><span class="p">(</span><span class="n">nX</span><span class="p">,</span> <span class="n">nU</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="DSystem.dproject"><a class="viewcode-back" href="../../../ref/dsystem.html#trep.discopt.DSystem.dproject">[docs]</a>    <span class="k">def</span> <span class="nf">dproject</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">bdX</span><span class="p">,</span> <span class="n">bdU</span><span class="p">,</span> <span class="n">K</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Project bdX and bdU into the tangent trajectory space for the</span>
+<span class="sd">        system about the linearization A,B.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">dX</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">bdX</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+        <span class="n">dU</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">bdU</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+        <span class="n">dX</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">bdX</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">bdX</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">):</span>
+            <span class="n">dU</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">bdU</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">-</span> <span class="n">dot</span><span class="p">(</span><span class="n">K</span><span class="p">[</span><span class="n">k</span><span class="p">],</span> <span class="n">dX</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">-</span> <span class="n">bdX</span><span class="p">[</span><span class="n">k</span><span class="p">])</span>
+            <span class="n">dX</span><span class="p">[</span><span class="n">k</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">dot</span><span class="p">(</span><span class="n">A</span><span class="p">[</span><span class="n">k</span><span class="p">],</span><span class="n">dX</span><span class="p">[</span><span class="n">k</span><span class="p">])</span> <span class="o">+</span> <span class="n">dot</span><span class="p">(</span><span class="n">B</span><span class="p">[</span><span class="n">k</span><span class="p">],</span><span class="n">dU</span><span class="p">[</span><span class="n">k</span><span class="p">])</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">tangent_trajectory_return</span><span class="p">(</span><span class="n">dX</span><span class="p">,</span> <span class="n">dU</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="DSystem.calc_feedback_controller"><a class="viewcode-back" href="../../../ref/dsystem.html#trep.discopt.DSystem.calc_feedback_controller">[docs]</a>    <span class="k">def</span> <span class="nf">calc_feedback_controller</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">U</span><span class="p">,</span> <span class="n">Q</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">R</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">return_linearization</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculate a stabilizing feedback controller for the system</span>
+<span class="sd">        about a trajectory X and U by solving the discrete LQR problem</span>
+<span class="sd">        about the linearized system along X and U.  If the LQR weights</span>
+<span class="sd">        Q and R are not specified, identity matrices are used.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">)</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">linearize_trajectory</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">U</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">Q</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">_Q</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nX</span><span class="p">)</span>
+            <span class="n">Q</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">k</span><span class="p">:</span> <span class="n">_Q</span>
+        <span class="k">if</span> <span class="n">R</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>            
+            <span class="n">_R</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nU</span><span class="p">)</span>
+            <span class="n">R</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">k</span><span class="p">:</span> <span class="n">_R</span>
+        
+        <span class="n">Kproj</span> <span class="o">=</span> <span class="n">dlqr</span><span class="o">.</span><span class="n">solve_tv_lqr</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">Q</span><span class="p">,</span> <span class="n">R</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">return_linearization</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">feedback_return</span><span class="p">(</span><span class="n">Kproj</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">Kproj</span>
+        
+</div>
+<div class="viewcode-block" id="DSystem.convert_trajectory"><a class="viewcode-back" href="../../../ref/dsystem.html#trep.discopt.DSystem.convert_trajectory">[docs]</a>    <span class="k">def</span> <span class="nf">convert_trajectory</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dsys_a</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">U</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        dsys_b = self</span>
+
+<span class="sd">        Maps a trajectory X,U for dsys_a to a trajectory nX, nY for</span>
+<span class="sd">        dsys_b.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">nX</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">X</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">nX</span><span class="p">))</span>
+        <span class="n">nU</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">U</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">nU</span><span class="p">))</span>
+
+        <span class="p">(</span><span class="n">q_a</span><span class="p">,</span> <span class="n">p_a</span><span class="p">,</span> <span class="n">v_a</span><span class="p">,</span> <span class="n">mu_a</span><span class="p">,</span> <span class="n">rho_a</span><span class="p">)</span> <span class="o">=</span> <span class="n">dsys_a</span><span class="o">.</span><span class="n">split_trajectory</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">U</span><span class="p">)</span>
+        <span class="p">(</span><span class="n">q_b</span><span class="p">,</span> <span class="n">p_b</span><span class="p">,</span> <span class="n">v_b</span><span class="p">,</span> <span class="n">mu_b</span><span class="p">,</span> <span class="n">rho_b</span><span class="p">)</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">split_trajectory</span><span class="p">(</span><span class="n">nX</span><span class="p">,</span> <span class="n">nU</span><span class="p">)</span>
+
+        <span class="k">def</span> <span class="nf">build_map</span><span class="p">(</span><span class="n">list_a</span><span class="p">,</span> <span class="n">list_b</span><span class="p">):</span>
+            <span class="n">a_names</span> <span class="o">=</span> <span class="p">[</span><span class="n">item</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">list_a</span><span class="p">]</span>
+            <span class="n">b_names</span> <span class="o">=</span> <span class="p">[</span><span class="n">item</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">list_b</span><span class="p">]</span>
+            <span class="n">b_to_a_map</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">b_name</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">b_names</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">b_name</span> <span class="ow">in</span> <span class="n">a_names</span><span class="p">:</span>
+                    <span class="n">b_to_a_map</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">a_names</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">b_name</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">b_to_a_map</span>
+
+        <span class="n">q_map</span> <span class="o">=</span> <span class="n">build_map</span><span class="p">(</span><span class="n">dsys_a</span><span class="o">.</span><span class="n">system</span><span class="o">.</span><span class="n">configs</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">system</span><span class="o">.</span><span class="n">configs</span><span class="p">)</span>
+        <span class="n">d_map</span> <span class="o">=</span> <span class="n">build_map</span><span class="p">(</span><span class="n">dsys_a</span><span class="o">.</span><span class="n">system</span><span class="o">.</span><span class="n">dyn_configs</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">system</span><span class="o">.</span><span class="n">dyn_configs</span><span class="p">)</span>
+        <span class="n">k_map</span> <span class="o">=</span> <span class="n">build_map</span><span class="p">(</span><span class="n">dsys_a</span><span class="o">.</span><span class="n">system</span><span class="o">.</span><span class="n">kin_configs</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">system</span><span class="o">.</span><span class="n">kin_configs</span><span class="p">)</span>
+        <span class="n">u_map</span> <span class="o">=</span> <span class="n">build_map</span><span class="p">(</span><span class="n">dsys_a</span><span class="o">.</span><span class="n">system</span><span class="o">.</span><span class="n">inputs</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">system</span><span class="o">.</span><span class="n">inputs</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">q_map</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">q_b</span><span class="p">[:,</span> <span class="n">q_map</span><span class="o">.</span><span class="n">keys</span><span class="p">()]</span> <span class="o">=</span> <span class="n">q_a</span><span class="p">[:,</span> <span class="n">q_map</span><span class="o">.</span><span class="n">values</span><span class="p">()]</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">d_map</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">p_b</span><span class="p">[:,</span> <span class="n">d_map</span><span class="o">.</span><span class="n">keys</span><span class="p">()]</span> <span class="o">=</span> <span class="n">p_a</span><span class="p">[:,</span> <span class="n">d_map</span><span class="o">.</span><span class="n">values</span><span class="p">()]</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">u_map</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">mu_b</span><span class="p">[:,</span> <span class="n">u_map</span><span class="o">.</span><span class="n">keys</span><span class="p">()]</span> <span class="o">=</span> <span class="n">mu_a</span><span class="p">[:,</span> <span class="n">u_map</span><span class="o">.</span><span class="n">values</span><span class="p">()]</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">k_map</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">v_b</span><span class="p">[:,</span> <span class="n">k_map</span><span class="o">.</span><span class="n">keys</span><span class="p">()]</span> <span class="o">=</span> <span class="n">v_a</span><span class="p">[:,</span> <span class="n">k_map</span><span class="o">.</span><span class="n">values</span><span class="p">()]</span>
+            <span class="n">rho_b</span><span class="p">[:,</span> <span class="n">k_map</span><span class="o">.</span><span class="n">keys</span><span class="p">()]</span> <span class="o">=</span> <span class="n">rho_a</span><span class="p">[:,</span> <span class="n">k_map</span><span class="o">.</span><span class="n">values</span><span class="p">()]</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">build_trajectory</span><span class="p">(</span><span class="n">q_b</span><span class="p">,</span> <span class="n">p_b</span><span class="p">,</span> <span class="n">v_b</span><span class="p">,</span> <span class="n">mu_b</span><span class="p">,</span> <span class="n">rho_b</span><span class="p">)</span>        
+
+        </div>
+<div class="viewcode-block" id="DSystem.check_fdx"><a class="viewcode-back" href="../../../ref/dsystem.html#trep.discopt.DSystem.check_fdx">[docs]</a>    <span class="k">def</span> <span class="nf">check_fdx</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xk</span><span class="p">,</span> <span class="n">uk</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">delta</span><span class="o">=</span><span class="mf">1e-5</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Check the first derivative f_dx of the discrete system</span>
+<span class="sd">        dynamics against a numeric approximation from f().</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">xk</span><span class="p">,</span> <span class="n">uk</span><span class="p">,</span> <span class="n">k</span><span class="p">)</span>
+        <span class="n">f0</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">f</span><span class="p">()</span>
+        <span class="n">fdx_exact</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fdx</span><span class="p">()</span>
+
+        <span class="c"># Build approximation for fdx </span>
+        <span class="n">fdx_approx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">nX</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nX</span><span class="p">))</span>
+        <span class="k">for</span> <span class="n">i1</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nX</span><span class="p">):</span>
+            <span class="n">dxk</span> <span class="o">=</span> <span class="n">xk</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+            <span class="n">dxk</span><span class="p">[</span><span class="n">i1</span><span class="p">]</span> <span class="o">+=</span> <span class="n">delta</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">dxk</span><span class="p">,</span> <span class="n">uk</span><span class="p">,</span> <span class="n">k</span><span class="p">)</span>
+            <span class="n">dfp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">f</span><span class="p">()</span>
+            <span class="n">dxk</span> <span class="o">=</span> <span class="n">xk</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+            <span class="n">dxk</span><span class="p">[</span><span class="n">i1</span><span class="p">]</span> <span class="o">-=</span> <span class="n">delta</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">dxk</span><span class="p">,</span> <span class="n">uk</span><span class="p">,</span> <span class="n">k</span><span class="p">)</span>
+            <span class="n">dfm</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">f</span><span class="p">()</span>
+            <span class="n">fdx_approx</span><span class="p">[:,</span> <span class="n">i1</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">dfp</span><span class="o">-</span><span class="n">dfm</span><span class="p">)</span><span class="o">/</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">delta</span><span class="p">)</span>
+
+        <span class="n">error</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">fdx_exact</span> <span class="o">-</span> <span class="n">fdx_approx</span><span class="p">)</span> <span class="c">#/np.linalg.norm(fdx_exact)</span>
+        <span class="n">exact_norm</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">fdx_exact</span><span class="p">)</span>
+        <span class="n">approx_norm</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">fdx_approx</span><span class="p">)</span>        
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">error_return</span><span class="p">(</span><span class="n">error</span><span class="p">,</span> <span class="n">exact_norm</span><span class="p">,</span> <span class="n">approx_norm</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="DSystem.check_fdu"><a class="viewcode-back" href="../../../ref/dsystem.html#trep.discopt.DSystem.check_fdu">[docs]</a>    <span class="k">def</span> <span class="nf">check_fdu</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xk</span><span class="p">,</span> <span class="n">uk</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">delta</span><span class="o">=</span><span class="mf">1e-5</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Check the first derivative f_du of the discrete system</span>
+<span class="sd">        dynamics against a numeric approximation from f().</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">xk</span><span class="p">,</span> <span class="n">uk</span><span class="p">,</span> <span class="n">k</span><span class="p">)</span>
+        <span class="n">f0</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">f</span><span class="p">()</span>
+        <span class="n">fdu_exact</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fdu</span><span class="p">()</span>
+
+        <span class="c"># Build approximation for fdu</span>
+        <span class="n">fdu_approx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">nX</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nU</span><span class="p">))</span>
+        <span class="k">for</span> <span class="n">i1</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nU</span><span class="p">):</span>
+            <span class="n">duk</span> <span class="o">=</span> <span class="n">uk</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+            <span class="n">duk</span><span class="p">[</span><span class="n">i1</span><span class="p">]</span> <span class="o">+=</span> <span class="n">delta</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">xk</span><span class="p">,</span> <span class="n">duk</span><span class="p">,</span> <span class="n">k</span><span class="p">)</span>
+            <span class="n">dfp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">f</span><span class="p">()</span>
+            <span class="n">duk</span> <span class="o">=</span> <span class="n">uk</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+            <span class="n">duk</span><span class="p">[</span><span class="n">i1</span><span class="p">]</span> <span class="o">-=</span> <span class="n">delta</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">xk</span><span class="p">,</span> <span class="n">duk</span><span class="p">,</span> <span class="n">k</span><span class="p">)</span>
+            <span class="n">dfm</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">f</span><span class="p">()</span>
+            <span class="n">fdu_approx</span><span class="p">[:,</span> <span class="n">i1</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">dfp</span><span class="o">-</span><span class="n">dfm</span><span class="p">)</span><span class="o">/</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">delta</span><span class="p">)</span>
+            
+        <span class="n">error</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">fdu_exact</span> <span class="o">-</span> <span class="n">fdu_approx</span><span class="p">)</span> <span class="c">#/np.linalg.norm(fdu_exact)</span>
+        <span class="n">exact_norm</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">fdu_exact</span><span class="p">)</span>
+        <span class="n">approx_norm</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">fdu_approx</span><span class="p">)</span>        
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">error_return</span><span class="p">(</span><span class="n">error</span><span class="p">,</span> <span class="n">exact_norm</span><span class="p">,</span> <span class="n">approx_norm</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="DSystem.check_fdxdx"><a class="viewcode-back" href="../../../ref/dsystem.html#trep.discopt.DSystem.check_fdxdx">[docs]</a>    <span class="k">def</span> <span class="nf">check_fdxdx</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xk</span><span class="p">,</span> <span class="n">uk</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">delta</span><span class="o">=</span><span class="mf">1e-5</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Check the second derivative f_dxdx of the discrete system</span>
+<span class="sd">        dynamics against a numeric approximation from f_dx().</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c"># Build fdxdx_exact</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">xk</span><span class="p">,</span> <span class="n">uk</span><span class="p">,</span> <span class="n">k</span><span class="p">)</span>
+        <span class="n">fdxdx_exact</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">nX</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nX</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nX</span><span class="p">))</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nX</span><span class="p">):</span>
+            <span class="n">z</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nX</span><span class="p">)</span>
+            <span class="n">z</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1.0</span>
+            <span class="n">fdxdx_exact</span><span class="p">[</span><span class="n">i</span><span class="p">,:,:]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fdxdx</span><span class="p">(</span><span class="n">z</span><span class="p">)</span>
+
+        <span class="c"># Build fdxdx_approx</span>
+        <span class="n">dx0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">nX</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nX</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nX</span><span class="p">))</span>
+        <span class="n">dx1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">nX</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nX</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nX</span><span class="p">))</span>        
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nX</span><span class="p">):</span>
+            <span class="n">dxk</span> <span class="o">=</span> <span class="n">xk</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+            <span class="n">dxk</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">-=</span> <span class="n">delta</span>        
+            <span class="bp">self</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">dxk</span><span class="p">,</span> <span class="n">uk</span><span class="p">,</span> <span class="n">k</span><span class="p">)</span>            
+            <span class="n">dx0</span><span class="p">[:,:,</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fdx</span><span class="p">()</span>
+
+            <span class="n">dxk</span> <span class="o">=</span> <span class="n">xk</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+            <span class="n">dxk</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+=</span> <span class="n">delta</span>        
+            <span class="bp">self</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">dxk</span><span class="p">,</span> <span class="n">uk</span><span class="p">,</span> <span class="n">k</span><span class="p">)</span>            
+            <span class="n">dx1</span><span class="p">[:,:,</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fdx</span><span class="p">()</span>
+            
+        <span class="n">fdxdx_approx</span> <span class="o">=</span> <span class="p">(</span><span class="n">dx1</span> <span class="o">-</span> <span class="n">dx0</span><span class="p">)</span><span class="o">/</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">delta</span><span class="p">)</span>
+            
+        <span class="n">error</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">fdxdx_exact</span> <span class="o">-</span> <span class="n">fdxdx_approx</span><span class="p">)</span>
+        <span class="n">exact_norm</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">fdxdx_exact</span><span class="p">)</span>
+        <span class="n">approx_norm</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">fdxdx_approx</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">error_return</span><span class="p">(</span><span class="n">error</span><span class="p">,</span> <span class="n">exact_norm</span><span class="p">,</span> <span class="n">approx_norm</span><span class="p">)</span>
+
+        </div>
+<div class="viewcode-block" id="DSystem.check_fdxdu"><a class="viewcode-back" href="../../../ref/dsystem.html#trep.discopt.DSystem.check_fdxdu">[docs]</a>    <span class="k">def</span> <span class="nf">check_fdxdu</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xk</span><span class="p">,</span> <span class="n">uk</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">delta</span><span class="o">=</span><span class="mf">1e-5</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Check the second derivative f_dxdu of the discrete system</span>
+<span class="sd">        dynamics against a numeric approximation from f_dx().</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c"># Build fdxdu_exact</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">xk</span><span class="p">,</span> <span class="n">uk</span><span class="p">,</span> <span class="n">k</span><span class="p">)</span>
+        <span class="n">fdxdu_exact</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">nX</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nX</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nU</span><span class="p">))</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nX</span><span class="p">):</span>
+            <span class="n">z</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nX</span><span class="p">)</span>
+            <span class="n">z</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1.0</span>
+            <span class="n">fdxdu_exact</span><span class="p">[</span><span class="n">i</span><span class="p">,:,:]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fdxdu</span><span class="p">(</span><span class="n">z</span><span class="p">)</span>
+
+        <span class="c"># Build fdxdu_approx</span>
+        <span class="n">dx0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">nX</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nX</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nU</span><span class="p">))</span>
+        <span class="n">dx1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">nX</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nX</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nU</span><span class="p">))</span>        
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nU</span><span class="p">):</span>
+            <span class="n">duk</span> <span class="o">=</span> <span class="n">uk</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+            <span class="n">duk</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">-=</span> <span class="n">delta</span>        
+            <span class="bp">self</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">xk</span><span class="p">,</span> <span class="n">duk</span><span class="p">,</span> <span class="n">k</span><span class="p">)</span>            
+            <span class="n">dx0</span><span class="p">[:,:,</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fdx</span><span class="p">()</span>
+
+            <span class="n">duk</span> <span class="o">=</span> <span class="n">uk</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+            <span class="n">duk</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+=</span> <span class="n">delta</span>        
+            <span class="bp">self</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">xk</span><span class="p">,</span> <span class="n">duk</span><span class="p">,</span> <span class="n">k</span><span class="p">)</span>            
+            <span class="n">dx1</span><span class="p">[:,:,</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fdx</span><span class="p">()</span>
+            
+        <span class="n">fdxdu_approx</span> <span class="o">=</span> <span class="p">(</span><span class="n">dx1</span> <span class="o">-</span> <span class="n">dx0</span><span class="p">)</span><span class="o">/</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">delta</span><span class="p">)</span>
+        
+        <span class="n">error</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">fdxdu_exact</span> <span class="o">-</span> <span class="n">fdxdu_approx</span><span class="p">)</span>
+        <span class="n">exact_norm</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">fdxdu_exact</span><span class="p">)</span>
+        <span class="n">approx_norm</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">fdxdu_approx</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">error_return</span><span class="p">(</span><span class="n">error</span><span class="p">,</span> <span class="n">exact_norm</span><span class="p">,</span> <span class="n">approx_norm</span><span class="p">)</span>
+        
+        </div>
+<div class="viewcode-block" id="DSystem.check_fdudu"><a class="viewcode-back" href="../../../ref/dsystem.html#trep.discopt.DSystem.check_fdudu">[docs]</a>    <span class="k">def</span> <span class="nf">check_fdudu</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xk</span><span class="p">,</span> <span class="n">uk</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">delta</span><span class="o">=</span><span class="mf">1e-5</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Check the second derivative f_dudu of the discrete system</span>
+<span class="sd">        dynamics against a numeric approximation from f_du().</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c"># Build fdudu_exact</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">xk</span><span class="p">,</span> <span class="n">uk</span><span class="p">,</span> <span class="n">k</span><span class="p">)</span>
+        <span class="n">fdudu_exact</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">nX</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nU</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nU</span><span class="p">))</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nX</span><span class="p">):</span>
+            <span class="n">z</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nX</span><span class="p">)</span>
+            <span class="n">z</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1.0</span>
+            <span class="n">fdudu_exact</span><span class="p">[</span><span class="n">i</span><span class="p">,:,:]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fdudu</span><span class="p">(</span><span class="n">z</span><span class="p">)</span>
+
+        <span class="c"># Build fdudu_approx</span>
+        <span class="n">dx0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">nX</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nU</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nU</span><span class="p">))</span>
+        <span class="n">dx1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">nX</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nU</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nU</span><span class="p">))</span>        
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nU</span><span class="p">):</span>
+            <span class="n">duk</span> <span class="o">=</span> <span class="n">uk</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+            <span class="n">duk</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">-=</span> <span class="n">delta</span>        
+            <span class="bp">self</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">xk</span><span class="p">,</span> <span class="n">duk</span><span class="p">,</span> <span class="n">k</span><span class="p">)</span>            
+            <span class="n">dx0</span><span class="p">[:,:,</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fdu</span><span class="p">()</span>
+
+            <span class="n">duk</span> <span class="o">=</span> <span class="n">uk</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+            <span class="n">duk</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+=</span> <span class="n">delta</span>        
+            <span class="bp">self</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">xk</span><span class="p">,</span> <span class="n">duk</span><span class="p">,</span> <span class="n">k</span><span class="p">)</span>            
+            <span class="n">dx1</span><span class="p">[:,:,</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fdu</span><span class="p">()</span>
+            
+        <span class="n">fdudu_approx</span> <span class="o">=</span> <span class="p">(</span><span class="n">dx1</span> <span class="o">-</span> <span class="n">dx0</span><span class="p">)</span><span class="o">/</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">delta</span><span class="p">)</span>
+            
+        <span class="n">error</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">fdudu_exact</span> <span class="o">-</span> <span class="n">fdudu_approx</span><span class="p">)</span>
+        <span class="n">exact_norm</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">fdudu_exact</span><span class="p">)</span>
+        <span class="n">approx_norm</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">fdudu_approx</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">error_return</span><span class="p">(</span><span class="n">error</span><span class="p">,</span> <span class="n">exact_norm</span><span class="p">,</span> <span class="n">approx_norm</span><span class="p">)</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+    <h2><a href="http://murpheylab.github.io/trep/">Project Website</a></h2>
+
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">trep documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &copy; Copyright 2015, Elliot Johnson.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.3.1.
+    </div>
+  </body>
+</html>

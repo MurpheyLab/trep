@@ -1,0 +1,376 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>trep.spline &mdash; trep documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="trep documentation" href="../../index.html" />
+    <link rel="up" title="Module code" href="../index.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">trep documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+    <script type="math/tex">
+    \newcommand{\deriv}[2][]{\dfrac{\partial #1}{\partial #2}}
+\newcommand{\tderiv}[2][]{\tfrac{\partial #1}{\partial #2}}
+\newcommand{\fderiv}[2][]{\dfrac{d #1}{d #2}}
+\newcommand{\derivII}[3][]{\dfrac{\partial^2 #1}{\partial #2 \partial #3}}
+\newcommand{\tderivII}[3][]{\tfrac{\partial^2 #1}{\partial #2 \partial #3}}
+\newcommand{\derivIII}[4][]{\dfrac{\partial^3 #1}{\partial #2 \partial #3 \partial #4}}
+\newcommand{\tderivIII}[4][]{\tfrac{\partial^3 #1}{\partial #2 \partial #3 \partial #4}}
+\newcommand{\derivIV}[5][]{\dfrac{\partial^4 #1}{\partial #2 \partial #3 \partial #4 \partial #5}}
+
+\newcommand{\half}{\tfrac{1}{2}}  % Macro for 1/2
+
+\newcommand{\ud}{\mathrm{d}}
+
+\newcommand{\op}{\circ}
+\newcommand{\dq}{\dot{q}}
+\newcommand{\ddq}{\ddot{q}}
+
+\newcommand{\dt}{\Delta t}
+
+
+    </script>
+    
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for trep.spline</h1><div class="highlight"><pre>
+<span class="kn">import</span> <span class="nn">trep</span>
+<span class="kn">from</span> <span class="nn">_trep</span> <span class="kn">import</span> <span class="n">_Spline</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">numpy.linalg</span>
+
+<div class="viewcode-block" id="Spline"><a class="viewcode-back" href="../../ref/spline.html#trep.Spline">[docs]</a><span class="k">class</span> <span class="nc">Spline</span><span class="p">(</span><span class="n">_Spline</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_data</span> <span class="o">=</span> <span class="n">data</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_x_points</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_coeffs</span> <span class="o">=</span> <span class="bp">None</span>
+        
+        <span class="n">x</span> <span class="o">=</span> <span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="n">d</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">data</span><span class="p">]</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="n">d</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">data</span><span class="p">]</span>
+
+        <span class="n">dy</span> <span class="o">=</span> <span class="p">[</span><span class="bp">None</span><span class="p">]</span><span class="o">*</span><span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="n">ddy</span> <span class="o">=</span> <span class="p">[</span><span class="bp">None</span><span class="p">]</span><span class="o">*</span><span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="n">constraints</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">)):</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="n">i</span><span class="p">])</span> <span class="o">&gt;</span> <span class="mi">2</span> <span class="ow">and</span> <span class="n">data</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="n">dy</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">2</span><span class="p">])</span>
+                <span class="n">constraints</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="n">i</span><span class="p">])</span> <span class="o">&gt;</span> <span class="mi">3</span> <span class="ow">and</span> <span class="n">data</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">3</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="n">ddy</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">3</span><span class="p">])</span>
+                <span class="n">constraints</span> <span class="o">+=</span> <span class="mi">1</span>
+        
+        <span class="k">if</span> <span class="n">ddy</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">and</span> <span class="n">constraints</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="k">print</span> <span class="s">&quot;Spline: Not enough constraints - Assuming initial second derivative is zero&quot;</span>
+            <span class="n">ddy</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.0</span>
+            <span class="n">constraints</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">if</span> <span class="n">ddy</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">and</span> <span class="n">constraints</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="k">print</span> <span class="s">&quot;Spline: Not enough constraints - Assuming final second derivative is zero&quot;</span>
+            <span class="n">ddy</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.0</span>
+            <span class="n">constraints</span> <span class="o">+=</span> <span class="mi">1</span>
+
+
+        <span class="n">N</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="o">-</span><span class="mi">2</span>
+        <span class="n">A</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span> <span class="p">(</span><span class="mi">5</span><span class="o">*</span><span class="p">(</span><span class="n">N</span><span class="o">+</span><span class="mi">1</span><span class="p">),</span> <span class="mi">5</span><span class="o">*</span><span class="p">(</span><span class="n">N</span><span class="o">+</span><span class="mi">1</span><span class="p">))</span> <span class="p">)</span>
+        <span class="n">b</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span> <span class="p">(</span><span class="mi">5</span><span class="o">*</span><span class="p">(</span><span class="n">N</span><span class="o">+</span><span class="mi">1</span><span class="p">),</span> <span class="p">)</span> <span class="p">)</span>
+
+        <span class="c">#print A.shape</span>
+        <span class="c">#print b.shape</span>
+
+        <span class="k">def</span> <span class="nf">ai</span><span class="p">(</span><span class="n">i</span><span class="p">):</span> <span class="k">return</span> <span class="mi">5</span><span class="o">*</span><span class="n">i</span> <span class="o">+</span> <span class="mi">0</span>
+        <span class="k">def</span> <span class="nf">bi</span><span class="p">(</span><span class="n">i</span><span class="p">):</span> <span class="k">return</span> <span class="mi">5</span><span class="o">*</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span>
+        <span class="k">def</span> <span class="nf">ci</span><span class="p">(</span><span class="n">i</span><span class="p">):</span> <span class="k">return</span> <span class="mi">5</span><span class="o">*</span><span class="n">i</span> <span class="o">+</span> <span class="mi">2</span>
+        <span class="k">def</span> <span class="nf">di</span><span class="p">(</span><span class="n">i</span><span class="p">):</span> <span class="k">return</span> <span class="mi">5</span><span class="o">*</span><span class="n">i</span> <span class="o">+</span> <span class="mi">3</span>
+        <span class="k">def</span> <span class="nf">ei</span><span class="p">(</span><span class="n">i</span><span class="p">):</span> <span class="k">return</span> <span class="mi">5</span><span class="o">*</span><span class="n">i</span> <span class="o">+</span> <span class="mi">4</span>
+
+        <span class="n">row</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">_borrow</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="p">(</span><span class="n">N</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="k">def</span> <span class="nf">borrow</span><span class="p">(</span><span class="n">index</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">index</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">_borrow</span><span class="p">[</span><span class="n">index</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">index</span> <span class="o">=</span> <span class="n">index</span><span class="o">-</span><span class="mi">1</span>
+            <span class="k">elif</span> <span class="n">_borrow</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">pass</span>
+            <span class="k">elif</span> <span class="n">index</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">_borrow</span><span class="p">[</span><span class="n">index</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">index</span> <span class="o">=</span> <span class="n">index</span><span class="o">-</span><span class="mi">1</span>
+            <span class="k">elif</span> <span class="n">_borrow</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="k">pass</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c"># If we get here, it means that</span>
+                <span class="c">#print _borrow</span>
+                <span class="k">while</span> <span class="n">index</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">_borrow</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
+                        <span class="k">break</span>
+                    <span class="n">index</span> <span class="o">-=</span> <span class="mi">1</span>
+                <span class="c">#print &quot;borrowing from index %d&quot; % index</span>
+                
+            <span class="n">_borrow</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="k">if</span> <span class="n">_borrow</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="c">#print &quot;Killing a_%d&quot; % index</span>
+                <span class="k">return</span> <span class="n">ai</span><span class="p">(</span><span class="n">index</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c">#print &quot;Killing b_%d&quot; % index</span>
+                <span class="k">return</span> <span class="n">bi</span><span class="p">(</span><span class="n">index</span><span class="p">)</span>
+                    
+        <span class="k">def</span> <span class="nf">borrow2</span><span class="p">(</span><span class="n">index</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">_borrow</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">pass</span>
+            <span class="k">elif</span> <span class="n">index</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">_borrow</span><span class="p">[</span><span class="n">index</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">index</span> <span class="o">=</span> <span class="n">index</span><span class="o">-</span><span class="mi">1</span>
+            <span class="k">elif</span> <span class="n">_borrow</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="k">pass</span>
+            <span class="k">elif</span> <span class="n">index</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">_borrow</span><span class="p">[</span><span class="n">index</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">index</span> <span class="o">=</span> <span class="n">index</span><span class="o">-</span><span class="mi">1</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c"># If we get here, it means that</span>
+                <span class="c">#print &quot;FUCK: &quot;</span>
+                <span class="c">#print _borrow</span>
+                <span class="k">while</span> <span class="n">index</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">_borrow</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
+                        <span class="k">break</span>
+                    <span class="n">index</span> <span class="o">-=</span> <span class="mi">1</span>
+                <span class="c">#print &quot;borrowing from index %d&quot; % index</span>
+                
+            <span class="n">_borrow</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="k">if</span> <span class="n">_borrow</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="c">#print &quot;Killing a_%d&quot; % index</span>
+                <span class="k">return</span> <span class="n">ai</span><span class="p">(</span><span class="n">index</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c">#print &quot;Killing b_%d&quot; % index</span>
+                <span class="k">return</span> <span class="n">bi</span><span class="p">(</span><span class="n">index</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">N</span><span class="o">+</span><span class="mi">1</span><span class="p">):</span>
+            <span class="n">dx</span> <span class="o">=</span> <span class="n">x</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">x</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+
+            <span class="n">A</span><span class="p">[</span><span class="n">row</span><span class="p">,</span> <span class="n">ai</span><span class="p">(</span><span class="n">i</span><span class="p">)]</span> <span class="o">=</span> <span class="n">dx</span><span class="o">**</span><span class="mi">5</span>
+            <span class="n">A</span><span class="p">[</span><span class="n">row</span><span class="p">,</span> <span class="n">bi</span><span class="p">(</span><span class="n">i</span><span class="p">)]</span> <span class="o">=</span> <span class="n">dx</span><span class="o">**</span><span class="mi">4</span>
+            <span class="n">A</span><span class="p">[</span><span class="n">row</span><span class="p">,</span> <span class="n">ci</span><span class="p">(</span><span class="n">i</span><span class="p">)]</span> <span class="o">=</span> <span class="n">dx</span><span class="o">**</span><span class="mi">3</span>
+            <span class="n">A</span><span class="p">[</span><span class="n">row</span><span class="p">,</span> <span class="n">di</span><span class="p">(</span><span class="n">i</span><span class="p">)]</span> <span class="o">=</span> <span class="n">dx</span><span class="o">**</span><span class="mi">2</span>
+            <span class="n">A</span><span class="p">[</span><span class="n">row</span><span class="p">,</span> <span class="n">ei</span><span class="p">(</span><span class="n">i</span><span class="p">)]</span> <span class="o">=</span> <span class="n">dx</span>
+            <span class="n">b</span><span class="p">[</span><span class="n">row</span><span class="p">]</span> <span class="o">=</span> <span class="n">y</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">y</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+            <span class="n">row</span> <span class="o">+=</span> <span class="mi">1</span>
+
+            <span class="k">if</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">N</span><span class="p">:</span>
+                <span class="n">A</span><span class="p">[</span><span class="n">row</span><span class="p">,</span> <span class="n">ai</span><span class="p">(</span><span class="n">i</span><span class="p">)]</span> <span class="o">=</span> <span class="mf">5.0</span><span class="o">*</span><span class="n">dx</span><span class="o">**</span><span class="mi">4</span>
+                <span class="n">A</span><span class="p">[</span><span class="n">row</span><span class="p">,</span> <span class="n">bi</span><span class="p">(</span><span class="n">i</span><span class="p">)]</span> <span class="o">=</span> <span class="mf">4.0</span><span class="o">*</span><span class="n">dx</span><span class="o">**</span><span class="mi">3</span>
+                <span class="n">A</span><span class="p">[</span><span class="n">row</span><span class="p">,</span> <span class="n">ci</span><span class="p">(</span><span class="n">i</span><span class="p">)]</span> <span class="o">=</span> <span class="mf">3.0</span><span class="o">*</span><span class="n">dx</span><span class="o">**</span><span class="mi">2</span>
+                <span class="n">A</span><span class="p">[</span><span class="n">row</span><span class="p">,</span> <span class="n">di</span><span class="p">(</span><span class="n">i</span><span class="p">)]</span> <span class="o">=</span> <span class="mf">2.0</span><span class="o">*</span><span class="n">dx</span>
+                <span class="n">A</span><span class="p">[</span><span class="n">row</span><span class="p">,</span> <span class="n">ei</span><span class="p">(</span><span class="n">i</span><span class="p">)]</span> <span class="o">=</span> <span class="mf">1.0</span>
+                <span class="n">A</span><span class="p">[</span><span class="n">row</span><span class="p">,</span> <span class="n">ei</span><span class="p">(</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">)]</span> <span class="o">=</span> <span class="o">-</span><span class="mf">1.0</span>
+                <span class="n">b</span><span class="p">[</span><span class="n">row</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.0</span>
+                <span class="n">row</span> <span class="o">+=</span><span class="mi">1</span>
+
+                <span class="n">A</span><span class="p">[</span><span class="n">row</span><span class="p">,</span> <span class="n">ai</span><span class="p">(</span><span class="n">i</span><span class="p">)]</span> <span class="o">=</span> <span class="mf">20.0</span><span class="o">*</span><span class="n">dx</span><span class="o">**</span><span class="mi">3</span>
+                <span class="n">A</span><span class="p">[</span><span class="n">row</span><span class="p">,</span> <span class="n">bi</span><span class="p">(</span><span class="n">i</span><span class="p">)]</span> <span class="o">=</span> <span class="mf">12.0</span><span class="o">*</span><span class="n">dx</span><span class="o">**</span><span class="mi">2</span>
+                <span class="n">A</span><span class="p">[</span><span class="n">row</span><span class="p">,</span> <span class="n">ci</span><span class="p">(</span><span class="n">i</span><span class="p">)]</span> <span class="o">=</span>  <span class="mf">6.0</span><span class="o">*</span><span class="n">dx</span>
+                <span class="n">A</span><span class="p">[</span><span class="n">row</span><span class="p">,</span> <span class="n">di</span><span class="p">(</span><span class="n">i</span><span class="p">)]</span> <span class="o">=</span> <span class="mf">2.0</span>
+                <span class="n">A</span><span class="p">[</span><span class="n">row</span><span class="p">,</span> <span class="n">di</span><span class="p">(</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">)]</span> <span class="o">=</span> <span class="o">-</span><span class="mf">2.0</span>
+                <span class="n">b</span><span class="p">[</span><span class="n">row</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.0</span>
+                <span class="n">row</span> <span class="o">+=</span> <span class="mi">1</span>
+
+            <span class="k">if</span> <span class="n">dy</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="n">index</span> <span class="o">=</span> <span class="n">borrow</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+                <span class="n">A</span><span class="p">[</span><span class="n">row</span><span class="p">,</span> <span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1.0</span>
+                <span class="n">b</span><span class="p">[</span><span class="n">row</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.0</span>
+                <span class="c">#pass</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">A</span><span class="p">[</span><span class="n">row</span><span class="p">,</span> <span class="n">ei</span><span class="p">(</span><span class="n">i</span><span class="p">)]</span> <span class="o">=</span> <span class="mf">1.0</span>
+                <span class="n">b</span><span class="p">[</span><span class="n">row</span><span class="p">]</span> <span class="o">=</span> <span class="n">dy</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+            <span class="n">row</span> <span class="o">+=</span> <span class="mi">1</span>
+
+            <span class="k">if</span> <span class="n">ddy</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="n">index</span> <span class="o">=</span> <span class="n">borrow</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+                <span class="n">A</span><span class="p">[</span><span class="n">row</span><span class="p">,</span> <span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1.0</span>
+                <span class="n">b</span><span class="p">[</span><span class="n">row</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.0</span>
+                <span class="c">#pass</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">A</span><span class="p">[</span><span class="n">row</span><span class="p">,</span> <span class="n">di</span><span class="p">(</span><span class="n">i</span><span class="p">)]</span> <span class="o">=</span> <span class="mf">2.0</span>
+                <span class="n">b</span><span class="p">[</span><span class="n">row</span><span class="p">]</span> <span class="o">=</span> <span class="n">ddy</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+            <span class="n">row</span> <span class="o">+=</span> <span class="mi">1</span>
+
+        <span class="n">dx</span> <span class="o">=</span> <span class="n">x</span><span class="p">[</span><span class="n">N</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">x</span><span class="p">[</span><span class="n">N</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">dy</span><span class="p">[</span><span class="n">N</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">index</span> <span class="o">=</span> <span class="n">borrow2</span><span class="p">(</span><span class="n">N</span><span class="p">)</span>
+            <span class="n">A</span><span class="p">[</span><span class="n">row</span><span class="p">,</span> <span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1.0</span>
+            <span class="n">b</span><span class="p">[</span><span class="n">row</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c">#print &quot;row: %d, N: %d&quot; % (row, N)</span>
+            <span class="c">#print &quot;len(dy): %d&quot; % len(dy)</span>
+            <span class="n">A</span><span class="p">[</span><span class="n">row</span><span class="p">,</span> <span class="n">ai</span><span class="p">(</span><span class="n">N</span><span class="p">)]</span> <span class="o">=</span> <span class="mf">5.0</span><span class="o">*</span><span class="n">dx</span><span class="o">**</span><span class="mi">4</span>
+            <span class="n">A</span><span class="p">[</span><span class="n">row</span><span class="p">,</span> <span class="n">bi</span><span class="p">(</span><span class="n">N</span><span class="p">)]</span> <span class="o">=</span> <span class="mf">4.0</span><span class="o">*</span><span class="n">dx</span><span class="o">**</span><span class="mi">3</span>
+            <span class="n">A</span><span class="p">[</span><span class="n">row</span><span class="p">,</span> <span class="n">ci</span><span class="p">(</span><span class="n">N</span><span class="p">)]</span> <span class="o">=</span> <span class="mf">3.0</span><span class="o">*</span><span class="n">dx</span><span class="o">**</span><span class="mi">2</span>
+            <span class="n">A</span><span class="p">[</span><span class="n">row</span><span class="p">,</span> <span class="n">di</span><span class="p">(</span><span class="n">N</span><span class="p">)]</span> <span class="o">=</span> <span class="mf">2.0</span><span class="o">*</span><span class="n">dx</span>
+            <span class="n">A</span><span class="p">[</span><span class="n">row</span><span class="p">,</span> <span class="n">ei</span><span class="p">(</span><span class="n">N</span><span class="p">)]</span> <span class="o">=</span> <span class="mf">1.0</span>
+            <span class="n">b</span><span class="p">[</span><span class="n">row</span><span class="p">]</span> <span class="o">=</span> <span class="n">dy</span><span class="p">[</span><span class="n">N</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">row</span> <span class="o">+=</span> <span class="mi">1</span>
+        
+        <span class="c">#print &quot;crr&quot;</span>
+        <span class="k">if</span> <span class="n">ddy</span><span class="p">[</span><span class="n">N</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">index</span> <span class="o">=</span> <span class="n">borrow2</span><span class="p">(</span><span class="n">N</span><span class="p">)</span>
+            <span class="n">A</span><span class="p">[</span><span class="n">row</span><span class="p">,</span> <span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1.0</span>
+            <span class="n">b</span><span class="p">[</span><span class="n">row</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">A</span><span class="p">[</span><span class="n">row</span><span class="p">,</span> <span class="n">ai</span><span class="p">(</span><span class="n">N</span><span class="p">)]</span> <span class="o">=</span> <span class="mf">20.0</span><span class="o">*</span><span class="n">dx</span><span class="o">**</span><span class="mi">3</span>
+            <span class="n">A</span><span class="p">[</span><span class="n">row</span><span class="p">,</span> <span class="n">bi</span><span class="p">(</span><span class="n">N</span><span class="p">)]</span> <span class="o">=</span> <span class="mf">12.0</span><span class="o">*</span><span class="n">dx</span><span class="o">**</span><span class="mi">2</span>
+            <span class="n">A</span><span class="p">[</span><span class="n">row</span><span class="p">,</span> <span class="n">ci</span><span class="p">(</span><span class="n">N</span><span class="p">)]</span> <span class="o">=</span>  <span class="mf">6.0</span><span class="o">*</span><span class="n">dx</span>
+            <span class="n">A</span><span class="p">[</span><span class="n">row</span><span class="p">,</span> <span class="n">di</span><span class="p">(</span><span class="n">N</span><span class="p">)]</span> <span class="o">=</span>  <span class="mf">2.0</span>
+            <span class="n">b</span><span class="p">[</span><span class="n">row</span><span class="p">]</span> <span class="o">=</span> <span class="n">ddy</span><span class="p">[</span><span class="n">N</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">row</span> <span class="o">+=</span> <span class="mi">1</span>
+
+        <span class="n">sol</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">A</span><span class="p">,</span><span class="n">b</span><span class="p">)</span>
+
+        <span class="n">coeffs</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">N</span><span class="o">+</span><span class="mi">1</span><span class="p">):</span>
+            <span class="n">coeffs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span> <span class="p">(</span><span class="n">sol</span><span class="p">[</span><span class="n">ai</span><span class="p">(</span><span class="n">i</span><span class="p">)],</span>
+                            <span class="n">sol</span><span class="p">[</span><span class="n">bi</span><span class="p">(</span><span class="n">i</span><span class="p">)],</span>
+                            <span class="n">sol</span><span class="p">[</span><span class="n">ci</span><span class="p">(</span><span class="n">i</span><span class="p">)],</span>
+                            <span class="n">sol</span><span class="p">[</span><span class="n">di</span><span class="p">(</span><span class="n">i</span><span class="p">)],</span>
+                            <span class="n">sol</span><span class="p">[</span><span class="n">ei</span><span class="p">(</span><span class="n">i</span><span class="p">)],</span>
+                            <span class="n">y</span><span class="p">[</span><span class="n">i</span><span class="p">])</span> <span class="p">)</span>
+                            
+        <span class="c"># Add polynomial to beginning</span>
+        <span class="n">y0</span> <span class="o">=</span> <span class="n">y</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">dy0</span> <span class="o">=</span> <span class="n">coeffs</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">4</span><span class="p">]</span>
+        <span class="n">ddy0</span> <span class="o">=</span> <span class="mi">2</span><span class="o">*</span><span class="n">coeffs</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">3</span><span class="p">]</span>
+
+        <span class="n">xi</span> <span class="o">=</span> <span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">x</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">])</span> <span class="c"># Arbitrary, just something less than x[0]</span>
+        <span class="n">dx</span> <span class="o">=</span> <span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">xi</span>
+        <span class="n">d</span> <span class="o">=</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">ddy0</span>
+        <span class="n">e</span> <span class="o">=</span> <span class="n">dy0</span> <span class="o">-</span> <span class="n">ddy0</span><span class="o">*</span><span class="n">dx</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="n">y0</span> <span class="o">-</span> <span class="n">dy0</span><span class="o">*</span><span class="n">dx</span> <span class="o">+</span> <span class="mf">0.5</span><span class="o">*</span><span class="n">ddy0</span><span class="o">*</span><span class="n">dx</span><span class="o">**</span><span class="mi">2</span>
+        <span class="n">coeffs</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">d</span><span class="p">,</span> <span class="n">e</span><span class="p">,</span> <span class="n">f</span><span class="p">))</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="p">[</span><span class="n">xi</span><span class="p">]</span> <span class="o">+</span> <span class="n">x</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="p">[</span><span class="n">f</span><span class="p">]</span> <span class="o">+</span> <span class="n">y</span>
+
+        <span class="c"># Add polynomial to end</span>
+        <span class="n">dx</span> <span class="o">=</span> <span class="n">x</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">x</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span>
+        <span class="n">yN</span> <span class="o">=</span> <span class="n">y</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">dyN</span> <span class="o">=</span> <span class="p">(</span><span class="mi">5</span><span class="o">*</span><span class="n">coeffs</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="n">dx</span><span class="o">**</span><span class="mi">4</span> <span class="o">+</span> <span class="mi">4</span><span class="o">*</span><span class="n">coeffs</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span><span class="o">*</span><span class="n">dx</span><span class="o">**</span><span class="mi">3</span> <span class="o">+</span> <span class="mi">3</span><span class="o">*</span><span class="n">coeffs</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span><span class="o">*</span><span class="n">dx</span><span class="o">**</span><span class="mi">2</span>
+               <span class="o">+</span> <span class="mi">2</span><span class="o">*</span><span class="n">coeffs</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">3</span><span class="p">]</span><span class="o">*</span><span class="n">dx</span> <span class="o">+</span> <span class="n">coeffs</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">4</span><span class="p">])</span>
+        <span class="n">ddyN</span> <span class="o">=</span> <span class="mi">20</span><span class="o">*</span><span class="n">coeffs</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="n">dx</span><span class="o">**</span><span class="mi">3</span> <span class="o">+</span> <span class="mi">12</span><span class="o">*</span><span class="n">coeffs</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span><span class="o">*</span><span class="n">dx</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="mi">6</span><span class="o">*</span><span class="n">coeffs</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span><span class="o">*</span><span class="n">dx</span> <span class="o">+</span> <span class="mi">2</span><span class="o">*</span><span class="n">coeffs</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">3</span><span class="p">]</span>
+        
+        <span class="n">d</span> <span class="o">=</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">ddyN</span>
+        <span class="n">e</span> <span class="o">=</span> <span class="n">dyN</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="n">yN</span>
+        <span class="n">coeffs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">d</span><span class="p">,</span> <span class="n">e</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span> <span class="p">)</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">x</span> <span class="o">+</span> <span class="p">[</span><span class="n">x</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">dx</span><span class="p">]</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="n">y</span> <span class="o">+</span> <span class="p">[</span><span class="n">d</span><span class="o">*</span><span class="n">dx</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="n">e</span><span class="o">*</span><span class="n">dx</span> <span class="o">+</span> <span class="n">f</span><span class="p">]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_x_points</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">double</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="s">&#39;C&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_y_points</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">double</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="s">&#39;C&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_coefficients</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">coeffs</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">double</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="s">&#39;C&#39;</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">x_points</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;A list of the x points that define this spline.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_x_points</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">y_points</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;A list of the y points that define this spline.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_y_points</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">coefficients</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Coefficients of the interpolating polynomials.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_coefficients</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+<div class="viewcode-block" id="Spline.y"><a class="viewcode-back" href="../../ref/spline.html#trep.Spline.y">[docs]</a>    <span class="k">def</span> <span class="nf">y</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Evaluate the value of the spline at x.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_y</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="Spline.dy"><a class="viewcode-back" href="../../ref/spline.html#trep.Spline.dy">[docs]</a>    <span class="k">def</span> <span class="nf">dy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Evaluate the first derivative of the spline at x.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dy</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="Spline.ddy"><a class="viewcode-back" href="../../ref/spline.html#trep.Spline.ddy">[docs]</a>    <span class="k">def</span> <span class="nf">ddy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Evaluate the second derivative of the spline at x.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ddy</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="Spline.copy"><a class="viewcode-back" href="../../ref/spline.html#trep.Spline.copy">[docs]</a>    <span class="k">def</span> <span class="nf">copy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Create a new copy of this spline.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">Spline</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="p">[:])</span>
+</pre></div></div></div>
+
+          </div>
+        </div>
+      </div>
+
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+    <h2><a href="http://murpheylab.github.io/trep/">Project Website</a></h2>
+
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">trep documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &copy; Copyright 2015, Elliot Johnson.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.3.1.
+    </div>
+  </body>
+</html>

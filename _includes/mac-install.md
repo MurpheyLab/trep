@@ -10,6 +10,8 @@ and install trep with:
 
 Alternatively, you can install py26-trep for Python 2.6. (Thanks Mark!)
 
+<br>
+
 ### 1.2. Installing with pip
 
 Trep can be also be installed from the Python Package Index using [pip](https://pip.pypa.io/en/latest/index.html). See the Linux installation instructions for more details and required prerequisite packages.

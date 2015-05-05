@@ -1,0 +1,795 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>trep.discopt.doptimizer &mdash; trep documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="trep documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">trep documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+    <script type="math/tex">
+    \newcommand{\deriv}[2][]{\dfrac{\partial #1}{\partial #2}}
+\newcommand{\tderiv}[2][]{\tfrac{\partial #1}{\partial #2}}
+\newcommand{\fderiv}[2][]{\dfrac{d #1}{d #2}}
+\newcommand{\derivII}[3][]{\dfrac{\partial^2 #1}{\partial #2 \partial #3}}
+\newcommand{\tderivII}[3][]{\tfrac{\partial^2 #1}{\partial #2 \partial #3}}
+\newcommand{\derivIII}[4][]{\dfrac{\partial^3 #1}{\partial #2 \partial #3 \partial #4}}
+\newcommand{\tderivIII}[4][]{\tfrac{\partial^3 #1}{\partial #2 \partial #3 \partial #4}}
+\newcommand{\derivIV}[5][]{\dfrac{\partial^4 #1}{\partial #2 \partial #3 \partial #4 \partial #5}}
+
+\newcommand{\half}{\tfrac{1}{2}}  % Macro for 1/2
+
+\newcommand{\ud}{\mathrm{d}}
+
+\newcommand{\op}{\circ}
+\newcommand{\dq}{\dot{q}}
+\newcommand{\ddq}{\ddot{q}}
+
+\newcommand{\dt}{\Delta t}
+
+
+    </script>
+    
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for trep.discopt.doptimizer</h1><div class="highlight"><pre>
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">import</span> <span class="nn">datetime</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+
+<span class="kn">import</span> <span class="nn">trep</span>
+<span class="kn">import</span> <span class="nn">dlqr</span>
+
+<span class="kn">import</span> <span class="nn">numpy.linalg</span>
+<span class="kn">from</span> <span class="nn">numpy</span> <span class="kn">import</span> <span class="n">dot</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">namedtuple</span>
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="kn">as</span> <span class="nn">pyplot</span>
+    <span class="n">pyplot_available</span> <span class="o">=</span> <span class="bp">True</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+    <span class="n">pyplot_available</span> <span class="o">=</span> <span class="bp">False</span>
+
+
+<div class="viewcode-block" id="DOptimizerMonitor"><a class="viewcode-back" href="../../../ref/doptimizer.html#trep.discopt.DOptimizerMonitor">[docs]</a><span class="k">class</span> <span class="nc">DOptimizerMonitor</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This is the base class for Optimizer Monitors.  It does absolutely</span>
+<span class="sd">    nothing, so you can use this as your monitor if you want</span>
+<span class="sd">    completely silent operation.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+<div class="viewcode-block" id="DOptimizerMonitor.optimize_begin"><a class="viewcode-back" href="../../../ref/doptimizer.html#trep.discopt.DOptimizerMonitor.optimize_begin">[docs]</a>    <span class="k">def</span> <span class="nf">optimize_begin</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">U</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Called when DOptimizer.optimize() is called with the initial</span>
+<span class="sd">        trajectory.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">pass</span>    </div>
+<div class="viewcode-block" id="DOptimizerMonitor.optimize_end"><a class="viewcode-back" href="../../../ref/doptimizer.html#trep.discopt.DOptimizerMonitor.optimize_end">[docs]</a>    <span class="k">def</span> <span class="nf">optimize_end</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">converged</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">U</span><span class="p">,</span> <span class="n">cost</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Called before DOptimizer.optimzie() returns with the results</span>
+<span class="sd">        of the optimization.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">pass</span>
+
+</div>
+<div class="viewcode-block" id="DOptimizerMonitor.step_begin"><a class="viewcode-back" href="../../../ref/doptimizer.html#trep.discopt.DOptimizerMonitor.step_begin">[docs]</a>    <span class="k">def</span> <span class="nf">step_begin</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">iteration</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Called at the start of each DOptimize.step().  Note that step</span>
+<span class="sd">        calls itself with the new method when one method fails, so</span>
+<span class="sd">        this might be called multiple times with the same iteration.</span>
+
+<span class="sd">        All calls will be related to the same iteration until</span>
+<span class="sd">        step_termination or step_completed are called.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">pass</span></div>
+<div class="viewcode-block" id="DOptimizerMonitor.step_info"><a class="viewcode-back" href="../../../ref/doptimizer.html#trep.discopt.DOptimizerMonitor.step_info">[docs]</a>    <span class="k">def</span> <span class="nf">step_info</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">method</span><span class="p">,</span> <span class="n">cost</span><span class="p">,</span> <span class="n">dcost</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">U</span><span class="p">,</span> <span class="n">dX</span><span class="p">,</span> <span class="n">dU</span><span class="p">,</span> <span class="n">Kproj</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Called after a descent direction has been calculated.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">pass</span></div>
+<div class="viewcode-block" id="DOptimizerMonitor.step_method_failure"><a class="viewcode-back" href="../../../ref/doptimizer.html#trep.discopt.DOptimizerMonitor.step_method_failure">[docs]</a>    <span class="k">def</span> <span class="nf">step_method_failure</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">method</span><span class="p">,</span> <span class="n">cost</span><span class="p">,</span> <span class="n">dcost</span><span class="p">,</span> <span class="n">fallback_method</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Called when a descent method results in a positive cost</span>
+<span class="sd">        derivative. </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">pass</span></div>
+<div class="viewcode-block" id="DOptimizerMonitor.step_termination"><a class="viewcode-back" href="../../../ref/doptimizer.html#trep.discopt.DOptimizerMonitor.step_termination">[docs]</a>    <span class="k">def</span> <span class="nf">step_termination</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cost</span><span class="p">,</span> <span class="n">dcost</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Called if dcost satisfies the descent tolerance, indicating</span>
+<span class="sd">        that the current trajectory is a local minimizer.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">pass</span></div>
+<div class="viewcode-block" id="DOptimizerMonitor.step_completed"><a class="viewcode-back" href="../../../ref/doptimizer.html#trep.discopt.DOptimizerMonitor.step_completed">[docs]</a>    <span class="k">def</span> <span class="nf">step_completed</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">method</span><span class="p">,</span> <span class="n">cost</span><span class="p">,</span> <span class="n">nX</span><span class="p">,</span> <span class="n">nU</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Called at the end of an optimization step with information</span>
+<span class="sd">        about the new trajectory.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">pass</span>
+
+</div>
+<div class="viewcode-block" id="DOptimizerMonitor.armijo_simulation_failure"><a class="viewcode-back" href="../../../ref/doptimizer.html#trep.discopt.DOptimizerMonitor.armijo_simulation_failure">[docs]</a>    <span class="k">def</span> <span class="nf">armijo_simulation_failure</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">armijo_iteration</span><span class="p">,</span> <span class="n">nX</span><span class="p">,</span> <span class="n">nU</span><span class="p">,</span> <span class="n">bX</span><span class="p">,</span> <span class="n">bU</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Called when a simulation fails (usually an instability) during</span>
+<span class="sd">        the evaluation of the cost in an armijo step.  The Armijo</span>
+<span class="sd">        search continues after this.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">pass</span>    </div>
+<div class="viewcode-block" id="DOptimizerMonitor.armijo_search_failure"><a class="viewcode-back" href="../../../ref/doptimizer.html#trep.discopt.DOptimizerMonitor.armijo_search_failure">[docs]</a>    <span class="k">def</span> <span class="nf">armijo_search_failure</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">U</span><span class="p">,</span> <span class="n">dX</span><span class="p">,</span> <span class="n">dU</span><span class="p">,</span> <span class="n">cost0</span><span class="p">,</span> <span class="n">dcost0</span><span class="p">,</span> <span class="n">Kproj</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Called when the Armijo search reaches the maximum number of</span>
+<span class="sd">        iterations without satisfying the sufficient decrease</span>
+<span class="sd">        criteria.  The optimization cannot proceed after this.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">pass</span></div>
+<div class="viewcode-block" id="DOptimizerMonitor.armijo_evaluation"><a class="viewcode-back" href="../../../ref/doptimizer.html#trep.discopt.DOptimizerMonitor.armijo_evaluation">[docs]</a>    <span class="k">def</span> <span class="nf">armijo_evaluation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">armijo_iteration</span><span class="p">,</span> <span class="n">nX</span><span class="p">,</span> <span class="n">nU</span><span class="p">,</span> <span class="n">bX</span><span class="p">,</span> <span class="n">bU</span><span class="p">,</span> <span class="n">cost</span><span class="p">,</span> <span class="n">max_cost</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Called after each Armijo evaluation.  The semi-trajectory</span>
+<span class="sd">        bX,bU was succesfully projected into the new trajectory nX,nU</span>
+<span class="sd">        and its cost was measured.  The search will continue if the</span>
+<span class="sd">        cost is greater than the maximum cost.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">pass</span>
+    
+</div></div>
+<div class="viewcode-block" id="DOptimizerDefaultMonitor"><a class="viewcode-back" href="../../../ref/doptimizer.html#trep.discopt.DOptimizerDefaultMonitor">[docs]</a><span class="k">class</span> <span class="nc">DOptimizerDefaultMonitor</span><span class="p">(</span><span class="n">DOptimizerMonitor</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This is the default DOptimizer Monitor.  It mainly prints status</span>
+<span class="sd">    updates to stdout and records the cost and dcost history.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">iteration</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">start_cost</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">start_dcost</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">method</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">start_time</span> <span class="o">=</span> <span class="bp">None</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">cost_history</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dcost_history</span> <span class="o">=</span> <span class="p">{}</span>
+
+
+    <span class="k">def</span> <span class="nf">msg</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">msg</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">start_time</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">delta</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">start_time</span>
+            <span class="n">timestamp</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s">&quot;+[%H:%M:%S]&quot;</span><span class="p">,</span><span class="n">time</span><span class="o">.</span><span class="n">gmtime</span><span class="p">(</span><span class="n">delta</span><span class="o">.</span><span class="n">seconds</span><span class="p">))</span>            
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">timestamp</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s">&#39;[%H:%M:%S]&#39;</span><span class="p">)</span>
+        <span class="k">print</span> <span class="s">&quot;</span><span class="si">%s</span><span class="s"> </span><span class="si">%3d</span><span class="s">: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">timestamp</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">iteration</span><span class="p">,</span> <span class="n">msg</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">optimize_begin</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">U</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cost_history</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dcost_history</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">start_time</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span>
+
+
+    <span class="k">def</span> <span class="nf">optimize_end</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">converged</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">U</span><span class="p">,</span> <span class="n">cost</span><span class="p">):</span>
+        <span class="k">print</span> <span class="s">&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">start_time</span> <span class="o">=</span> <span class="bp">None</span>
+
+
+    <span class="k">def</span> <span class="nf">step_begin</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">iteration</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">iteration</span> <span class="o">=</span> <span class="n">iteration</span>
+
+        
+    <span class="k">def</span> <span class="nf">step_info</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">method</span><span class="p">,</span> <span class="n">cost</span><span class="p">,</span> <span class="n">dcost</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">U</span><span class="p">,</span> <span class="n">dX</span><span class="p">,</span> <span class="n">dU</span><span class="p">,</span> <span class="n">Kproj</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">start_cost</span> <span class="o">=</span> <span class="n">cost</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">start_dcost</span> <span class="o">=</span> <span class="n">dcost</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">method</span> <span class="o">=</span> <span class="n">method</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cost_history</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">iteration</span><span class="p">]</span> <span class="o">=</span> <span class="n">cost</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dcost_history</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">iteration</span><span class="p">]</span> <span class="o">=</span> <span class="n">dcost</span>
+
+
+    <span class="k">def</span> <span class="nf">step_method_failure</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">method</span><span class="p">,</span> <span class="n">cost</span><span class="p">,</span> <span class="n">dcost</span><span class="p">,</span> <span class="n">fallback_method</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">msg</span><span class="p">(</span><span class="s">&quot;Descent method </span><span class="si">%r</span><span class="s"> failed (dcost=</span><span class="si">%s</span><span class="s">), fallbacking to </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">method</span><span class="p">,</span> <span class="n">dcost</span><span class="p">,</span> <span class="n">fallback_method</span><span class="p">))</span>
+
+
+    <span class="k">def</span> <span class="nf">step_termination</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cost</span><span class="p">,</span> <span class="n">dcost</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">msg</span><span class="p">(</span><span class="s">&quot;Optimization Terminated.  cost=</span><span class="si">%s</span><span class="s">   dcost=</span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">cost</span><span class="p">,</span> <span class="n">dcost</span><span class="p">))</span>
+
+
+    <span class="k">def</span> <span class="nf">step_completed</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">method</span><span class="p">,</span> <span class="n">cost</span><span class="p">,</span> <span class="n">nX</span><span class="p">,</span> <span class="n">nU</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">msg</span><span class="p">(</span><span class="s">&quot;cost=(</span><span class="si">%s</span><span class="s"> =&gt; </span><span class="si">%s</span><span class="s">)  dcost=</span><span class="si">%s</span><span class="s"> method=</span><span class="si">%s</span><span class="s">  armijo=</span><span class="si">%d</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">start_cost</span><span class="p">,</span> <span class="n">cost</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">start_dcost</span><span class="p">,</span> <span class="n">method</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">armijo</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">armijo_simulation_failure</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">armijo_iteration</span><span class="p">,</span> <span class="n">nX</span><span class="p">,</span> <span class="n">nU</span><span class="p">,</span> <span class="n">bX</span><span class="p">,</span> <span class="n">bU</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">msg</span><span class="p">(</span><span class="s">&quot;  Armijo simulation (</span><span class="si">%d</span><span class="s">) failed after </span><span class="si">%d</span><span class="s"> steps.&quot;</span> <span class="o">%</span> <span class="p">(</span>
+            <span class="n">armijo_iteration</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">nX</span><span class="p">)))</span>
+        
+    
+    <span class="k">def</span> <span class="nf">armijo_search_failure</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">U</span><span class="p">,</span> <span class="n">dX</span><span class="p">,</span> <span class="n">dU</span><span class="p">,</span> <span class="n">cost0</span><span class="p">,</span> <span class="n">dcost0</span><span class="p">,</span> <span class="n">Kproj</span><span class="p">):</span>
+        <span class="k">pass</span>
+
+    
+    <span class="k">def</span> <span class="nf">armijo_evaluation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">armijo_iteration</span><span class="p">,</span> <span class="n">nX</span><span class="p">,</span> <span class="n">nU</span><span class="p">,</span> <span class="n">bX</span><span class="p">,</span> <span class="n">bU</span><span class="p">,</span> <span class="n">cost</span><span class="p">,</span> <span class="n">max_cost</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">armijo</span> <span class="o">=</span> <span class="n">armijo_iteration</span>
+
+    <span class="k">def</span> <span class="nf">get_costs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">cost_history</span><span class="p">[</span><span class="n">x</span><span class="p">]</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cost_history</span><span class="o">.</span><span class="n">keys</span><span class="p">())]</span>
+
+    <span class="k">def</span> <span class="nf">get_dcosts</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">dcost_history</span><span class="p">[</span><span class="n">x</span><span class="p">]</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dcost_history</span><span class="o">.</span><span class="n">keys</span><span class="p">())]</span>
+    
+
+</div>
+<span class="k">class</span> <span class="nc">DOptimizerVerboseMonitor</span><span class="p">(</span><span class="n">DOptimizerDefaultMonitor</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    The verbose DOptimizer Monitor prints more information.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+   
+    <span class="k">def</span> <span class="nf">optimize_begin</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">U</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">msg</span><span class="p">(</span><span class="s">&quot;Optimization starting at </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s">&#39;[%H:%M:%S]&#39;</span><span class="p">))</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">DOptimizerVerboseMonitor</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">optimize_begin</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">U</span><span class="p">)</span>
+
+
+    <span class="k">def</span> <span class="nf">optimize_end</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">converged</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">U</span><span class="p">,</span> <span class="n">cost</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">msg</span><span class="p">(</span><span class="s">&quot;Optimization completed at </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s">&#39;[%H:%M:%S]&#39;</span><span class="p">))</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">DOptimizerVerboseMonitor</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">optimize_end</span><span class="p">(</span><span class="n">converged</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">U</span><span class="p">,</span> <span class="n">cost</span><span class="p">)</span>
+
+
+    <span class="k">def</span> <span class="nf">step_info</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">method</span><span class="p">,</span> <span class="n">cost</span><span class="p">,</span> <span class="n">dcost</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">U</span><span class="p">,</span> <span class="n">dX</span><span class="p">,</span> <span class="n">dU</span><span class="p">,</span> <span class="n">Kproj</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">msg</span><span class="p">(</span><span class="s">&quot;Current Trajectory cost: </span><span class="si">%f</span><span class="s">, dcost: </span><span class="si">%f</span><span class="s">, method=</span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">cost</span><span class="p">,</span> <span class="n">dcost</span><span class="p">,</span> <span class="n">method</span><span class="p">))</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">DOptimizerVerboseMonitor</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">step_info</span><span class="p">(</span><span class="n">method</span><span class="p">,</span> <span class="n">cost</span><span class="p">,</span> <span class="n">dcost</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">U</span><span class="p">,</span> <span class="n">dX</span><span class="p">,</span> <span class="n">dU</span><span class="p">,</span> <span class="n">Kproj</span><span class="p">)</span>
+
+    
+    <span class="k">def</span> <span class="nf">armijo_evaluation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">armijo_iteration</span><span class="p">,</span> <span class="n">nX</span><span class="p">,</span> <span class="n">nU</span><span class="p">,</span> <span class="n">bX</span><span class="p">,</span> <span class="n">bU</span><span class="p">,</span> <span class="n">cost</span><span class="p">,</span> <span class="n">max_cost</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">cost</span> <span class="o">&gt;=</span> <span class="n">max_cost</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">msg</span><span class="p">(</span><span class="s">&quot;  Armijo evaluation (</span><span class="si">%d</span><span class="s">) is too expensive (</span><span class="si">%f</span><span class="s"> &gt;= </span><span class="si">%f</span><span class="s">)&quot;</span> <span class="o">%</span> <span class="p">(</span>
+                <span class="n">armijo_iteration</span><span class="p">,</span> <span class="n">cost</span><span class="p">,</span> <span class="n">max_cost</span><span class="p">))</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">DOptimizerVerboseMonitor</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">armijo_evaluation</span><span class="p">(</span>
+            <span class="n">armijo_iteration</span><span class="p">,</span> <span class="n">nX</span><span class="p">,</span> <span class="n">nU</span><span class="p">,</span> <span class="n">bX</span><span class="p">,</span> <span class="n">bU</span><span class="p">,</span> <span class="n">cost</span><span class="p">,</span> <span class="n">max_cost</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="DOptimizer"><a class="viewcode-back" href="../../../ref/doptimizer.html#trep.discopt.DOptimizer">[docs]</a><span class="k">class</span> <span class="nc">DOptimizer</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dsys</span><span class="p">,</span> <span class="n">cost</span><span class="p">,</span>
+                 <span class="n">first_method_iterations</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
+                 <span class="n">monitor</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dsys</span> <span class="o">=</span> <span class="n">dsys</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cost</span> <span class="o">=</span> <span class="n">cost</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">optimize_ic</span> <span class="o">=</span> <span class="bp">False</span>
+
+        <span class="k">if</span> <span class="n">monitor</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">monitor</span> <span class="o">=</span> <span class="n">DOptimizerDefaultMonitor</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">monitor</span> <span class="o">=</span> <span class="n">monitor</span>
+
+        <span class="c"># Default weights used to generate feedback controller for the</span>
+        <span class="c"># projection.  These can be changed if desired.</span>
+        <span class="n">Qproj</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dsys</span><span class="o">.</span><span class="n">nX</span><span class="p">)</span>
+        <span class="n">Rproj</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dsys</span><span class="o">.</span><span class="n">nU</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Qproj</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">k</span><span class="p">:</span> <span class="n">Qproj</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Rproj</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">k</span><span class="p">:</span> <span class="n">Rproj</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">armijo_beta</span> <span class="o">=</span> <span class="mf">0.7</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">armijo_alpha</span> <span class="o">=</span> <span class="mf">0.00001</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">armijo_max_iterations</span> <span class="o">=</span> <span class="mi">30</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">descent_tolerance</span> <span class="o">=</span> <span class="mf">1e-6</span>
+
+        <span class="c"># Number of first order iterations to do at the start of an optimization</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">first_method_iterations</span> <span class="o">=</span> <span class="n">first_method_iterations</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">first_method</span> <span class="o">=</span> <span class="s">&#39;quasi&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">second_method</span> <span class="o">=</span> <span class="s">&#39;newton&#39;</span>
+    
+        <span class="c"># Named tuples types for function returns</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">step_return</span> <span class="o">=</span> <span class="n">namedtuple</span><span class="p">(</span><span class="s">&#39;step&#39;</span><span class="p">,</span> <span class="s">&#39;done nX nU dcost0 cost1&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">optimize_return</span> <span class="o">=</span> <span class="n">namedtuple</span><span class="p">(</span><span class="s">&#39;optimize&#39;</span><span class="p">,</span> <span class="s">&#39;converged X U&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">check_dcost_return</span> <span class="o">=</span> <span class="n">namedtuple</span><span class="p">(</span><span class="s">&#39;check_dcost&#39;</span><span class="p">,</span> <span class="s">&#39;result error cost1 cost0 approx_dcost exact_dcost&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">check_ddcost_return</span> <span class="o">=</span> <span class="n">namedtuple</span><span class="p">(</span><span class="s">&#39;check_ddcost&#39;</span><span class="p">,</span> <span class="s">&#39;result error cost1 cost0 approx_ddcost exact_ddcost&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model_return</span> <span class="o">=</span> <span class="n">namedtuple</span><span class="p">(</span><span class="s">&#39;descent_model&#39;</span><span class="p">,</span> <span class="s">&#39;Q R S&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">descent_return</span> <span class="o">=</span> <span class="n">namedtuple</span><span class="p">(</span><span class="s">&#39;calc_descent_direction&#39;</span><span class="p">,</span> <span class="s">&#39;Kproj dX dU Q R S&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">armijo_simulate_return</span> <span class="o">=</span> <span class="n">namedtuple</span><span class="p">(</span><span class="s">&#39;armijo_simulate&#39;</span><span class="p">,</span> <span class="s">&#39;success nX nU&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">armijo_search_return</span> <span class="o">=</span> <span class="n">namedtuple</span><span class="p">(</span><span class="s">&#39;armijo_search&#39;</span><span class="p">,</span> <span class="s">&#39;nX nU cost1&#39;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="DOptimizer.calc_cost"><a class="viewcode-back" href="../../../ref/doptimizer.html#trep.discopt.DOptimizer.calc_cost">[docs]</a>    <span class="k">def</span> <span class="nf">calc_cost</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">U</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Calculate the cost of a trajectory X,U.&quot;&quot;&quot;</span>
+        <span class="n">cost</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">X</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">):</span>
+            <span class="n">cost</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cost</span><span class="o">.</span><span class="n">l</span><span class="p">(</span><span class="n">X</span><span class="p">[</span><span class="n">k</span><span class="p">],</span> <span class="n">U</span><span class="p">[</span><span class="n">k</span><span class="p">],</span> <span class="n">k</span><span class="p">)</span>
+        <span class="n">cost</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cost</span><span class="o">.</span><span class="n">m</span><span class="p">(</span><span class="n">X</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+        <span class="k">return</span> <span class="n">cost</span>
+
+</div>
+<div class="viewcode-block" id="DOptimizer.calc_dcost"><a class="viewcode-back" href="../../../ref/doptimizer.html#trep.discopt.DOptimizer.calc_dcost">[docs]</a>    <span class="k">def</span> <span class="nf">calc_dcost</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">U</span><span class="p">,</span> <span class="n">dX</span><span class="p">,</span> <span class="n">dU</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculate the derivative of the cost function evaluated at X,U</span>
+<span class="sd">        in the direction of a tangent trajectory dX,dU.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">dcost</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">X</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">):</span>
+            <span class="n">dcost</span> <span class="o">+=</span> <span class="p">(</span><span class="n">dot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cost</span><span class="o">.</span><span class="n">l_dx</span><span class="p">(</span><span class="n">X</span><span class="p">[</span><span class="n">k</span><span class="p">],</span> <span class="n">U</span><span class="p">[</span><span class="n">k</span><span class="p">],</span> <span class="n">k</span><span class="p">),</span> <span class="n">dX</span><span class="p">[</span><span class="n">k</span><span class="p">])</span> <span class="o">+</span>
+                      <span class="n">dot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cost</span><span class="o">.</span><span class="n">l_du</span><span class="p">(</span><span class="n">X</span><span class="p">[</span><span class="n">k</span><span class="p">],</span> <span class="n">U</span><span class="p">[</span><span class="n">k</span><span class="p">],</span> <span class="n">k</span><span class="p">),</span> <span class="n">dU</span><span class="p">[</span><span class="n">k</span><span class="p">]))</span>
+        <span class="n">dcost</span> <span class="o">+=</span> <span class="n">dot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cost</span><span class="o">.</span><span class="n">m_dx</span><span class="p">(</span><span class="n">X</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]),</span> <span class="n">dX</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+        <span class="k">return</span> <span class="n">dcost</span>
+
+</div>
+<div class="viewcode-block" id="DOptimizer.calc_ddcost"><a class="viewcode-back" href="../../../ref/doptimizer.html#trep.discopt.DOptimizer.calc_ddcost">[docs]</a>    <span class="k">def</span> <span class="nf">calc_ddcost</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">U</span><span class="p">,</span> <span class="n">dX</span><span class="p">,</span> <span class="n">dU</span><span class="p">,</span> <span class="n">Q</span><span class="p">,</span> <span class="n">R</span><span class="p">,</span> <span class="n">S</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculate the second derivative of the cost function evaluated</span>
+<span class="sd">        at X,U in the direction of a tangent trajectoyr dX and dU.</span>
+<span class="sd">        The second order model parameters must be specified in Q,R,S.</span>
+<span class="sd">        These can be obtained through DOptimizer.calc_newton_model()</span>
+<span class="sd">        or by Doptimizer.calc_descent_direction() when method=&#39;newton&#39;.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">ddcost</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">X</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">):</span>
+            <span class="n">ddcost</span> <span class="o">+=</span> <span class="p">(</span><span class="n">dot</span><span class="p">(</span><span class="n">dX</span><span class="p">[</span><span class="n">k</span><span class="p">],</span> <span class="n">dot</span><span class="p">(</span><span class="n">Q</span><span class="p">(</span><span class="n">k</span><span class="p">),</span> <span class="n">dX</span><span class="p">[</span><span class="n">k</span><span class="p">]))</span> <span class="o">+</span>
+                     <span class="mi">2</span><span class="o">*</span><span class="n">dot</span><span class="p">(</span><span class="n">dX</span><span class="p">[</span><span class="n">k</span><span class="p">],</span> <span class="n">dot</span><span class="p">(</span><span class="n">S</span><span class="p">(</span><span class="n">k</span><span class="p">),</span> <span class="n">dU</span><span class="p">[</span><span class="n">k</span><span class="p">]))</span> <span class="o">+</span>
+                       <span class="n">dot</span><span class="p">(</span><span class="n">dU</span><span class="p">[</span><span class="n">k</span><span class="p">],</span> <span class="n">dot</span><span class="p">(</span><span class="n">R</span><span class="p">(</span><span class="n">k</span><span class="p">),</span> <span class="n">dU</span><span class="p">[</span><span class="n">k</span><span class="p">])))</span>
+        <span class="n">ddcost</span> <span class="o">+=</span> <span class="n">dot</span><span class="p">(</span><span class="n">dot</span><span class="p">(</span><span class="n">dX</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">Q</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)),</span> <span class="n">dX</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+        <span class="k">return</span> <span class="n">ddcost</span>
+           
+</div>
+<div class="viewcode-block" id="DOptimizer.calc_steepest_model"><a class="viewcode-back" href="../../../ref/doptimizer.html#trep.discopt.DOptimizer.calc_steepest_model">[docs]</a>    <span class="k">def</span> <span class="nf">calc_steepest_model</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculate a quadratic model to find a steepest descent</span>
+<span class="sd">        direction.  This is simply Q=I, R=I, S=0.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="n">Q</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dsys</span><span class="o">.</span><span class="n">nX</span><span class="p">)</span>
+        <span class="n">R</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dsys</span><span class="o">.</span><span class="n">nU</span><span class="p">)</span>
+        <span class="n">S</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">dsys</span><span class="o">.</span><span class="n">nX</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dsys</span><span class="o">.</span><span class="n">nU</span><span class="p">))</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">model_return</span><span class="p">(</span><span class="k">lambda</span> <span class="n">k</span><span class="p">:</span> <span class="n">Q</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">k</span><span class="p">:</span> <span class="n">R</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">k</span><span class="p">:</span> <span class="n">S</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="DOptimizer.calc_quasi_model"><a class="viewcode-back" href="../../../ref/doptimizer.html#trep.discopt.DOptimizer.calc_quasi_model">[docs]</a>    <span class="k">def</span> <span class="nf">calc_quasi_model</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">U</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculate a quadratic model to find a quasi-newton descent</span>
+<span class="sd">        direction.  This takes into account the derivative of the cost</span>
+<span class="sd">        function without considered system dynamics.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">Q</span> <span class="o">=</span> <span class="p">[</span><span class="bp">None</span><span class="p">]</span><span class="o">*</span><span class="nb">len</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
+        <span class="n">S</span> <span class="o">=</span> <span class="p">[</span><span class="bp">None</span><span class="p">]</span><span class="o">*</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">X</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">R</span> <span class="o">=</span> <span class="p">[</span><span class="bp">None</span><span class="p">]</span><span class="o">*</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">X</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="n">Q</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cost</span><span class="o">.</span><span class="n">m_dxdx</span><span class="p">(</span><span class="n">X</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">reversed</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">X</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">)):</span>
+            <span class="n">Q</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cost</span><span class="o">.</span><span class="n">l_dxdx</span><span class="p">(</span><span class="n">X</span><span class="p">[</span><span class="n">k</span><span class="p">],</span> <span class="n">U</span><span class="p">[</span><span class="n">k</span><span class="p">],</span> <span class="n">k</span><span class="p">)</span>
+            <span class="n">S</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cost</span><span class="o">.</span><span class="n">l_dxdu</span><span class="p">(</span><span class="n">X</span><span class="p">[</span><span class="n">k</span><span class="p">],</span> <span class="n">U</span><span class="p">[</span><span class="n">k</span><span class="p">],</span> <span class="n">k</span><span class="p">)</span>
+            <span class="n">R</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cost</span><span class="o">.</span><span class="n">l_dudu</span><span class="p">(</span><span class="n">X</span><span class="p">[</span><span class="n">k</span><span class="p">],</span> <span class="n">U</span><span class="p">[</span><span class="n">k</span><span class="p">],</span> <span class="n">k</span><span class="p">)</span>
+            
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">model_return</span><span class="p">(</span><span class="k">lambda</span> <span class="n">k</span><span class="p">:</span> <span class="n">Q</span><span class="p">[</span><span class="n">k</span><span class="p">],</span> <span class="k">lambda</span> <span class="n">k</span><span class="p">:</span> <span class="n">R</span><span class="p">[</span><span class="n">k</span><span class="p">],</span> <span class="k">lambda</span> <span class="n">k</span><span class="p">:</span> <span class="n">S</span><span class="p">[</span><span class="n">k</span><span class="p">])</span>
+    
+</div>
+<div class="viewcode-block" id="DOptimizer.calc_newton_model"><a class="viewcode-back" href="../../../ref/doptimizer.html#trep.discopt.DOptimizer.calc_newton_model">[docs]</a>    <span class="k">def</span> <span class="nf">calc_newton_model</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">U</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">K</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculate a quadratic model to find a newton descent</span>
+<span class="sd">        direction.  This solves the backwards discrete adjoint</span>
+<span class="sd">        equation.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">Q</span> <span class="o">=</span> <span class="p">[</span><span class="bp">None</span><span class="p">]</span><span class="o">*</span><span class="nb">len</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
+        <span class="n">S</span> <span class="o">=</span> <span class="p">[</span><span class="bp">None</span><span class="p">]</span><span class="o">*</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">X</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">R</span> <span class="o">=</span> <span class="p">[</span><span class="bp">None</span><span class="p">]</span><span class="o">*</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">X</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="n">z</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cost</span><span class="o">.</span><span class="n">m_dx</span><span class="p">(</span><span class="n">X</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+        <span class="n">Q</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cost</span><span class="o">.</span><span class="n">m_dxdx</span><span class="p">(</span><span class="n">X</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">reversed</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">X</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">)):</span>
+            <span class="n">Q</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cost</span><span class="o">.</span><span class="n">l_dxdx</span><span class="p">(</span><span class="n">X</span><span class="p">[</span><span class="n">k</span><span class="p">],</span> <span class="n">U</span><span class="p">[</span><span class="n">k</span><span class="p">],</span> <span class="n">k</span><span class="p">)</span>
+            <span class="n">S</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cost</span><span class="o">.</span><span class="n">l_dxdu</span><span class="p">(</span><span class="n">X</span><span class="p">[</span><span class="n">k</span><span class="p">],</span> <span class="n">U</span><span class="p">[</span><span class="n">k</span><span class="p">],</span> <span class="n">k</span><span class="p">)</span>
+            <span class="n">R</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cost</span><span class="o">.</span><span class="n">l_dudu</span><span class="p">(</span><span class="n">X</span><span class="p">[</span><span class="n">k</span><span class="p">],</span> <span class="n">U</span><span class="p">[</span><span class="n">k</span><span class="p">],</span> <span class="n">k</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">dsys</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">X</span><span class="p">[</span><span class="n">k</span><span class="p">],</span> <span class="n">U</span><span class="p">[</span><span class="n">k</span><span class="p">],</span> <span class="n">k</span><span class="p">,</span>
+                          <span class="n">xk_hint</span><span class="o">=</span><span class="n">X</span><span class="p">[</span><span class="n">k</span><span class="o">+</span><span class="mi">1</span><span class="p">])</span>
+            <span class="n">Q</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dsys</span><span class="o">.</span><span class="n">fdxdx</span><span class="p">(</span><span class="n">z</span><span class="p">)</span>
+            <span class="n">S</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dsys</span><span class="o">.</span><span class="n">fdxdu</span><span class="p">(</span><span class="n">z</span><span class="p">)</span>
+            <span class="n">R</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dsys</span><span class="o">.</span><span class="n">fdudu</span><span class="p">(</span><span class="n">z</span><span class="p">)</span>
+
+            <span class="n">z</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cost</span><span class="o">.</span><span class="n">l_dx</span><span class="p">(</span><span class="n">X</span><span class="p">[</span><span class="n">k</span><span class="p">],</span> <span class="n">U</span><span class="p">[</span><span class="n">k</span><span class="p">],</span> <span class="n">k</span><span class="p">)</span> <span class="o">-</span>
+                 <span class="n">dot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cost</span><span class="o">.</span><span class="n">l_du</span><span class="p">(</span><span class="n">X</span><span class="p">[</span><span class="n">k</span><span class="p">],</span> <span class="n">U</span><span class="p">[</span><span class="n">k</span><span class="p">],</span> <span class="n">k</span><span class="p">),</span> <span class="n">K</span><span class="p">[</span><span class="n">k</span><span class="p">])</span> <span class="o">+</span>
+                 <span class="n">dot</span><span class="p">(</span><span class="n">z</span><span class="p">,</span> <span class="p">(</span><span class="n">A</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">-</span> <span class="n">dot</span><span class="p">(</span><span class="n">B</span><span class="p">[</span><span class="n">k</span><span class="p">],</span> <span class="n">K</span><span class="p">[</span><span class="n">k</span><span class="p">]))))</span>
+        
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">model_return</span><span class="p">(</span><span class="k">lambda</span> <span class="n">k</span><span class="p">:</span> <span class="n">Q</span><span class="p">[</span><span class="n">k</span><span class="p">],</span> <span class="k">lambda</span> <span class="n">k</span><span class="p">:</span> <span class="n">R</span><span class="p">[</span><span class="n">k</span><span class="p">],</span> <span class="k">lambda</span> <span class="n">k</span><span class="p">:</span> <span class="n">S</span><span class="p">[</span><span class="n">k</span><span class="p">])</span>
+        
+    </div>
+<div class="viewcode-block" id="DOptimizer.calc_descent_direction"><a class="viewcode-back" href="../../../ref/doptimizer.html#trep.discopt.DOptimizer.calc_descent_direction">[docs]</a>    <span class="k">def</span> <span class="nf">calc_descent_direction</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">U</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s">&#39;steepest&#39;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculate the descent direction from the trajectory X,U using</span>
+<span class="sd">        the specified method.  Valid methods are:</span>
+
+<span class="sd">        &#39;steepest&#39;</span>
+<span class="sd">        &#39;quasi&#39;</span>
+<span class="sd">        &#39;newton&#39;</span>
+
+<span class="sd">        The method returns the tuple (Kproj, dX, dU, Q, R, S).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="p">(</span><span class="n">Kproj</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">)</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dsys</span><span class="o">.</span><span class="n">calc_feedback_controller</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">U</span><span class="p">,</span>
+                                                           <span class="bp">self</span><span class="o">.</span><span class="n">Qproj</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">Rproj</span><span class="p">,</span>
+                                                           <span class="bp">True</span><span class="p">)</span>
+
+        <span class="c"># All descent direction methods use the same linear cost</span>
+        <span class="c"># terms.</span>
+        <span class="n">q</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+        <span class="n">r</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">U</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">X</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">):</span>
+            <span class="n">q</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cost</span><span class="o">.</span><span class="n">l_dx</span><span class="p">(</span><span class="n">X</span><span class="p">[</span><span class="n">k</span><span class="p">],</span> <span class="n">U</span><span class="p">[</span><span class="n">k</span><span class="p">],</span> <span class="n">k</span><span class="p">)</span>
+            <span class="n">r</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cost</span><span class="o">.</span><span class="n">l_du</span><span class="p">(</span><span class="n">X</span><span class="p">[</span><span class="n">k</span><span class="p">],</span> <span class="n">U</span><span class="p">[</span><span class="n">k</span><span class="p">],</span> <span class="n">k</span><span class="p">)</span>
+        <span class="n">q</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cost</span><span class="o">.</span><span class="n">m_dx</span><span class="p">(</span><span class="n">X</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+
+        <span class="c"># Calculate the quadratic model according to the desired</span>
+        <span class="c"># method.</span>
+        <span class="k">if</span> <span class="n">method</span> <span class="o">==</span> <span class="s">&#39;steepest&#39;</span><span class="p">:</span>
+            <span class="p">(</span><span class="n">Q</span><span class="p">,</span><span class="n">R</span><span class="p">,</span><span class="n">S</span><span class="p">)</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">calc_steepest_model</span><span class="p">()</span>
+        <span class="k">elif</span> <span class="n">method</span> <span class="o">==</span> <span class="s">&#39;quasi&#39;</span><span class="p">:</span>
+            <span class="p">(</span><span class="n">Q</span><span class="p">,</span><span class="n">R</span><span class="p">,</span><span class="n">S</span><span class="p">)</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">calc_quasi_model</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">U</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">method</span> <span class="o">==</span> <span class="s">&#39;newton&#39;</span><span class="p">:</span>
+            <span class="p">(</span><span class="n">Q</span><span class="p">,</span><span class="n">R</span><span class="p">,</span><span class="n">S</span><span class="p">)</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">calc_newton_model</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">U</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">Kproj</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">StandardError</span><span class="p">(</span><span class="s">&quot;Invalid descent direction method: </span><span class="si">%r</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">method</span><span class="p">)</span>
+
+        <span class="p">(</span><span class="n">K</span><span class="p">,</span><span class="n">C</span><span class="p">,</span><span class="n">P</span><span class="p">,</span><span class="n">b</span><span class="p">)</span> <span class="o">=</span> <span class="n">dlqr</span><span class="o">.</span><span class="n">solve_tv_lq</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">q</span><span class="p">,</span> <span class="n">r</span><span class="p">,</span> <span class="n">Q</span><span class="p">,</span> <span class="n">S</span><span class="p">,</span> <span class="n">R</span><span class="p">)</span>
+
+        <span class="c"># If the optimization includes initial conditions, we need to</span>
+        <span class="c"># find an initial condition that minimizes the LQ solution.</span>
+        <span class="c"># This currently is only valid for unconstrained systems.</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">optimize_ic</span><span class="p">:</span>
+            <span class="n">dx0</span> <span class="o">=</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">P</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">dx0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">dsys</span><span class="o">.</span><span class="n">nX</span><span class="p">,))</span>
+
+        <span class="c"># Calculate the descent direction by simulating the linearized</span>
+        <span class="c"># system using the LQ solution&#39;s optimal input.</span>
+        <span class="n">dX</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+        <span class="n">dU</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">U</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+        <span class="n">dX</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">dx0</span>
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">X</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">):</span>
+            <span class="n">dU</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="n">dot</span><span class="p">(</span><span class="n">K</span><span class="p">[</span><span class="n">k</span><span class="p">],</span><span class="n">dX</span><span class="p">[</span><span class="n">k</span><span class="p">])</span> <span class="o">-</span> <span class="n">C</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> 
+            <span class="n">dX</span><span class="p">[</span><span class="n">k</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">dot</span><span class="p">(</span><span class="n">A</span><span class="p">[</span><span class="n">k</span><span class="p">],</span><span class="n">dX</span><span class="p">[</span><span class="n">k</span><span class="p">])</span> <span class="o">+</span> <span class="n">dot</span><span class="p">(</span><span class="n">B</span><span class="p">[</span><span class="n">k</span><span class="p">],</span><span class="n">dU</span><span class="p">[</span><span class="n">k</span><span class="p">])</span>
+            
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">descent_return</span><span class="p">(</span><span class="n">Kproj</span><span class="p">,</span> <span class="n">dX</span><span class="p">,</span> <span class="n">dU</span><span class="p">,</span> <span class="n">Q</span><span class="p">,</span> <span class="n">R</span><span class="p">,</span> <span class="n">S</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="DOptimizer.armijo_simulate"><a class="viewcode-back" href="../../../ref/doptimizer.html#trep.discopt.DOptimizer.armijo_simulate">[docs]</a>    <span class="k">def</span> <span class="nf">armijo_simulate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">bX</span><span class="p">,</span> <span class="n">bU</span><span class="p">,</span> <span class="n">Kproj</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This is a sub-function for armijo search.  It projects the</span>
+<span class="sd">        trajectory bX,bU to a real trajectory like DSystem.project,</span>
+<span class="sd">        but it also returns a partial trajectory if the simulation</span>
+<span class="sd">        fails.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c"># If still spending a lot of time in armijo search, move the</span>
+        <span class="c"># cost comparison to this loop so we can abort the simulation</span>
+        <span class="c"># as soon as possible.        </span>
+        <span class="n">nX</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">bX</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+        <span class="n">nU</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">bU</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">nX</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">bX</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">bX</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">):</span>
+                <span class="n">nU</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">bU</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">-</span> <span class="n">dot</span><span class="p">(</span><span class="n">Kproj</span><span class="p">[</span><span class="n">k</span><span class="p">],</span> <span class="n">nX</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">-</span> <span class="n">bX</span><span class="p">[</span><span class="n">k</span><span class="p">])</span>
+                <span class="k">if</span> <span class="n">k</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">dsys</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">nX</span><span class="p">[</span><span class="n">k</span><span class="p">],</span> <span class="n">nU</span><span class="p">[</span><span class="n">k</span><span class="p">],</span> <span class="n">k</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">dsys</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="n">nU</span><span class="p">[</span><span class="n">k</span><span class="p">])</span>
+                <span class="n">nX</span><span class="p">[</span><span class="n">k</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dsys</span><span class="o">.</span><span class="n">f</span><span class="p">()</span>
+        <span class="k">except</span> <span class="n">trep</span><span class="o">.</span><span class="n">ConvergenceError</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">(</span><span class="bp">False</span><span class="p">,</span> <span class="n">nX</span><span class="p">[:</span><span class="n">k</span><span class="p">],</span> <span class="n">nU</span><span class="p">[:</span><span class="n">k</span><span class="p">])</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">armijo_simulate_return</span><span class="p">(</span><span class="bp">True</span><span class="p">,</span> <span class="n">nX</span><span class="p">,</span> <span class="n">nU</span><span class="p">)</span>
+
+        </div>
+<div class="viewcode-block" id="DOptimizer.armijo_search"><a class="viewcode-back" href="../../../ref/doptimizer.html#trep.discopt.DOptimizer.armijo_search">[docs]</a>    <span class="k">def</span> <span class="nf">armijo_search</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">U</span><span class="p">,</span> <span class="n">Kproj</span><span class="p">,</span> <span class="n">dX</span><span class="p">,</span> <span class="n">dU</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Perform an Armijo line search from the trajectory X,U along</span>
+<span class="sd">        the tangent trajectory dX, dU.  Returns the tuple (nX, nU,</span>
+<span class="sd">        nCost).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">cost0</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">calc_cost</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">U</span><span class="p">)</span>
+        <span class="n">dcost0</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">calc_dcost</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">U</span><span class="p">,</span> <span class="n">dX</span><span class="p">,</span> <span class="n">dU</span><span class="p">)</span>
+        
+        <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">armijo_max_iterations</span><span class="p">):</span>
+            <span class="n">lam</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">armijo_beta</span><span class="o">**</span><span class="n">m</span>
+            <span class="n">max_cost</span> <span class="o">=</span> <span class="n">cost0</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">armijo_alpha</span><span class="o">*</span> <span class="n">lam</span> <span class="o">*</span> <span class="n">dcost0</span>
+
+            <span class="n">bX</span> <span class="o">=</span> <span class="n">X</span> <span class="o">+</span> <span class="n">lam</span><span class="o">*</span><span class="n">dX</span>
+            <span class="n">bU</span> <span class="o">=</span> <span class="n">U</span> <span class="o">+</span> <span class="n">lam</span><span class="o">*</span><span class="n">dU</span>
+
+            <span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">nX</span><span class="p">,</span> <span class="n">nU</span><span class="p">)</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">armijo_simulate</span><span class="p">(</span><span class="n">bX</span><span class="p">,</span> <span class="n">bU</span><span class="p">,</span> <span class="n">Kproj</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">result</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">monitor</span><span class="o">.</span><span class="n">armijo_simulation_failure</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">nX</span><span class="p">,</span> <span class="n">nU</span><span class="p">,</span> <span class="n">nX</span><span class="p">,</span> <span class="n">bU</span><span class="p">)</span>
+                <span class="k">continue</span>
+
+            <span class="n">cost1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">calc_cost</span><span class="p">(</span><span class="n">nX</span><span class="p">,</span> <span class="n">nU</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">monitor</span><span class="o">.</span><span class="n">armijo_evaluation</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">nX</span><span class="p">,</span> <span class="n">nU</span><span class="p">,</span> <span class="n">bX</span><span class="p">,</span> <span class="n">bU</span><span class="p">,</span> <span class="n">cost1</span><span class="p">,</span> <span class="n">max_cost</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">cost1</span> <span class="o">&lt;</span> <span class="n">max_cost</span><span class="p">:</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">armijo_search_return</span><span class="p">(</span><span class="n">nX</span><span class="p">,</span> <span class="n">nU</span><span class="p">,</span> <span class="n">cost1</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">monitor</span><span class="o">.</span><span class="n">armijo_search_failure</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">U</span><span class="p">,</span> <span class="n">dX</span><span class="p">,</span> <span class="n">dU</span><span class="p">,</span> <span class="n">cost0</span><span class="p">,</span> <span class="n">dcost0</span><span class="p">,</span> <span class="n">Kproj</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="n">trep</span><span class="o">.</span><span class="n">ConvergenceError</span><span class="p">(</span><span class="s">&quot;Armijo Failed to Converge&quot;</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="DOptimizer.step"><a class="viewcode-back" href="../../../ref/doptimizer.html#trep.discopt.DOptimizer.step">[docs]</a>    <span class="k">def</span> <span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">iteration</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">U</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s">&#39;steepest&#39;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Perform an optimization step.</span>
+
+<span class="sd">        Find a new trajectory nX, nU that has a lower cost than the</span>
+<span class="sd">        trajectory X,U.  Valid methods are defined in</span>
+<span class="sd">        DOptimizer.calc_descent_direction().</span>
+
+<span class="sd">        Returns the named tuple (done, nX, nU, dcost0, cost1) where:</span>
+
+<span class="sd">        &#39;done&#39; is a boolean that is True if the trajectory X,U cannot</span>
+<span class="sd">        be improved (i.e, X,U is a local minimizer)</span>
+
+<span class="sd">        nX,nU are the improved trajectory</span>
+
+<span class="sd">        dcost0 is the derivative of the cost at X,U</span>
+
+<span class="sd">        cost1 is the cost of the improved trajectory.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">monitor</span><span class="o">.</span><span class="n">step_begin</span><span class="p">(</span><span class="n">iteration</span><span class="p">)</span>
+
+        <span class="p">(</span><span class="n">Kproj</span><span class="p">,</span> <span class="n">dX</span><span class="p">,</span> <span class="n">dU</span><span class="p">,</span> <span class="n">Q</span><span class="p">,</span> <span class="n">R</span><span class="p">,</span> <span class="n">S</span><span class="p">)</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">calc_descent_direction</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">U</span><span class="p">,</span> <span class="n">method</span><span class="p">)</span>
+        
+        <span class="n">cost0</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">calc_cost</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">U</span><span class="p">)</span>
+        <span class="n">dcost0</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">calc_dcost</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">U</span><span class="p">,</span> <span class="n">dX</span><span class="p">,</span> <span class="n">dU</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">monitor</span><span class="o">.</span><span class="n">step_info</span><span class="p">(</span><span class="n">method</span><span class="p">,</span> <span class="n">cost0</span><span class="p">,</span> <span class="n">dcost0</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">U</span><span class="p">,</span> <span class="n">dX</span><span class="p">,</span> <span class="n">dU</span><span class="p">,</span> <span class="n">Kproj</span><span class="p">)</span>
+
+        <span class="c"># Check for sane descent direction</span>
+        <span class="k">if</span> <span class="n">dcost0</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">fallback</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">select_fallback_method</span><span class="p">(</span><span class="n">iteration</span><span class="p">,</span> <span class="n">method</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">monitor</span><span class="o">.</span><span class="n">step_method_failure</span><span class="p">(</span><span class="n">method</span><span class="p">,</span> <span class="n">cost0</span><span class="p">,</span> <span class="n">dcost0</span><span class="p">,</span> <span class="n">fallback</span><span class="p">)</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="n">iteration</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">U</span><span class="p">,</span> <span class="n">fallback</span><span class="p">)</span>
+
+        <span class="c"># Check for terminal condition</span>
+        <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">dcost0</span><span class="p">)</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">descent_tolerance</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">monitor</span><span class="o">.</span><span class="n">step_termination</span><span class="p">(</span><span class="n">cost0</span><span class="p">,</span> <span class="n">dcost0</span><span class="p">)</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">step_return</span><span class="p">(</span><span class="bp">True</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">U</span><span class="p">,</span> <span class="n">dcost0</span><span class="p">,</span> <span class="n">cost0</span><span class="p">)</span>
+
+        <span class="c"># Line search in descent direction</span>
+        <span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">U</span><span class="p">,</span> <span class="n">cost1</span><span class="p">)</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">armijo_search</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">U</span><span class="p">,</span> <span class="n">Kproj</span><span class="p">,</span> <span class="n">dX</span><span class="p">,</span> <span class="n">dU</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">monitor</span><span class="o">.</span><span class="n">step_completed</span><span class="p">(</span><span class="n">method</span><span class="p">,</span> <span class="n">cost1</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">U</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">step_return</span><span class="p">(</span><span class="bp">False</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">U</span><span class="p">,</span> <span class="n">dcost0</span><span class="p">,</span> <span class="n">cost1</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="DOptimizer.select_method"><a class="viewcode-back" href="../../../ref/doptimizer.html#trep.discopt.DOptimizer.select_method">[docs]</a>    <span class="k">def</span> <span class="nf">select_method</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">iteration</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Select a descent direction method for the specified iteration.</span>
+
+<span class="sd">        This is called by optimize() to choose a descent direction</span>
+<span class="sd">        method for each step.  The default implementation takes</span>
+<span class="sd">        &#39;self.first_method_iterations&#39; steps of &#39;self.first_method&#39;</span>
+<span class="sd">        and then switches to &#39;self.second_method&#39; steps.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">iteration</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">first_method_iterations</span><span class="p">:</span>
+            <span class="n">method</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">first_method</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">method</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">second_method</span>
+        <span class="k">return</span> <span class="n">method</span>
+
+</div>
+<div class="viewcode-block" id="DOptimizer.select_fallback_method"><a class="viewcode-back" href="../../../ref/doptimizer.html#trep.discopt.DOptimizer.select_fallback_method">[docs]</a>    <span class="k">def</span> <span class="nf">select_fallback_method</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">iteration</span><span class="p">,</span> <span class="n">current_method</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        When DOptimizer.step() finds a bad descent direction (e.g,</span>
+<span class="sd">        positive cost derivative), it calls this method to figure out</span>
+<span class="sd">        what descent direction it should use next.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">current_method</span> <span class="o">==</span> <span class="s">&#39;newton&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s">&#39;quasi&#39;</span>
+        <span class="k">elif</span> <span class="n">current_method</span> <span class="o">==</span> <span class="s">&#39;quasi&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s">&#39;steepest&#39;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c"># This should never occur</span>
+            <span class="k">raise</span> <span class="ne">StandardError</span><span class="p">(</span><span class="s">&quot;Derivative of cost is positive for steepest descent.&quot;</span><span class="p">)</span>
+
+            </div>
+<div class="viewcode-block" id="DOptimizer.optimize"><a class="viewcode-back" href="../../../ref/doptimizer.html#trep.discopt.DOptimizer.optimize">[docs]</a>    <span class="k">def</span> <span class="nf">optimize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">U</span><span class="p">,</span> <span class="n">max_steps</span><span class="o">=</span><span class="mi">50</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Iteratively optimize the trajectory X,U.</span>
+
+<span class="sd">        This function calls DOptimizer.step() until a local minimizer</span>
+<span class="sd">        is found or &#39;max_steps&#39; iterations were taken.</span>
+
+<span class="sd">        Returns the named tuple (converged, X, U) where:</span>
+
+<span class="sd">        converged is a boolean indicating if the optimization finished</span>
+<span class="sd">        on a local minimizer.</span>
+
+<span class="sd">        X,U is the improved trajectory.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">X</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
+        <span class="n">U</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">U</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">monitor</span><span class="o">.</span><span class="n">optimize_begin</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">U</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">max_steps</span><span class="p">):</span>
+            <span class="n">method</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">select_method</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+            <span class="p">(</span><span class="n">converged</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">U</span><span class="p">,</span> <span class="n">cost</span><span class="p">,</span> <span class="n">method</span><span class="p">)</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">U</span><span class="p">,</span> <span class="n">method</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">converged</span><span class="p">:</span>
+                <span class="k">break</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">monitor</span><span class="o">.</span><span class="n">optimize_end</span><span class="p">(</span><span class="n">converged</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">U</span><span class="p">,</span> <span class="n">cost</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">optimize_return</span><span class="p">(</span><span class="n">converged</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">U</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="DOptimizer.descent_plot"><a class="viewcode-back" href="../../../ref/doptimizer.html#trep.discopt.DOptimizer.descent_plot">[docs]</a>    <span class="k">def</span> <span class="nf">descent_plot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">U</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s">&#39;steepest&#39;</span><span class="p">,</span> <span class="n">points</span><span class="o">=</span><span class="mi">40</span><span class="p">,</span> <span class="n">legend</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Create a descent direction plot at X,U for the specified method.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">pyplot_available</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">StandardError</span><span class="p">(</span><span class="s">&quot;Importing matplotlib failed. Cannot create plot.&quot;</span><span class="p">)</span>
+
+        <span class="p">(</span><span class="n">Kproj</span><span class="p">,</span> <span class="n">dX</span><span class="p">,</span> <span class="n">dU</span><span class="p">,</span> <span class="n">Q</span><span class="p">,</span> <span class="n">R</span><span class="p">,</span> <span class="n">S</span><span class="p">)</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">calc_descent_direction</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">U</span><span class="p">,</span> <span class="n">method</span><span class="p">)</span>
+
+        <span class="k">def</span> <span class="nf">calc_cost</span><span class="p">(</span><span class="n">zi</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">calc_cost</span><span class="p">(</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">dsys</span><span class="o">.</span><span class="n">project</span><span class="p">(</span><span class="n">X</span> <span class="o">+</span> <span class="n">zi</span><span class="o">*</span><span class="n">dX</span><span class="p">,</span> <span class="n">U</span> <span class="o">+</span> <span class="n">zi</span><span class="o">*</span><span class="n">dU</span><span class="p">,</span> <span class="n">Kproj</span><span class="p">))</span>
+
+        <span class="n">armijo_z</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="nb">sorted</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">armijo_beta</span><span class="o">**</span><span class="n">m</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">20</span><span class="p">)]))</span>
+        <span class="n">z</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">-</span><span class="mf">0.1</span><span class="p">,</span> <span class="mf">1.01</span><span class="p">,</span> <span class="n">points</span><span class="p">)</span>
+        <span class="n">z</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="n">z</span><span class="p">,</span> <span class="n">armijo_z</span><span class="p">))</span>
+        <span class="n">z</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+
+        <span class="c"># Used to calculate the model costs</span>
+        <span class="n">cost</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">calc_cost</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">U</span><span class="p">)</span>
+        <span class="n">dcost</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">calc_dcost</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">U</span><span class="p">,</span> <span class="n">dX</span><span class="p">,</span> <span class="n">dU</span><span class="p">)</span>
+        <span class="n">ddcost</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">calc_ddcost</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">U</span><span class="p">,</span> <span class="n">dX</span><span class="p">,</span> <span class="n">dU</span><span class="p">,</span> <span class="n">Q</span><span class="p">,</span> <span class="n">R</span><span class="p">,</span> <span class="n">S</span><span class="p">)</span>
+
+        <span class="n">true_cost</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">z</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+        <span class="n">model_cost</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">z</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">zi</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">z</span><span class="p">):</span>
+            <span class="n">true_cost</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">calc_cost</span><span class="p">(</span><span class="n">zi</span><span class="p">)</span>
+            <span class="n">model_cost</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">cost</span> <span class="o">+</span> <span class="n">dcost</span><span class="o">*</span><span class="n">zi</span> <span class="o">+</span> <span class="mf">0.5</span><span class="o">*</span><span class="n">ddcost</span><span class="o">*</span><span class="n">zi</span><span class="o">*</span><span class="n">zi</span>
+
+
+        <span class="n">armijo_cost</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">armijo_z</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">zi</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">armijo_z</span><span class="p">):</span>
+            <span class="n">armijo_cost</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">calc_cost</span><span class="p">(</span><span class="n">zi</span><span class="p">)</span>
+
+        <span class="n">armijo_max</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">z</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">zi</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">z</span><span class="p">):</span>
+            <span class="n">armijo_max</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">cost</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">armijo_alpha</span><span class="o">*</span> <span class="n">zi</span> <span class="o">*</span> <span class="n">dcost</span>
+
+
+        <span class="n">pyplot</span><span class="o">.</span><span class="n">hold</span><span class="p">(</span><span class="bp">True</span><span class="p">)</span>
+        <span class="n">pyplot</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">z</span><span class="p">,</span> <span class="n">model_cost</span><span class="o">-</span><span class="n">cost</span><span class="p">,</span> <span class="s">&#39;-,&#39;</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="mf">2.0</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s">&#39;blue&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s">&#39;Modeled Cost&#39;</span><span class="p">)</span>
+        <span class="n">pyplot</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">z</span><span class="p">,</span> <span class="n">true_cost</span><span class="o">-</span><span class="n">cost</span><span class="p">,</span> <span class="s">&#39;.-&#39;</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s">&#39;black&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s">&#39;True Cost&#39;</span><span class="p">)</span>
+        <span class="n">pyplot</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">armijo_z</span><span class="p">,</span> <span class="n">armijo_cost</span><span class="o">-</span><span class="n">cost</span><span class="p">,</span> <span class="s">&#39;o&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s">&#39;gray&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s">&#39;Armijo Evaluations&#39;</span><span class="p">)</span>
+        <span class="n">pyplot</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">z</span><span class="p">,</span> <span class="n">armijo_max</span><span class="o">-</span><span class="n">cost</span><span class="p">,</span> <span class="s">&#39;-.&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s">&#39;black&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s">&#39;Required Cost Improvement&#39;</span><span class="p">)</span>
+        <span class="n">pyplot</span><span class="o">.</span><span class="n">hold</span><span class="p">(</span><span class="bp">False</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">legend</span><span class="p">:</span>
+            <span class="n">pyplot</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+        <span class="n">pyplot</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s">&#39;Cost along descent direction for method: &quot;</span><span class="si">%s</span><span class="s">&quot;.&#39;</span> <span class="o">%</span> <span class="n">method</span><span class="p">)</span>
+        <span class="n">pyplot</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s">&#39;z&#39;</span><span class="p">)</span>
+        <span class="n">pyplot</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s">r&#39;$\Delta$ cost&#39;</span><span class="p">)</span>
+
+</div>
+    <span class="k">def</span> <span class="nf">check_dcost</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">U</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s">&#39;steepest&#39;</span><span class="p">,</span> <span class="n">delta</span><span class="o">=</span><span class="mf">1e-6</span><span class="p">,</span> <span class="n">tolerance</span><span class="o">=</span><span class="mf">1e-5</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Check the calculated derivative of the cost function at X,U</span>
+<span class="sd">        with a numeric approximation determined from the original cost</span>
+<span class="sd">        function.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="p">(</span><span class="n">Kproj</span><span class="p">,</span> <span class="n">dX</span><span class="p">,</span> <span class="n">dU</span><span class="p">,</span> <span class="n">Q</span><span class="p">,</span> <span class="n">R</span><span class="p">,</span> <span class="n">S</span><span class="p">)</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">calc_descent_direction</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">U</span><span class="p">,</span> <span class="n">method</span><span class="p">)</span>
+        <span class="n">exact_dcost</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">calc_dcost</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">U</span><span class="p">,</span> <span class="n">dX</span><span class="p">,</span> <span class="n">dU</span><span class="p">)</span>
+
+        <span class="n">nX</span><span class="p">,</span> <span class="n">nU</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dsys</span><span class="o">.</span><span class="n">project</span><span class="p">(</span><span class="n">X</span> <span class="o">-</span> <span class="n">delta</span><span class="o">*</span><span class="n">dX</span><span class="p">,</span> <span class="n">U</span> <span class="o">-</span> <span class="n">delta</span><span class="o">*</span><span class="n">dU</span><span class="p">,</span> <span class="n">Kproj</span><span class="p">)</span>
+        <span class="n">cost0</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">calc_cost</span><span class="p">(</span><span class="n">nX</span><span class="p">,</span> <span class="n">nU</span><span class="p">)</span>
+
+        <span class="n">nX</span><span class="p">,</span> <span class="n">nU</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dsys</span><span class="o">.</span><span class="n">project</span><span class="p">(</span><span class="n">X</span> <span class="o">+</span> <span class="n">delta</span><span class="o">*</span><span class="n">dX</span><span class="p">,</span> <span class="n">U</span> <span class="o">+</span> <span class="n">delta</span><span class="o">*</span><span class="n">dU</span><span class="p">,</span> <span class="n">Kproj</span><span class="p">)</span>
+        <span class="n">cost1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">calc_cost</span><span class="p">(</span><span class="n">nX</span><span class="p">,</span> <span class="n">nU</span><span class="p">)</span>
+                
+        <span class="n">approx_dcost</span> <span class="o">=</span> <span class="p">(</span><span class="n">cost1</span> <span class="o">-</span> <span class="n">cost0</span><span class="p">)</span><span class="o">/</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">delta</span><span class="p">)</span>
+        <span class="n">error</span> <span class="o">=</span> <span class="n">approx_dcost</span> <span class="o">-</span> <span class="n">exact_dcost</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">error</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="n">tolerance</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_dcost_return</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">error</span><span class="p">,</span> <span class="n">cost1</span><span class="p">,</span> <span class="n">cost0</span><span class="p">,</span> <span class="n">approx_dcost</span><span class="p">,</span> <span class="n">exact_dcost</span><span class="p">)</span>
+    
+
+<div class="viewcode-block" id="DOptimizer.check_ddcost"><a class="viewcode-back" href="../../../ref/doptimizer.html#trep.discopt.DOptimizer.check_ddcost">[docs]</a>    <span class="k">def</span> <span class="nf">check_ddcost</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">U</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s">&#39;steepest&#39;</span><span class="p">,</span> <span class="n">delta</span><span class="o">=</span><span class="mf">1e-6</span><span class="p">,</span> <span class="n">tolerance</span><span class="o">=</span><span class="mf">1e-5</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Check the second derivative of the cost function at X,U with a</span>
+<span class="sd">        numeric approximation determined from the first derivative.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="p">(</span><span class="n">Kproj</span><span class="p">,</span> <span class="n">dX</span><span class="p">,</span> <span class="n">dU</span><span class="p">,</span> <span class="n">Q</span><span class="p">,</span> <span class="n">R</span><span class="p">,</span> <span class="n">S</span><span class="p">)</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">calc_descent_direction</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">U</span><span class="p">,</span> <span class="n">method</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">method</span> <span class="o">!=</span> <span class="s">&#39;newton&#39;</span><span class="p">:</span>
+            <span class="p">(</span><span class="n">Q</span><span class="p">,</span> <span class="n">R</span><span class="p">,</span> <span class="n">S</span><span class="p">)</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">calc_descent_direction</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">U</span><span class="p">,</span> <span class="s">&#39;newton&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">3</span><span class="p">:]</span>
+
+        <span class="n">exact_ddcost</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">calc_ddcost</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">U</span><span class="p">,</span> <span class="n">dX</span><span class="p">,</span> <span class="n">dU</span><span class="p">,</span> <span class="n">Q</span><span class="p">,</span> <span class="n">R</span><span class="p">,</span> <span class="n">S</span><span class="p">)</span>
+
+        <span class="c"># Calculate cost0</span>
+        <span class="n">bX</span> <span class="o">=</span> <span class="n">X</span> <span class="o">-</span> <span class="n">delta</span><span class="o">*</span><span class="n">dX</span>
+        <span class="n">bU</span> <span class="o">=</span> <span class="n">U</span> <span class="o">-</span> <span class="n">delta</span><span class="o">*</span><span class="n">dU</span>
+        <span class="n">nX</span><span class="p">,</span> <span class="n">nU</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dsys</span><span class="o">.</span><span class="n">project</span><span class="p">(</span><span class="n">bX</span><span class="p">,</span> <span class="n">bU</span><span class="p">,</span> <span class="n">Kproj</span><span class="p">)</span>
+        <span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">)</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dsys</span><span class="o">.</span><span class="n">linearize_trajectory</span><span class="p">(</span><span class="n">nX</span><span class="p">,</span> <span class="n">nU</span><span class="p">)</span>
+        <span class="p">(</span><span class="n">ndX</span><span class="p">,</span> <span class="n">ndU</span><span class="p">)</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dsys</span><span class="o">.</span><span class="n">dproject</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">dX</span><span class="p">,</span> <span class="n">dU</span><span class="p">,</span> <span class="n">Kproj</span><span class="p">)</span>
+        <span class="n">dcost0</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">calc_dcost</span><span class="p">(</span><span class="n">nX</span><span class="p">,</span> <span class="n">nU</span><span class="p">,</span> <span class="n">ndX</span><span class="p">,</span> <span class="n">ndU</span><span class="p">)</span>
+
+        <span class="c"># Calculate cost1</span>
+        <span class="n">bX</span> <span class="o">=</span> <span class="n">X</span> <span class="o">+</span> <span class="n">delta</span><span class="o">*</span><span class="n">dX</span>
+        <span class="n">bU</span> <span class="o">=</span> <span class="n">U</span> <span class="o">+</span> <span class="n">delta</span><span class="o">*</span><span class="n">dU</span>
+        <span class="n">nX</span><span class="p">,</span> <span class="n">nU</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dsys</span><span class="o">.</span><span class="n">project</span><span class="p">(</span><span class="n">bX</span><span class="p">,</span> <span class="n">bU</span><span class="p">,</span> <span class="n">Kproj</span><span class="p">)</span>
+        <span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">)</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dsys</span><span class="o">.</span><span class="n">linearize_trajectory</span><span class="p">(</span><span class="n">nX</span><span class="p">,</span> <span class="n">nU</span><span class="p">)</span>
+        <span class="p">(</span><span class="n">ndX</span><span class="p">,</span> <span class="n">ndU</span><span class="p">)</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dsys</span><span class="o">.</span><span class="n">dproject</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">dX</span><span class="p">,</span> <span class="n">dU</span><span class="p">,</span> <span class="n">Kproj</span><span class="p">)</span>
+        <span class="n">dcost1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">calc_dcost</span><span class="p">(</span><span class="n">nX</span><span class="p">,</span> <span class="n">nU</span><span class="p">,</span> <span class="n">ndX</span><span class="p">,</span> <span class="n">ndU</span><span class="p">)</span>
+        
+        <span class="n">approx_ddcost</span> <span class="o">=</span> <span class="p">(</span><span class="n">dcost1</span> <span class="o">-</span> <span class="n">dcost0</span><span class="p">)</span><span class="o">/</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">delta</span><span class="p">)</span>
+        <span class="n">error</span> <span class="o">=</span> <span class="n">approx_ddcost</span> <span class="o">-</span> <span class="n">exact_ddcost</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">error</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="n">tolerance</span><span class="p">)</span>
+        
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_ddcost_return</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">error</span><span class="p">,</span> <span class="n">dcost1</span><span class="p">,</span> <span class="n">dcost0</span><span class="p">,</span> <span class="n">approx_ddcost</span><span class="p">,</span> <span class="n">exact_ddcost</span><span class="p">)</span>
+
+        
+            </div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+    <h2><a href="http://murpheylab.github.io/trep/">Project Website</a></h2>
+
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">trep documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &copy; Copyright 2015, Elliot Johnson.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.3.1.
+    </div>
+  </body>
+</html>

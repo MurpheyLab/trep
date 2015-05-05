@@ -1,0 +1,225 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>ConfigForce – Apply forces to a configuration variable. &mdash; trep documentation</title>
+    
+    <link rel="stylesheet" href="../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="trep documentation" href="../index.html" />
+    <link rel="up" title="trep.forces - Forces" href="forces.html" />
+    <link rel="next" title="BodyWrench – Apply a body wrench to a frame." href="bodywrench.html" />
+    <link rel="prev" title="LinearDamper – Linear damper between two points" href="lineardamper.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="bodywrench.html" title="BodyWrench – Apply a body wrench to a frame."
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="lineardamper.html" title="LinearDamper – Linear damper between two points"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">trep documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" >API Reference</a> &raquo;</li>
+          <li class="nav-item nav-item-2"><a href="forces.html" accesskey="U"><code class="docutils literal"><span class="pre">trep.forces</span></code> - Forces</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+    <script type="math/tex">
+    \newcommand{\deriv}[2][]{\dfrac{\partial #1}{\partial #2}}
+\newcommand{\tderiv}[2][]{\tfrac{\partial #1}{\partial #2}}
+\newcommand{\fderiv}[2][]{\dfrac{d #1}{d #2}}
+\newcommand{\derivII}[3][]{\dfrac{\partial^2 #1}{\partial #2 \partial #3}}
+\newcommand{\tderivII}[3][]{\tfrac{\partial^2 #1}{\partial #2 \partial #3}}
+\newcommand{\derivIII}[4][]{\dfrac{\partial^3 #1}{\partial #2 \partial #3 \partial #4}}
+\newcommand{\tderivIII}[4][]{\tfrac{\partial^3 #1}{\partial #2 \partial #3 \partial #4}}
+\newcommand{\derivIV}[5][]{\dfrac{\partial^4 #1}{\partial #2 \partial #3 \partial #4 \partial #5}}
+
+\newcommand{\half}{\tfrac{1}{2}}  % Macro for 1/2
+
+\newcommand{\ud}{\mathrm{d}}
+
+\newcommand{\op}{\circ}
+\newcommand{\dq}{\dot{q}}
+\newcommand{\ddq}{\ddot{q}}
+
+\newcommand{\dt}{\Delta t}
+
+
+    </script>
+    
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="configforce-apply-forces-to-a-configuration-variable">
+<h1><a class="reference internal" href="#trep.forces.ConfigForce" title="trep.forces.ConfigForce"><code class="xref py py-class docutils literal"><span class="pre">ConfigForce</span></code></a> &#8211; Apply forces to a configuration variable.<a class="headerlink" href="#configforce-apply-forces-to-a-configuration-variable" title="Permalink to this headline">¶</a></h1>
+<p><a class="reference internal" href="#trep.forces.ConfigForce" title="trep.forces.ConfigForce"><code class="xref py py-class docutils literal"><span class="pre">ConfigForce</span></code></a> creates an input variable that applies a force
+directly to a configuration variable:</p>
+<div class="math">
+\[F_{q_i} = u(t)\]</div>
+<p>where the <span class="math">\(u(t)\)</span> is a <code class="xref py py-class docutils literal"><span class="pre">Input</span></code> variable.</p>
+<table border="1" class="docutils" id="id1">
+<caption><span class="caption-text"><strong>Implemented Calculations</strong></span><a class="headerlink" href="#id1" title="Permalink to this table">¶</a></caption>
+<colgroup>
+<col width="50%" />
+<col width="50%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Calculation</th>
+<th class="head">Implemented</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>f</td>
+<td>Y</td>
+</tr>
+<tr class="row-odd"><td>f_dq</td>
+<td>Y</td>
+</tr>
+<tr class="row-even"><td>f_ddq</td>
+<td>Y</td>
+</tr>
+<tr class="row-odd"><td>f_du</td>
+<td>Y</td>
+</tr>
+<tr class="row-even"><td>f_dqdq</td>
+<td>Y</td>
+</tr>
+<tr class="row-odd"><td>f_ddqdq</td>
+<td>Y</td>
+</tr>
+<tr class="row-even"><td>f_ddqddq</td>
+<td>Y</td>
+</tr>
+<tr class="row-odd"><td>f_dudq</td>
+<td>Y</td>
+</tr>
+<tr class="row-even"><td>f_duddq</td>
+<td>Y</td>
+</tr>
+<tr class="row-odd"><td>f_dudu</td>
+<td>Y</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition-examples admonition">
+<p class="first admonition-title">Examples</p>
+<p class="last"><code class="docutils literal"><span class="pre">forced-pendulum-inverse-dynamics.py</span></code>, <code class="docutils literal"><span class="pre">initial-conditions.py</span></code>,
+<code class="docutils literal"><span class="pre">pend-on-cart-optimization.py</span></code></p>
+</div>
+<dl class="class">
+<dt id="trep.forces.ConfigForce">
+<em class="property">class </em><code class="descclassname">trep.forces.</code><code class="descname">ConfigForce</code><span class="sig-paren">(</span><em>system</em>, <em>config</em>, <em>finput</em>, <em>name=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/trep/forces/configforce.html#ConfigForce"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#trep.forces.ConfigForce" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a new input to apply a force on a configuration variable.</p>
+<p><em>config</em> should be an existing configuration variable (a name,
+index, or object).</p>
+<p><em>finput</em> should be a string to name the new input variable.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="trep.forces.ConfigForce.finput">
+<code class="descclassname">ConfigForce.</code><code class="descname">finput</code><a class="headerlink" href="#trep.forces.ConfigForce.finput" title="Permalink to this definition">¶</a></dt>
+<dd><p>The input variable (<code class="xref py py-class docutils literal"><span class="pre">Input</span></code>) that controls this force.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="trep.forces.ConfigForce.config">
+<code class="descclassname">ConfigForce.</code><code class="descname">config</code><a class="headerlink" href="#trep.forces.ConfigForce.config" title="Permalink to this definition">¶</a></dt>
+<dd><p>The configuration variable (<code class="xref py py-class docutils literal"><span class="pre">Config</span></code>) that this force is applied to.</p>
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+    <h2><a href="http://murpheylab.github.io/trep/">Project Website</a></h2>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="lineardamper.html"
+                        title="previous chapter"><code class="docutils literal"><span class="pre">LinearDamper</span></code> &#8211; Linear damper between two points</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="bodywrench.html"
+                        title="next chapter"><code class="docutils literal"><span class="pre">BodyWrench</span></code> &#8211; Apply a body wrench to a frame.</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/ref/configforce.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="bodywrench.html" title="BodyWrench – Apply a body wrench to a frame."
+             >next</a> |</li>
+        <li class="right" >
+          <a href="lineardamper.html" title="LinearDamper – Linear damper between two points"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">trep documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" >API Reference</a> &raquo;</li>
+          <li class="nav-item nav-item-2"><a href="forces.html" ><code class="docutils literal"><span class="pre">trep.forces</span></code> - Forces</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &copy; Copyright 2015, Elliot Johnson.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.3.1.
+    </div>
+  </body>
+</html>

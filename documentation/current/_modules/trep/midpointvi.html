@@ -1,0 +1,850 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>trep.midpointvi &mdash; trep documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="trep documentation" href="../../index.html" />
+    <link rel="up" title="Module code" href="../index.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">trep documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+    <script type="math/tex">
+    \newcommand{\deriv}[2][]{\dfrac{\partial #1}{\partial #2}}
+\newcommand{\tderiv}[2][]{\tfrac{\partial #1}{\partial #2}}
+\newcommand{\fderiv}[2][]{\dfrac{d #1}{d #2}}
+\newcommand{\derivII}[3][]{\dfrac{\partial^2 #1}{\partial #2 \partial #3}}
+\newcommand{\tderivII}[3][]{\tfrac{\partial^2 #1}{\partial #2 \partial #3}}
+\newcommand{\derivIII}[4][]{\dfrac{\partial^3 #1}{\partial #2 \partial #3 \partial #4}}
+\newcommand{\tderivIII}[4][]{\tfrac{\partial^3 #1}{\partial #2 \partial #3 \partial #4}}
+\newcommand{\derivIV}[5][]{\dfrac{\partial^4 #1}{\partial #2 \partial #3 \partial #4 \partial #5}}
+
+\newcommand{\half}{\tfrac{1}{2}}  % Macro for 1/2
+
+\newcommand{\ud}{\mathrm{d}}
+
+\newcommand{\op}{\circ}
+\newcommand{\dq}{\dot{q}}
+\newcommand{\ddq}{\ddot{q}}
+
+\newcommand{\dt}{\Delta t}
+
+
+    </script>
+    
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for trep.midpointvi</h1><div class="highlight"><pre>
+<span class="kn">import</span> <span class="nn">trep</span>
+<span class="kn">import</span> <span class="nn">multiprocessing</span>
+<span class="kn">import</span> <span class="nn">_trep</span>
+<span class="kn">from</span> <span class="nn">_trep</span> <span class="kn">import</span> <span class="n">_MidpointVI</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">numpy.linalg</span>
+
+<span class="kn">from</span> <span class="nn">util</span> <span class="kn">import</span> <span class="n">dynamics_indexing_decorator</span>
+
+<span class="n">Py_DEBUG</span> <span class="o">=</span> <span class="bp">False</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">sysconfig</span>
+    <span class="k">if</span> <span class="n">sysconfig</span><span class="o">.</span><span class="n">get_config_var</span><span class="p">(</span><span class="s">&#39;Py_DEBUG&#39;</span><span class="p">):</span>
+        <span class="n">Py_DEBUG</span> <span class="o">=</span> <span class="bp">True</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+    <span class="k">pass</span>
+
+
+<div class="viewcode-block" id="MidpointVI"><a class="viewcode-back" href="../../ref/midpointvi.html#trep.MidpointVI">[docs]</a><span class="k">class</span> <span class="nc">MidpointVI</span><span class="p">(</span><span class="n">_MidpointVI</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">system</span><span class="p">,</span> <span class="n">tolerance</span><span class="o">=</span><span class="mf">1e-10</span><span class="p">,</span> <span class="n">num_threads</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="n">_MidpointVI</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">system</span><span class="p">,</span> <span class="n">trep</span><span class="o">.</span><span class="n">System</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_system</span> <span class="o">=</span> <span class="n">system</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">system</span><span class="o">.</span><span class="n">add_structure_changed_func</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_structure_updated</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tolerance</span> <span class="o">=</span> <span class="n">tolerance</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_structure_updated</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="n">num_threads</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">and</span> <span class="n">Py_DEBUG</span><span class="p">:</span>
+            <span class="k">print</span> <span class="s">&quot;&quot;&quot;</span>
+<span class="s">            GMVI: Detected debug build, disabling multithreading by</span>
+<span class="s">            default.  Use gmvi._set_num_threads(num_threads) to enable</span>
+<span class="s">            multithreading.</span>
+<span class="s">            &quot;&quot;&quot;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">num_threads</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="n">num_threads</span> <span class="o">=</span> <span class="n">multiprocessing</span><span class="o">.</span><span class="n">cpu_count</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_set_num_threads</span><span class="p">(</span><span class="n">num_threads</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_structure_updated</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_q1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nd</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">nk</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">double</span><span class="p">,</span> <span class="s">&#39;C&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_q2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nd</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">nk</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">double</span><span class="p">,</span> <span class="s">&#39;C&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_p1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nd</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">double</span><span class="p">,</span> <span class="s">&#39;C&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_p2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nd</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">double</span><span class="p">,</span> <span class="s">&#39;C&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_u1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nu</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">double</span><span class="p">,</span> <span class="s">&#39;C&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_lambda1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nc</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">double</span><span class="p">,</span> <span class="s">&#39;C&#39;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_Dh1T</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">nq</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nc</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">double</span><span class="p">,</span> <span class="s">&#39;C&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_Dh2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">nc</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nq</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">double</span><span class="p">,</span> <span class="s">&#39;C&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_f</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">nd</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">nc</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">double</span><span class="p">,</span> <span class="s">&#39;C&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_Df</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">nd</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">nc</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nd</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">nc</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">double</span><span class="p">,</span> <span class="s">&#39;C&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_Df_index</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">nd</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">nc</span><span class="p">,),</span> <span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">,</span> <span class="s">&#39;C&#39;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_DDh1T</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">nq</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nq</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nc</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">double</span><span class="p">,</span> <span class="s">&#39;C&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_M2_lu</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">nd</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nd</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">double</span><span class="p">,</span> <span class="s">&#39;C&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_M2_lu_index</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">nd</span><span class="p">,),</span> <span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">,</span> <span class="s">&#39;C&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_proj_lu</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">nc</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nc</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">double</span><span class="p">,</span> <span class="s">&#39;C&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_proj_lu_index</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">nc</span><span class="p">,),</span> <span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">,</span> <span class="s">&#39;C&#39;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_q2_dq1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">nq</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nd</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">double</span><span class="p">,</span> <span class="s">&#39;C&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_q2_dp1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">nd</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nd</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">double</span><span class="p">,</span> <span class="s">&#39;C&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_q2_du1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">nu</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nd</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">double</span><span class="p">,</span> <span class="s">&#39;C&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_q2_dk2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">nk</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nd</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">double</span><span class="p">,</span> <span class="s">&#39;C&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_p2_dq1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">nq</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nd</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">double</span><span class="p">,</span> <span class="s">&#39;C&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_p2_dp1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">nd</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nd</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">double</span><span class="p">,</span> <span class="s">&#39;C&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_p2_du1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">nu</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nd</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">double</span><span class="p">,</span> <span class="s">&#39;C&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_p2_dk2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">nk</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nd</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">double</span><span class="p">,</span> <span class="s">&#39;C&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_l1_dq1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">nq</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nc</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">double</span><span class="p">,</span> <span class="s">&#39;C&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_l1_dp1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">nd</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nc</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">double</span><span class="p">,</span> <span class="s">&#39;C&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_l1_du1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">nu</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nc</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">double</span><span class="p">,</span> <span class="s">&#39;C&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_l1_dk2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">nk</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nc</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">double</span><span class="p">,</span> <span class="s">&#39;C&#39;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_q2_dq1dq1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">nq</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nq</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nd</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">double</span><span class="p">,</span> <span class="s">&#39;C&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_q2_dq1dp1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">nq</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nd</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nd</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">double</span><span class="p">,</span> <span class="s">&#39;C&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_q2_dq1du1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">nq</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nu</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nd</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">double</span><span class="p">,</span> <span class="s">&#39;C&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_q2_dq1dk2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">nq</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nk</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nd</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">double</span><span class="p">,</span> <span class="s">&#39;C&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_q2_dp1dp1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">nd</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nd</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nd</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">double</span><span class="p">,</span> <span class="s">&#39;C&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_q2_dp1du1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">nd</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nu</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nd</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">double</span><span class="p">,</span> <span class="s">&#39;C&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_q2_dp1dk2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">nd</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nk</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nd</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">double</span><span class="p">,</span> <span class="s">&#39;C&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_q2_du1du1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">nu</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nu</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nd</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">double</span><span class="p">,</span> <span class="s">&#39;C&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_q2_du1dk2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">nu</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nk</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nd</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">double</span><span class="p">,</span> <span class="s">&#39;C&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_q2_dk2dk2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">nk</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nk</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nd</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">double</span><span class="p">,</span> <span class="s">&#39;C&#39;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_p2_dq1dq1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">nq</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nq</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nd</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">double</span><span class="p">,</span> <span class="s">&#39;C&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_p2_dq1dp1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">nq</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nd</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nd</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">double</span><span class="p">,</span> <span class="s">&#39;C&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_p2_dq1du1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">nq</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nu</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nd</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">double</span><span class="p">,</span> <span class="s">&#39;C&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_p2_dq1dk2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">nq</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nk</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nd</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">double</span><span class="p">,</span> <span class="s">&#39;C&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_p2_dp1dp1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">nd</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nd</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nd</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">double</span><span class="p">,</span> <span class="s">&#39;C&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_p2_dp1du1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">nd</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nu</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nd</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">double</span><span class="p">,</span> <span class="s">&#39;C&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_p2_dp1dk2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">nd</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nk</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nd</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">double</span><span class="p">,</span> <span class="s">&#39;C&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_p2_du1du1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">nu</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nu</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nd</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">double</span><span class="p">,</span> <span class="s">&#39;C&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_p2_du1dk2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">nu</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nk</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nd</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">double</span><span class="p">,</span> <span class="s">&#39;C&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_p2_dk2dk2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">nk</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nk</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nd</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">double</span><span class="p">,</span> <span class="s">&#39;C&#39;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_l1_dq1dq1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">nq</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nq</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nc</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">double</span><span class="p">,</span> <span class="s">&#39;C&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_l1_dq1dp1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">nq</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nd</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nc</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">double</span><span class="p">,</span> <span class="s">&#39;C&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_l1_dq1du1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">nq</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nu</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nc</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">double</span><span class="p">,</span> <span class="s">&#39;C&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_l1_dq1dk2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">nq</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nk</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nc</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">double</span><span class="p">,</span> <span class="s">&#39;C&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_l1_dp1dp1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">nd</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nd</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nc</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">double</span><span class="p">,</span> <span class="s">&#39;C&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_l1_dp1du1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">nd</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nu</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nc</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">double</span><span class="p">,</span> <span class="s">&#39;C&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_l1_dp1dk2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">nd</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nk</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nc</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">double</span><span class="p">,</span> <span class="s">&#39;C&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_l1_du1du1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">nu</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nu</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nc</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">double</span><span class="p">,</span> <span class="s">&#39;C&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_l1_du1dk2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">nu</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nk</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nc</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">double</span><span class="p">,</span> <span class="s">&#39;C&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_l1_dk2dk2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">nk</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nk</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nc</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">double</span><span class="p">,</span> <span class="s">&#39;C&#39;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_DDDh1T</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">nq</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nq</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nq</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nc</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">double</span><span class="p">,</span> <span class="s">&#39;C&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_DDh2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">nc</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nq</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nq</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">double</span><span class="p">,</span> <span class="s">&#39;C&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_temp_ndnc</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">nd</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nc</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">double</span><span class="p">,</span> <span class="s">&#39;C&#39;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_D1D1L2_D1fm2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">nq</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nd</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">double</span><span class="p">,</span> <span class="s">&#39;C&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_D2D1L2_D2fm2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">nq</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nd</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">double</span><span class="p">,</span> <span class="s">&#39;C&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_D1D2L2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">nq</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nd</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">double</span><span class="p">,</span> <span class="s">&#39;C&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_D2D2L2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">nq</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nd</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">double</span><span class="p">,</span> <span class="s">&#39;C&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_D3fm2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">nu</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nd</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">double</span><span class="p">,</span> <span class="s">&#39;C&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_D1D1D1L2_D1D1fm2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">nq</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nq</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nd</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">double</span><span class="p">,</span> <span class="s">&#39;C&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_D1D2D1L2_D1D2fm2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">nq</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nq</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nd</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">double</span><span class="p">,</span> <span class="s">&#39;C&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_D2D2D1L2_D2D2fm2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">nd</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nq</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nq</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">double</span><span class="p">,</span> <span class="s">&#39;C&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_D1D1D2L2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">nq</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nq</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nd</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">double</span><span class="p">,</span> <span class="s">&#39;C&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_D1D2D2L2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">nq</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nq</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nd</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">double</span><span class="p">,</span> <span class="s">&#39;C&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_D2D2D2L2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">nd</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nq</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nq</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">double</span><span class="p">,</span> <span class="s">&#39;C&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_D1D3fm2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">nq</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nu</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nd</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">double</span><span class="p">,</span> <span class="s">&#39;C&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_D2D3fm2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">nq</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nu</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nd</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">double</span><span class="p">,</span> <span class="s">&#39;C&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_D3D3fm2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">nu</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nu</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nd</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">double</span><span class="p">,</span> <span class="s">&#39;C&#39;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_dp2_dq1_op</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">nd</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nq</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nd</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">double</span><span class="p">,</span> <span class="s">&#39;C&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_dl1_dq1_op</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">nc</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nq</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nd</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">double</span><span class="p">,</span> <span class="s">&#39;C&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_dq2_dq1_op</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">nd</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nq</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nd</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">double</span><span class="p">,</span> <span class="s">&#39;C&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_dq2_dp1_op</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">nd</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nd</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nd</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">double</span><span class="p">,</span> <span class="s">&#39;C&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_dl1_dp1_op</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">nc</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nd</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nd</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">double</span><span class="p">,</span> <span class="s">&#39;C&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_dp2_dp1_op</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">nd</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nd</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nd</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">double</span><span class="p">,</span> <span class="s">&#39;C&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_dq2_du1_op</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">nd</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nu</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nd</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">double</span><span class="p">,</span> <span class="s">&#39;C&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_dl1_du1_op</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">nc</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nu</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nd</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">double</span><span class="p">,</span> <span class="s">&#39;C&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_dp2_du1_op</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">nd</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nu</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nd</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">double</span><span class="p">,</span> <span class="s">&#39;C&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_dq2_dk2_op</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">nd</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nk</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nd</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">double</span><span class="p">,</span> <span class="s">&#39;C&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_dl1_dk2_op</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">nc</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nk</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nd</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">double</span><span class="p">,</span> <span class="s">&#39;C&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_dp2_dk2_op</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">nd</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nk</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nd</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">double</span><span class="p">,</span> <span class="s">&#39;C&#39;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="MidpointVI.initialize_from_state"><a class="viewcode-back" href="../../ref/midpointvi.html#trep.MidpointVI.initialize_from_state">[docs]</a>    <span class="k">def</span> <span class="nf">initialize_from_state</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">t1</span><span class="p">,</span> <span class="n">q1</span><span class="p">,</span> <span class="n">p1</span><span class="p">,</span> <span class="n">lambda1</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initialize the integrator from a known state (time,</span>
+<span class="sd">        configuration, and momentum.)</span>
+
+<span class="sd">        lambda1 can optionally be specified.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">t1</span> <span class="o">=</span> <span class="n">t1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">q1</span> <span class="o">=</span> <span class="n">q1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">p1</span> <span class="o">=</span> <span class="n">p1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">t2</span> <span class="o">=</span> <span class="n">t1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">q2</span> <span class="o">=</span> <span class="n">q1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">p2</span> <span class="o">=</span> <span class="n">p1</span>
+        <span class="k">if</span> <span class="n">lambda1</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">lambda1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">system</span><span class="o">.</span><span class="n">nc</span><span class="p">,))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lambda1</span> <span class="o">=</span> <span class="n">lambda1</span>
+</div>
+<div class="viewcode-block" id="MidpointVI.initialize_from_configs"><a class="viewcode-back" href="../../ref/midpointvi.html#trep.MidpointVI.initialize_from_configs">[docs]</a>    <span class="k">def</span> <span class="nf">initialize_from_configs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">t0</span><span class="p">,</span> <span class="n">q0</span><span class="p">,</span> <span class="n">t1</span><span class="p">,</span> <span class="n">q1</span><span class="p">,</span> <span class="n">lambda1</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initialize the integrator from two consecutive time and</span>
+<span class="sd">        configuration pairs.</span>
+
+<span class="sd">        This calculates p1 from the two pairs and initializes the</span>
+<span class="sd">        integrator with the state (t1, q1, p1).</span>
+
+<span class="sd">        lambda1 can optionall be specified.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">t1</span> <span class="o">=</span> <span class="n">t0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">q1</span> <span class="o">=</span> <span class="n">q0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">t2</span> <span class="o">=</span> <span class="n">t1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">q2</span> <span class="o">=</span> <span class="n">q1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">calc_p2</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">lambda1</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">lambda1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">system</span><span class="o">.</span><span class="n">nc</span><span class="p">,))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lambda1</span> <span class="o">=</span> <span class="n">lambda1</span>
+</div>
+<div class="viewcode-block" id="MidpointVI.step"><a class="viewcode-back" href="../../ref/midpointvi.html#trep.MidpointVI.step">[docs]</a>    <span class="k">def</span> <span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">t2</span><span class="p">,</span> <span class="n">u1</span><span class="o">=</span><span class="nb">tuple</span><span class="p">(),</span> <span class="n">k2</span><span class="o">=</span><span class="nb">tuple</span><span class="p">(),</span> <span class="n">max_iterations</span><span class="o">=</span><span class="mi">200</span><span class="p">,</span>
+             <span class="n">q2_hint</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+             <span class="n">lambda1_hint</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Step the integrator forward to time t2 .  This solves the DEL</span>
+<span class="sd">        equation.  The result will be available in gmvi.t2, gmvi.q2,</span>
+<span class="sd">        gmvi.p2.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">u1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">u1</span><span class="p">)</span>
+        <span class="n">k2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">k2</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="n">u1</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">system</span><span class="o">.</span><span class="n">nu</span><span class="p">,)</span>
+        <span class="k">assert</span> <span class="n">k2</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nk</span><span class="p">,)</span>
+
+        <span class="c"># Advance the integrator</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">q1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">q2</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">p1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">p2</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">u1</span> <span class="o">=</span> <span class="n">u1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_q2</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">nd</span><span class="p">:]</span> <span class="o">=</span> <span class="n">k2</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">t1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">t2</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">t2</span> <span class="o">=</span> <span class="n">t2</span>
+        <span class="k">if</span> <span class="n">q2_hint</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_q2</span><span class="p">[:</span><span class="bp">self</span><span class="o">.</span><span class="n">nd</span><span class="p">]</span> <span class="o">=</span> <span class="n">q2_hint</span><span class="p">[:</span><span class="bp">self</span><span class="o">.</span><span class="n">nd</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">lambda1_hint</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">lambda1</span> <span class="o">=</span> <span class="n">lambda1_hint</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_solve_DEL</span><span class="p">(</span><span class="n">max_iterations</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>  <span class="c"># Catch singular derivatives.</span>
+            <span class="k">raise</span> <span class="n">trep</span><span class="o">.</span><span class="n">ConvergenceError</span><span class="p">(</span><span class="s">&quot;Singular derivative of DEL at t=</span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">t2</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="MidpointVI.calc_f"><a class="viewcode-back" href="../../ref/midpointvi.html#trep.MidpointVI.calc_f">[docs]</a>    <span class="k">def</span> <span class="nf">calc_f</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Evaluate the DEL equation at the current</span>
+<span class="sd">        states.  For dynamically consistent states, this should be</span>
+<span class="sd">        zero.  Otherwise it is the remainder of the DEL.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_calc_f</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_f</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+</div>
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">system</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_system</span>
+
+    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s">&quot;&lt;MidpointVI t1=</span><span class="si">%f</span><span class="s"> t2=</span><span class="si">%f</span><span class="s"> nd=</span><span class="si">%d</span><span class="s"> nk=</span><span class="si">%d</span><span class="s"> nc=</span><span class="si">%d</span><span class="s"> nu=</span><span class="si">%d</span><span class="s">&gt;&quot;</span> <span class="o">%</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">t1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">t2</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nd</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nk</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nc</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nu</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">nq</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Number of configuration variables in the system.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_system</span><span class="o">.</span><span class="n">nQ</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">nd</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Number of dynamic configuration variables in the system.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_system</span><span class="o">.</span><span class="n">nQd</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">nk</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Number of kinematic configuration variables in the system.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_system</span><span class="o">.</span><span class="n">nQk</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">nu</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Number of input variables in the system.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_system</span><span class="o">.</span><span class="n">nu</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">nc</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Number of constraints in the system.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_system</span><span class="o">.</span><span class="n">nc</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">q1</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Configuration at k=1  (ie, &#39;previous&#39; configuration)&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_q1</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+    <span class="nd">@q1.setter</span>
+    <span class="k">def</span> <span class="nf">q1</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_cache</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_q1</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">value</span><span class="p">[:]</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">q2</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Configuration at k=2  (ie, &#39;current&#39; configuration)&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_q2</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+    <span class="nd">@q2.setter</span>
+    <span class="k">def</span> <span class="nf">q2</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_cache</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_q2</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">value</span><span class="p">[:]</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">p1</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Discrete momentum at k=1  (ie, &#39;previous&#39; momentum)&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_p1</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+    <span class="nd">@p1.setter</span>
+    <span class="k">def</span> <span class="nf">p1</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_cache</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_p1</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">value</span><span class="p">[:]</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">p2</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Discrete momentum at k=2  (ie, &#39;current&#39; momentum)&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_p2</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+    <span class="nd">@p2.setter</span>
+    <span class="k">def</span> <span class="nf">p2</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_cache</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_p2</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">value</span><span class="p">[:]</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">u1</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Input at k=1.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_u1</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+    <span class="nd">@u1.setter</span>
+    <span class="k">def</span> <span class="nf">u1</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_cache</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_u1</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">value</span><span class="p">[:]</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">lambda1</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Constraint force vector at k=1&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_lambda1</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+    <span class="nd">@lambda1.setter</span>
+    <span class="k">def</span> <span class="nf">lambda1</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_cache</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_lambda1</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">value</span><span class="p">[:]</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">t1</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Time for k=1 (ie, &#39;previous&#39; time)&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_t1</span>
+
+    <span class="nd">@t1.setter</span>
+    <span class="k">def</span> <span class="nf">t1</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">t</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_cache</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_t1</span> <span class="o">=</span> <span class="n">t</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">t2</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Time for k=2 (ie, &#39;current&#39; time)&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_t2</span>
+
+    <span class="nd">@t2.setter</span>
+    <span class="k">def</span> <span class="nf">t2</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">t</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_cache</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_t2</span> <span class="o">=</span> <span class="n">t</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">v2</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Discrete kinematic velocity for k=2 (q2k-q1k/t2-t1)&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">t2</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">t1</span><span class="p">:</span>
+            <span class="n">v2</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">q2</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">q1</span><span class="p">)</span><span class="o">/</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">t2</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">t1</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">v2</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">nd</span><span class="p">:]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">None</span>
+
+
+    <span class="c"># Derivatives of q2</span>
+
+    <span class="nd">@dynamics_indexing_decorator</span><span class="p">(</span><span class="s">&#39;dq&#39;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">q2_dq1</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">q</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">q1</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculate the derivative of (the dynamic part of) q2 with</span>
+<span class="sd">        respect to q1.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_calc_deriv1</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_q2_dq1</span><span class="p">[</span><span class="n">q1</span><span class="p">,</span> <span class="n">q</span><span class="p">]</span><span class="o">.</span><span class="n">T</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+    <span class="nd">@dynamics_indexing_decorator</span><span class="p">(</span><span class="s">&#39;dq&#39;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">q2_dp1</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">q</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">p1</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculate the derivative of (the dynamic part of) q2 with</span>
+<span class="sd">        respect to p1.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_calc_deriv1</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_q2_dp1</span><span class="p">[</span><span class="n">p1</span><span class="p">,</span> <span class="n">q</span><span class="p">]</span><span class="o">.</span><span class="n">T</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+    <span class="nd">@dynamics_indexing_decorator</span><span class="p">(</span><span class="s">&#39;du&#39;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">q2_du1</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">q</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">u1</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculate the derivative of (the dynamic part of) q2 with</span>
+<span class="sd">        respect to u1.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_calc_deriv1</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_q2_du1</span><span class="p">[</span><span class="n">u1</span><span class="p">,</span> <span class="n">q</span><span class="p">]</span><span class="o">.</span><span class="n">T</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+    <span class="nd">@dynamics_indexing_decorator</span><span class="p">(</span><span class="s">&#39;dk&#39;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">q2_dk2</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">q</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">k2</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculate the derivative of (the dynamic part of) q2 with</span>
+<span class="sd">        respect to k2 (the kinematic configuration at k=2).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_calc_deriv1</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_q2_dk2</span><span class="p">[</span><span class="n">k2</span><span class="p">,</span> <span class="n">q</span><span class="p">]</span><span class="o">.</span><span class="n">T</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+    <span class="nd">@dynamics_indexing_decorator</span><span class="p">(</span><span class="s">&#39;dqq&#39;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">q2_dq1dq1</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">q</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">q1_1</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">q1_2</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculate the second derivative of (the dynamic part of) q2</span>
+<span class="sd">        with respect to q1.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_calc_deriv2</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_q2_dq1dq1</span><span class="p">[</span><span class="n">q1_1</span><span class="p">,</span> <span class="n">q1_2</span><span class="p">,</span> <span class="n">q</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+    <span class="nd">@dynamics_indexing_decorator</span><span class="p">(</span><span class="s">&#39;dqd&#39;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">q2_dq1dp1</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">q</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">q1</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">p1</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculate the second derivative of (the dynamic part of) q2</span>
+<span class="sd">        with respect to q1 and p1.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_calc_deriv2</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_q2_dq1dp1</span><span class="p">[</span><span class="n">q1</span><span class="p">,</span> <span class="n">p1</span><span class="p">,</span> <span class="n">q</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+    <span class="nd">@dynamics_indexing_decorator</span><span class="p">(</span><span class="s">&#39;ddd&#39;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">q2_dp1dp1</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">q</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">p1_1</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">p1_2</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculate the second derivative of (the dynamic part of) q2</span>
+<span class="sd">        with respect to p1.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_calc_deriv2</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_q2_dp1dp1</span><span class="p">[</span><span class="n">p1_1</span><span class="p">,</span> <span class="n">p1_2</span><span class="p">,</span> <span class="n">q</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+    <span class="nd">@dynamics_indexing_decorator</span><span class="p">(</span><span class="s">&#39;dqu&#39;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">q2_dq1du1</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">q</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">q1</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">u1</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculate the second derivative of (the dynamic part of) q2</span>
+<span class="sd">        with respect to q1 and u1.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_calc_deriv2</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_q2_dq1du1</span><span class="p">[</span><span class="n">q1</span><span class="p">,</span> <span class="n">u1</span><span class="p">,</span> <span class="n">q</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+    <span class="nd">@dynamics_indexing_decorator</span><span class="p">(</span><span class="s">&#39;ddu&#39;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">q2_dp1du1</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">q</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">p1</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">u1</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculate the second derivative of (the dynamic part of) q2</span>
+<span class="sd">        with respect to u1 and p1.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_calc_deriv2</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_q2_dp1du1</span><span class="p">[</span><span class="n">p1</span><span class="p">,</span> <span class="n">u1</span><span class="p">,</span> <span class="n">q</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+    <span class="nd">@dynamics_indexing_decorator</span><span class="p">(</span><span class="s">&#39;duu&#39;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">q2_du1du1</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">q</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">u1_1</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">u1_2</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculate the second derivative of (the dynamic part of) q2</span>
+<span class="sd">        with respect to u1.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_calc_deriv2</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_q2_du1du1</span><span class="p">[</span><span class="n">u1_1</span><span class="p">,</span> <span class="n">u1_2</span><span class="p">,</span> <span class="n">q</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+    <span class="nd">@dynamics_indexing_decorator</span><span class="p">(</span><span class="s">&#39;dqk&#39;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">q2_dq1dk2</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">q</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">q1</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">k2</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculate the second derivative of (the dynamic part of) q2</span>
+<span class="sd">        with respect to k2 and q1.</span>
+
+<span class="sd">        (k2 is the kinematic part of the configuration at k=2)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_calc_deriv2</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_q2_dq1dk2</span><span class="p">[</span><span class="n">q1</span><span class="p">,</span> <span class="n">k2</span><span class="p">,</span> <span class="n">q</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+    <span class="nd">@dynamics_indexing_decorator</span><span class="p">(</span><span class="s">&#39;ddk&#39;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">q2_dp1dk2</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">q</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">p1</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">k2</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculate the second derivative of (the dynamic part of) q2</span>
+<span class="sd">        with respect to k2 and p1.</span>
+
+<span class="sd">        (k2 is the kinematic part of the configuration at k=2)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_calc_deriv2</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_q2_dp1dk2</span><span class="p">[</span><span class="n">p1</span><span class="p">,</span> <span class="n">k2</span><span class="p">,</span> <span class="n">q</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+    <span class="nd">@dynamics_indexing_decorator</span><span class="p">(</span><span class="s">&#39;duk&#39;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">q2_du1dk2</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">q</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">u1</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">k2</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculate the second derivative of (the dynamic part of) q2</span>
+<span class="sd">        with respect to k2 and u1.</span>
+
+<span class="sd">        (k2 is the kinematic part of the configuration at k=2)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_calc_deriv2</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_q2_du1dk2</span><span class="p">[</span><span class="n">u1</span><span class="p">,</span> <span class="n">k2</span><span class="p">,</span> <span class="n">q</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+    <span class="nd">@dynamics_indexing_decorator</span><span class="p">(</span><span class="s">&#39;dkk&#39;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">q2_dk2dk2</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">q</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">k2_1</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">k2_2</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculate the second derivative of (the dynamic part of) q2</span>
+<span class="sd">        with respect to k21.</span>
+
+<span class="sd">        (k2 is the kinematic part of the configuration at k=2)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_calc_deriv2</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_q2_dk2dk2</span><span class="p">[</span><span class="n">k2_1</span><span class="p">,</span> <span class="n">k2_2</span><span class="p">,</span> <span class="n">q</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+
+    <span class="c"># Derivatives of p2</span>
+
+    <span class="nd">@dynamics_indexing_decorator</span><span class="p">(</span><span class="s">&#39;dq&#39;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">p2_dq1</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">p</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">q1</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculate the derivative of p2 with respect to q1.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_calc_deriv1</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_p2_dq1</span><span class="p">[</span><span class="n">q1</span><span class="p">,</span> <span class="n">p</span><span class="p">]</span><span class="o">.</span><span class="n">T</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+    <span class="nd">@dynamics_indexing_decorator</span><span class="p">(</span><span class="s">&#39;dd&#39;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">p2_dp1</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">p</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">p1</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculate the derivative of p2 with respect to p1.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_calc_deriv1</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_p2_dp1</span><span class="p">[</span><span class="n">p1</span><span class="p">,</span> <span class="n">p</span><span class="p">]</span><span class="o">.</span><span class="n">T</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+    <span class="nd">@dynamics_indexing_decorator</span><span class="p">(</span><span class="s">&#39;du&#39;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">p2_du1</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">p</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">u1</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculate the derivative of p2 with respect to u1.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_calc_deriv1</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_p2_du1</span><span class="p">[</span><span class="n">u1</span><span class="p">,</span> <span class="n">p</span><span class="p">]</span><span class="o">.</span><span class="n">T</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+    <span class="nd">@dynamics_indexing_decorator</span><span class="p">(</span><span class="s">&#39;dk&#39;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">p2_dk2</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">p</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">k2</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculate the derivative of p2 with respect to k.</span>
+
+<span class="sd">        (k2 is the kinematic part of the configuration at k=2)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_calc_deriv1</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_p2_dk2</span><span class="p">[</span><span class="n">k2</span><span class="p">,</span> <span class="n">p</span><span class="p">]</span><span class="o">.</span><span class="n">T</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+    <span class="nd">@dynamics_indexing_decorator</span><span class="p">(</span><span class="s">&#39;dqq&#39;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">p2_dq1dq1</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">p</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">q1_1</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">q1_2</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculate the second derivative of p2 with respect to q1.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_calc_deriv2</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_p2_dq1dq1</span><span class="p">[</span><span class="n">q1_1</span><span class="p">,</span> <span class="n">q1_2</span><span class="p">,</span> <span class="n">p</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+    <span class="nd">@dynamics_indexing_decorator</span><span class="p">(</span><span class="s">&#39;dqd&#39;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">p2_dq1dp1</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">p</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">q1</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">p1</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculate the second derivative of p2 with respect to q1 and</span>
+<span class="sd">        p1.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_calc_deriv2</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_p2_dq1dp1</span><span class="p">[</span><span class="n">q1</span><span class="p">,</span> <span class="n">p1</span><span class="p">,</span> <span class="n">p</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+    <span class="nd">@dynamics_indexing_decorator</span><span class="p">(</span><span class="s">&#39;ddd&#39;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">p2_dp1dp1</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">p</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">p1_1</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">p1_2</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculate the second derivative of p2 with respect to p1.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_calc_deriv2</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_p2_dp1dp1</span><span class="p">[</span><span class="n">p1_1</span><span class="p">,</span> <span class="n">p1_2</span><span class="p">,</span> <span class="n">p</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+    <span class="nd">@dynamics_indexing_decorator</span><span class="p">(</span><span class="s">&#39;dqu&#39;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">p2_dq1du1</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">p</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">q1</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">u1</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculate the second derivative of p2 with respect to q1 and</span>
+<span class="sd">        u1.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_calc_deriv2</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_p2_dq1du1</span><span class="p">[</span><span class="n">q1</span><span class="p">,</span> <span class="n">u1</span><span class="p">,</span> <span class="n">p</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+    <span class="nd">@dynamics_indexing_decorator</span><span class="p">(</span><span class="s">&#39;ddu&#39;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">p2_dp1du1</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">p</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">p1</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">u1</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculate the second derivative of p2 with respect to p1 and</span>
+<span class="sd">        u1.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_calc_deriv2</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_p2_dp1du1</span><span class="p">[</span><span class="n">p1</span><span class="p">,</span> <span class="n">u1</span><span class="p">,</span> <span class="n">p</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+    <span class="nd">@dynamics_indexing_decorator</span><span class="p">(</span><span class="s">&#39;duu&#39;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">p2_du1du1</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">p</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">u1_1</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">u1_2</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculate the second derivative of p2 with respect to u1.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_calc_deriv2</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_p2_du1du1</span><span class="p">[</span><span class="n">u1_1</span><span class="p">,</span> <span class="n">u1_2</span><span class="p">,</span> <span class="n">p</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+    <span class="nd">@dynamics_indexing_decorator</span><span class="p">(</span><span class="s">&#39;dqk&#39;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">p2_dq1dk2</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">p</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">q1</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">k2</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculate the second derivative of p2 with respect to k2 and</span>
+<span class="sd">        q1.</span>
+
+<span class="sd">        (k2 is the kinematic part of the configuration at k=2)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_calc_deriv2</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_p2_dq1dk2</span><span class="p">[</span><span class="n">q1</span><span class="p">,</span> <span class="n">k2</span><span class="p">,</span> <span class="n">p</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+    <span class="nd">@dynamics_indexing_decorator</span><span class="p">(</span><span class="s">&#39;ddk&#39;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">p2_dp1dk2</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">p</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">p1</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">k2</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculate the second derivative of p2 with respect to k2 and</span>
+<span class="sd">        p1.</span>
+
+<span class="sd">        (k2 is the kinematic part of the configuration at k=2)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_calc_deriv2</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_p2_dp1dk2</span><span class="p">[</span><span class="n">p1</span><span class="p">,</span> <span class="n">k2</span><span class="p">,</span> <span class="n">p</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+    <span class="nd">@dynamics_indexing_decorator</span><span class="p">(</span><span class="s">&#39;duk&#39;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">p2_du1dk2</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">p</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">u1</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">k2</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculate the second derivative of p2 with respect to k2 and</span>
+<span class="sd">        u1.</span>
+
+<span class="sd">        (k2 is the kinematic part of the configuration at k=2)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_calc_deriv2</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_p2_du1dk2</span><span class="p">[</span><span class="n">u1</span><span class="p">,</span> <span class="n">k2</span><span class="p">,</span> <span class="n">p</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+    <span class="nd">@dynamics_indexing_decorator</span><span class="p">(</span><span class="s">&#39;dkk&#39;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">p2_dk2dk2</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">p</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">k2_1</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">k2_2</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculate the second derivative of p2 with respect to k2.</span>
+
+<span class="sd">        (k2 is the kinematic part of the configuration at k=2)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_calc_deriv2</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_p2_dk2dk2</span><span class="p">[</span><span class="n">k2_1</span><span class="p">,</span> <span class="n">k2_2</span><span class="p">,</span> <span class="n">p</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+
+    <span class="c"># Derivatives of lambda1</span>
+
+    <span class="nd">@dynamics_indexing_decorator</span><span class="p">(</span><span class="s">&#39;cq&#39;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">lambda1_dq1</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">constraint</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">q1</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculate the derivative of lambda1 with respect to q1.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_calc_deriv1</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_l1_dq1</span><span class="p">[</span><span class="n">q1</span><span class="p">,</span> <span class="n">constraint</span><span class="p">]</span><span class="o">.</span><span class="n">T</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+    <span class="nd">@dynamics_indexing_decorator</span><span class="p">(</span><span class="s">&#39;cd&#39;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">lambda1_dp1</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">constraint</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">p1</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculate the derivative of lambda1 with respect to p1.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_calc_deriv1</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_l1_dp1</span><span class="p">[</span><span class="n">p1</span><span class="p">,</span> <span class="n">constraint</span><span class="p">]</span><span class="o">.</span><span class="n">T</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+    <span class="nd">@dynamics_indexing_decorator</span><span class="p">(</span><span class="s">&#39;cu&#39;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">lambda1_du1</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">constraint</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">u1</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculate the derivative of lambda1 with respect to u1.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_calc_deriv1</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_l1_du1</span><span class="p">[</span><span class="n">u1</span><span class="p">,</span> <span class="n">constraint</span><span class="p">]</span><span class="o">.</span><span class="n">T</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+    <span class="nd">@dynamics_indexing_decorator</span><span class="p">(</span><span class="s">&#39;ck&#39;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">lambda1_dk2</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">constraint</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">k2</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculate the derivative of lambda1 with respect to k2.</span>
+
+<span class="sd">        (k2 is the kinematic part of the configuration at k=2)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_calc_deriv1</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_l1_dk2</span><span class="p">[</span><span class="n">k2</span><span class="p">,</span> <span class="n">constraint</span><span class="p">]</span><span class="o">.</span><span class="n">T</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+    <span class="nd">@dynamics_indexing_decorator</span><span class="p">(</span><span class="s">&#39;cqq&#39;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">lambda1_dq1dq1</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">constraint</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">q1_1</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">q1_2</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculate the second derivative of lambda1 with respect to q1.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_calc_deriv2</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_l1_dq1dq1</span><span class="p">[</span><span class="n">q1_1</span><span class="p">,</span> <span class="n">q1_2</span><span class="p">,</span> <span class="n">constraint</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+    <span class="nd">@dynamics_indexing_decorator</span><span class="p">(</span><span class="s">&#39;cqd&#39;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">lambda1_dq1dp1</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">constraint</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">q1</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">p1</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculate the second derivative of lambda1 with respect to q1</span>
+<span class="sd">        and p1.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_calc_deriv2</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_l1_dq1dp1</span><span class="p">[</span><span class="n">q1</span><span class="p">,</span> <span class="n">p1</span><span class="p">,</span> <span class="n">constraint</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+    <span class="nd">@dynamics_indexing_decorator</span><span class="p">(</span><span class="s">&#39;cdd&#39;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">lambda1_dp1dp1</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">constraint</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">p1_1</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">p1_2</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculate the second derivative of lambda1 with respect to p1.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_calc_deriv2</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_l1_dp1dp1</span><span class="p">[</span><span class="n">p1_1</span><span class="p">,</span> <span class="n">p1_2</span><span class="p">,</span> <span class="n">constraint</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+    <span class="nd">@dynamics_indexing_decorator</span><span class="p">(</span><span class="s">&#39;cqu&#39;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">lambda1_dq1du1</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">constraint</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">q1</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">u1</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculate the second derivative of lambda1 with respect to q1</span>
+<span class="sd">        and u1.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_calc_deriv2</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_l1_dq1du1</span><span class="p">[</span><span class="n">q1</span><span class="p">,</span> <span class="n">u1</span><span class="p">,</span> <span class="n">constraint</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+    <span class="nd">@dynamics_indexing_decorator</span><span class="p">(</span><span class="s">&#39;cdu&#39;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">lambda1_dp1du1</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">constraint</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">p1</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">u1</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculate the second derivative of lambda1 with respect to p1</span>
+<span class="sd">        and u1.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_calc_deriv2</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_l1_dp1du1</span><span class="p">[</span><span class="n">p1</span><span class="p">,</span> <span class="n">u1</span><span class="p">,</span> <span class="n">constraint</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+    <span class="nd">@dynamics_indexing_decorator</span><span class="p">(</span><span class="s">&#39;cuu&#39;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">lambda1_du1du1</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">constraint</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">u1_1</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">u1_2</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculate the second derivative of lambda1 with respect to u1.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_calc_deriv2</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_l1_du1du1</span><span class="p">[</span><span class="n">u1_1</span><span class="p">,</span> <span class="n">u1_2</span><span class="p">,</span> <span class="n">constraint</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+    <span class="nd">@dynamics_indexing_decorator</span><span class="p">(</span><span class="s">&#39;cqk&#39;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">lambda1_dq1dk2</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">constraint</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">q1</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">k2</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculate the second derivative of lambda1 with respect to q1</span>
+<span class="sd">        and k2.</span>
+
+<span class="sd">        (k2 is the kinematic part of the configuration at k=2)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_calc_deriv2</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_l1_dq1dk2</span><span class="p">[</span><span class="n">q1</span><span class="p">,</span> <span class="n">k2</span><span class="p">,</span> <span class="n">constraint</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+    <span class="nd">@dynamics_indexing_decorator</span><span class="p">(</span><span class="s">&#39;cdk&#39;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">lambda1_dp1dk2</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">constraint</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">p1</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">k2</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculate the second derivative of lambda1 with respect to p1</span>
+<span class="sd">        and k2.</span>
+
+<span class="sd">        (k2 is the kinematic part of the configuration at k=2)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_calc_deriv2</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_l1_dp1dk2</span><span class="p">[</span><span class="n">p1</span><span class="p">,</span> <span class="n">k2</span><span class="p">,</span> <span class="n">constraint</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+    <span class="nd">@dynamics_indexing_decorator</span><span class="p">(</span><span class="s">&#39;cuk&#39;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">lambda1_du1dk2</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">constraint</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">u1</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">k2</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculate the second derivative of lambda1 with respect to u1</span>
+<span class="sd">        and k2.</span>
+
+<span class="sd">        (k2 is the kinematic part of the configuration at k=2)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_calc_deriv2</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_l1_du1dk2</span><span class="p">[</span><span class="n">u1</span><span class="p">,</span> <span class="n">k2</span><span class="p">,</span> <span class="n">constraint</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+    <span class="nd">@dynamics_indexing_decorator</span><span class="p">(</span><span class="s">&#39;ckk&#39;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">lambda1_dk2dk2</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">constraint</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">k2_1</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">k2_2</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculate the second derivative of lambda1 with respect to k2.</span>
+
+<span class="sd">        (k2 is the kinematic part of the configuration at k=2)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_calc_deriv2</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_l1_dk2dk2</span><span class="p">[</span><span class="n">k2_1</span><span class="p">,</span> <span class="n">k2_2</span><span class="p">,</span> <span class="n">constraint</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+    <h2><a href="http://murpheylab.github.io/trep/">Project Website</a></h2>
+
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">trep documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &copy; Copyright 2015, Elliot Johnson.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.3.1.
+    </div>
+  </body>
+</html>

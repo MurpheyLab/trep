@@ -1,0 +1,276 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>trep.force &mdash; trep documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="trep documentation" href="../../index.html" />
+    <link rel="up" title="Module code" href="../index.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">trep documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+    <script type="math/tex">
+    \newcommand{\deriv}[2][]{\dfrac{\partial #1}{\partial #2}}
+\newcommand{\tderiv}[2][]{\tfrac{\partial #1}{\partial #2}}
+\newcommand{\fderiv}[2][]{\dfrac{d #1}{d #2}}
+\newcommand{\derivII}[3][]{\dfrac{\partial^2 #1}{\partial #2 \partial #3}}
+\newcommand{\tderivII}[3][]{\tfrac{\partial^2 #1}{\partial #2 \partial #3}}
+\newcommand{\derivIII}[4][]{\dfrac{\partial^3 #1}{\partial #2 \partial #3 \partial #4}}
+\newcommand{\tderivIII}[4][]{\tfrac{\partial^3 #1}{\partial #2 \partial #3 \partial #4}}
+\newcommand{\derivIV}[5][]{\dfrac{\partial^4 #1}{\partial #2 \partial #3 \partial #4 \partial #5}}
+
+\newcommand{\half}{\tfrac{1}{2}}  % Macro for 1/2
+
+\newcommand{\ud}{\mathrm{d}}
+
+\newcommand{\op}{\circ}
+\newcommand{\dq}{\dot{q}}
+\newcommand{\ddq}{\ddot{q}}
+
+\newcommand{\dt}{\Delta t}
+
+
+    </script>
+    
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for trep.force</h1><div class="highlight"><pre>
+<span class="kn">import</span> <span class="nn">trep</span>
+<span class="kn">import</span> <span class="nn">_trep</span>
+<span class="kn">from</span> <span class="nn">_trep</span> <span class="kn">import</span> <span class="n">_Force</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+
+<div class="viewcode-block" id="Force"><a class="viewcode-back" href="../../ref/force.html#trep.Force">[docs]</a><span class="k">class</span> <span class="nc">Force</span><span class="p">(</span><span class="n">_Force</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Force is the base class for forces in a system.  It must be</span>
+<span class="sd">    subclassed to implement types of forces.  It should not be used</span>
+<span class="sd">    directly.</span>
+
+<span class="sd">    See the full documentation for details on how to create new</span>
+<span class="sd">    forces.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">system</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Add a force to the system.  This should be called first thing</span>
+<span class="sd">        by a subclass when creating a new force.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">_Force</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">system</span><span class="p">,</span> <span class="n">trep</span><span class="o">.</span><span class="n">System</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_system</span> <span class="o">=</span> <span class="n">system</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
+        <span class="n">system</span><span class="o">.</span><span class="n">_add_force</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="n">system</span><span class="o">.</span><span class="n">_structure_changed</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">_create_input</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="n">new_input</span> <span class="o">=</span> <span class="n">trep</span><span class="o">.</span><span class="n">Input</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">system</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+        <span class="n">new_input</span><span class="o">.</span><span class="n">_force</span> <span class="o">=</span> <span class="bp">self</span>
+        <span class="k">return</span> <span class="n">new_input</span>
+
+<div class="viewcode-block" id="Force.opengl_draw"><a class="viewcode-back" href="../../ref/force.html#trep.Force.opengl_draw">[docs]</a>    <span class="k">def</span> <span class="nf">opengl_draw</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        opengl_draw() is called by the trep automatic visualization</span>
+<span class="sd">        code to draw a graphical representation of the force.</span>
+<span class="sd">        The opengl coordinate frame will be the system&#39;s world frame</span>
+<span class="sd">        when opengl_draw() is called.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">pass</span>
+</div>
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">system</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="s">&quot;System that the force is a part of.&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_system</span>
+
+<div class="viewcode-block" id="Force.f"><a class="viewcode-back" href="../../ref/force.html#trep.Force.f">[docs]</a>    <span class="k">def</span> <span class="nf">f</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">q</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculate the current force on the configuration variable q.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">q</span><span class="p">,</span> <span class="n">_trep</span><span class="o">.</span><span class="n">_Config</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_f</span><span class="p">(</span><span class="n">q</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="Force.f_dq"><a class="viewcode-back" href="../../ref/force.html#trep.Force.f_dq">[docs]</a>    <span class="k">def</span> <span class="nf">f_dq</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">q</span><span class="p">,</span> <span class="n">q1</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;       </span>
+<span class="sd">        Calculate the current derivative of the force on the</span>
+<span class="sd">        configuration variable q with respect to the value of the</span>
+<span class="sd">        configuration variable q1.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">q</span><span class="p">,</span>  <span class="n">_trep</span><span class="o">.</span><span class="n">_Config</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">q1</span><span class="p">,</span> <span class="n">_trep</span><span class="o">.</span><span class="n">_Config</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_f_dq</span><span class="p">(</span><span class="n">q</span><span class="p">,</span> <span class="n">q1</span><span class="p">)</span>
+    </div>
+<div class="viewcode-block" id="Force.f_ddq"><a class="viewcode-back" href="../../ref/force.html#trep.Force.f_ddq">[docs]</a>    <span class="k">def</span> <span class="nf">f_ddq</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">q</span><span class="p">,</span> <span class="n">dq1</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculate the current derivative of the force on the</span>
+<span class="sd">        configuration variable q with respect to the velocity of the</span>
+<span class="sd">        configuration variable q1.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">q</span><span class="p">,</span>   <span class="n">_trep</span><span class="o">.</span><span class="n">_Config</span><span class="p">)</span>        
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">dq1</span><span class="p">,</span> <span class="n">_trep</span><span class="o">.</span><span class="n">_Config</span><span class="p">)</span>        
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_f_ddq</span><span class="p">(</span><span class="n">q</span><span class="p">,</span> <span class="n">dq1</span><span class="p">)</span>
+    </div>
+<div class="viewcode-block" id="Force.f_du"><a class="viewcode-back" href="../../ref/force.html#trep.Force.f_du">[docs]</a>    <span class="k">def</span> <span class="nf">f_du</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">q</span><span class="p">,</span> <span class="n">u1</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculate the current derivative of the force on the</span>
+<span class="sd">        configuration variable q with respect to the input u1.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">q</span><span class="p">,</span>  <span class="n">_trep</span><span class="o">.</span><span class="n">_Config</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">u1</span><span class="p">,</span> <span class="n">_trep</span><span class="o">.</span><span class="n">_Input</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_f_du</span><span class="p">(</span><span class="n">q</span><span class="p">,</span> <span class="n">u1</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="Force.f_dqdq"><a class="viewcode-back" href="../../ref/force.html#trep.Force.f_dqdq">[docs]</a>    <span class="k">def</span> <span class="nf">f_dqdq</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">q</span><span class="p">,</span> <span class="n">q1</span><span class="p">,</span> <span class="n">q2</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculate the current second derivative of the force on the</span>
+<span class="sd">        configuration variable q with respect to the values of</span>
+<span class="sd">        configuration variables q1 and q2.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">q</span><span class="p">,</span>  <span class="n">_trep</span><span class="o">.</span><span class="n">_Config</span><span class="p">)</span>        
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">q1</span><span class="p">,</span> <span class="n">_trep</span><span class="o">.</span><span class="n">_Config</span><span class="p">)</span>        
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">q2</span><span class="p">,</span> <span class="n">_trep</span><span class="o">.</span><span class="n">_Config</span><span class="p">)</span>        
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_f_dqdq</span><span class="p">(</span><span class="n">q</span><span class="p">,</span> <span class="n">q1</span><span class="p">,</span> <span class="n">q2</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="Force.f_ddqdq"><a class="viewcode-back" href="../../ref/force.html#trep.Force.f_ddqdq">[docs]</a>    <span class="k">def</span> <span class="nf">f_ddqdq</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">q</span><span class="p">,</span> <span class="n">dq1</span><span class="p">,</span> <span class="n">q2</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculate the current second derivative of the force on the</span>
+<span class="sd">        configuration variable q with respect to the velocity of q1</span>
+<span class="sd">        and value of q2.</span>
+<span class="sd">        &quot;&quot;&quot;</span>        
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">q</span><span class="p">,</span>   <span class="n">_trep</span><span class="o">.</span><span class="n">_Config</span><span class="p">)</span>        
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">dq1</span><span class="p">,</span> <span class="n">_trep</span><span class="o">.</span><span class="n">_Config</span><span class="p">)</span>        
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">q2</span><span class="p">,</span>  <span class="n">_trep</span><span class="o">.</span><span class="n">_Config</span><span class="p">)</span>        
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_f_ddqdq</span><span class="p">(</span><span class="n">q</span><span class="p">,</span> <span class="n">dq1</span><span class="p">,</span> <span class="n">q2</span><span class="p">)</span>
+    </div>
+<div class="viewcode-block" id="Force.f_ddqddq"><a class="viewcode-back" href="../../ref/force.html#trep.Force.f_ddqddq">[docs]</a>    <span class="k">def</span> <span class="nf">f_ddqddq</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">q</span><span class="p">,</span> <span class="n">dq1</span><span class="p">,</span> <span class="n">dq2</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculate the current second derivative of the force on the</span>
+<span class="sd">        configuration variable q with respect to the velocities of q1</span>
+<span class="sd">        and q2.</span>
+<span class="sd">        &quot;&quot;&quot;</span>        
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">q</span><span class="p">,</span>   <span class="n">_trep</span><span class="o">.</span><span class="n">_Config</span><span class="p">)</span>        
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">dq1</span><span class="p">,</span> <span class="n">_trep</span><span class="o">.</span><span class="n">_Config</span><span class="p">)</span>        
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">dq2</span><span class="p">,</span> <span class="n">_trep</span><span class="o">.</span><span class="n">_Config</span><span class="p">)</span>        
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_f_ddqddq</span><span class="p">(</span><span class="n">q</span><span class="p">,</span> <span class="n">dq1</span><span class="p">,</span> <span class="n">dq2</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="Force.f_dudq"><a class="viewcode-back" href="../../ref/force.html#trep.Force.f_dudq">[docs]</a>    <span class="k">def</span> <span class="nf">f_dudq</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">q</span><span class="p">,</span> <span class="n">u1</span><span class="p">,</span> <span class="n">q2</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculate the current second derivative of the force on the</span>
+<span class="sd">        configuration variable q with respect to the input u1 and</span>
+<span class="sd">        value of q2.</span>
+<span class="sd">        &quot;&quot;&quot;</span>        
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">q</span><span class="p">,</span>  <span class="n">_trep</span><span class="o">.</span><span class="n">_Config</span><span class="p">)</span>        
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">u1</span><span class="p">,</span> <span class="n">_trep</span><span class="o">.</span><span class="n">_Input</span><span class="p">)</span>        
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">q2</span><span class="p">,</span> <span class="n">_trep</span><span class="o">.</span><span class="n">_Config</span><span class="p">)</span>        
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_f_dudq</span><span class="p">(</span><span class="n">q</span><span class="p">,</span> <span class="n">u1</span><span class="p">,</span> <span class="n">q2</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="Force.f_duddq"><a class="viewcode-back" href="../../ref/force.html#trep.Force.f_duddq">[docs]</a>    <span class="k">def</span> <span class="nf">f_duddq</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">q</span><span class="p">,</span> <span class="n">u1</span><span class="p">,</span> <span class="n">dq2</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculate the current second derivative of the force on the</span>
+<span class="sd">        configuration variable q with respect to the input u1 and</span>
+<span class="sd">        velocity of q2.</span>
+<span class="sd">        &quot;&quot;&quot;</span>        
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">q</span><span class="p">,</span>   <span class="n">_trep</span><span class="o">.</span><span class="n">_Config</span><span class="p">)</span>        
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">u1</span><span class="p">,</span>  <span class="n">_trep</span><span class="o">.</span><span class="n">_Input</span><span class="p">)</span>        
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">dq2</span><span class="p">,</span> <span class="n">_trep</span><span class="o">.</span><span class="n">_Config</span><span class="p">)</span>        
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_f_duddq</span><span class="p">(</span><span class="n">q</span><span class="p">,</span> <span class="n">u1</span><span class="p">,</span> <span class="n">dq2</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="Force.f_dudu"><a class="viewcode-back" href="../../ref/force.html#trep.Force.f_dudu">[docs]</a>    <span class="k">def</span> <span class="nf">f_dudu</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">q</span><span class="p">,</span> <span class="n">u1</span><span class="p">,</span> <span class="n">u2</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculate the current second derivative of the force on the</span>
+<span class="sd">        configuration variable q with respect to the inputs u1 and u2.</span>
+<span class="sd">        &quot;&quot;&quot;</span>        
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">q</span><span class="p">,</span>  <span class="n">_trep</span><span class="o">.</span><span class="n">_Config</span><span class="p">)</span>        
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">u1</span><span class="p">,</span> <span class="n">_trep</span><span class="o">.</span><span class="n">_Input</span><span class="p">)</span>        
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">u2</span><span class="p">,</span> <span class="n">_trep</span><span class="o">.</span><span class="n">_Input</span><span class="p">)</span>        
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_f_dudu</span><span class="p">(</span><span class="n">q</span><span class="p">,</span> <span class="n">u1</span><span class="p">,</span> <span class="n">u2</span><span class="p">)</span>
+</div>
+    <span class="k">def</span> <span class="nf">validate_f_dq</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">delta</span><span class="o">=</span><span class="mf">1e-6</span><span class="p">,</span> <span class="n">tolerance</span><span class="o">=</span><span class="mf">1e-6</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Check f_dq() against approximate numeric derivative from f()&quot;&quot;&quot;</span>
+        <span class="k">def</span> <span class="nf">f</span><span class="p">():</span>
+            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">f</span><span class="p">(</span><span class="n">q</span><span class="p">)</span> <span class="k">for</span> <span class="n">q</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">system</span><span class="o">.</span><span class="n">configs</span><span class="p">])</span>
+        <span class="k">def</span> <span class="nf">f_dq</span><span class="p">(</span><span class="n">q1</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">f_dq</span><span class="p">(</span><span class="n">q</span><span class="p">,</span><span class="n">q1</span><span class="p">)</span> <span class="k">for</span> <span class="n">q</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">system</span><span class="o">.</span><span class="n">configs</span><span class="p">])</span>
+        
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">system</span><span class="o">.</span><span class="n">test_derivative_dq</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">f_dq</span><span class="p">,</span>
+                                              <span class="n">delta</span><span class="p">,</span> <span class="n">tolerance</span><span class="p">,</span>
+                                              <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">,</span>
+                                              <span class="n">test_name</span><span class="o">=</span><span class="s">&#39;</span><span class="si">%s</span><span class="s">.f_dq()&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__name__</span><span class="p">)</span>
+</pre></div></div>
+
+          </div>
+        </div>
+      </div>
+
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+    <h2><a href="http://murpheylab.github.io/trep/">Project Website</a></h2>
+
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">trep documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &copy; Copyright 2015, Elliot Johnson.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.3.1.
+    </div>
+  </body>
+</html>

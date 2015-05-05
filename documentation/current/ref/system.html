@@ -1,0 +1,816 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>System - A Mechanical System &mdash; trep documentation</title>
+    
+    <link rel="stylesheet" href="../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="trep documentation" href="../index.html" />
+    <link rel="up" title="trep - Core Components" href="core.html" />
+    <link rel="next" title="Frame – Coordinate Frame" href="frame.html" />
+    <link rel="prev" title="trep - Core Components" href="core.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="frame.html" title="Frame – Coordinate Frame"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="core.html" title="trep - Core Components"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">trep documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" >API Reference</a> &raquo;</li>
+          <li class="nav-item nav-item-2"><a href="core.html" accesskey="U"><code class="docutils literal"><span class="pre">trep</span></code> - Core Components</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+    <script type="math/tex">
+    \newcommand{\deriv}[2][]{\dfrac{\partial #1}{\partial #2}}
+\newcommand{\tderiv}[2][]{\tfrac{\partial #1}{\partial #2}}
+\newcommand{\fderiv}[2][]{\dfrac{d #1}{d #2}}
+\newcommand{\derivII}[3][]{\dfrac{\partial^2 #1}{\partial #2 \partial #3}}
+\newcommand{\tderivII}[3][]{\tfrac{\partial^2 #1}{\partial #2 \partial #3}}
+\newcommand{\derivIII}[4][]{\dfrac{\partial^3 #1}{\partial #2 \partial #3 \partial #4}}
+\newcommand{\tderivIII}[4][]{\tfrac{\partial^3 #1}{\partial #2 \partial #3 \partial #4}}
+\newcommand{\derivIV}[5][]{\dfrac{\partial^4 #1}{\partial #2 \partial #3 \partial #4 \partial #5}}
+
+\newcommand{\half}{\tfrac{1}{2}}  % Macro for 1/2
+
+\newcommand{\ud}{\mathrm{d}}
+
+\newcommand{\op}{\circ}
+\newcommand{\dq}{\dot{q}}
+\newcommand{\ddq}{\ddot{q}}
+
+\newcommand{\dt}{\Delta t}
+
+
+    </script>
+    
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="system-a-mechanical-system">
+<span id="trep-system"></span><h1><code class="xref py py-class docutils literal"><span class="pre">System</span></code> - A Mechanical System<a class="headerlink" href="#system-a-mechanical-system" title="Permalink to this headline">¶</a></h1>
+<p>The <a class="reference internal" href="#trep.System" title="trep.System"><code class="xref py py-class docutils literal"><span class="pre">System</span></code></a> object is the central component for modeling a
+mechanical system, and usually the first <a class="reference internal" href="core.html#module-trep" title="trep: Dynamics and Optimal Control Tools (Linux, Mac, Windows)"><code class="xref py py-mod docutils literal"><span class="pre">trep</span></code></a> object you
+create.  It contains the entire definition of the system, including
+all coordinate frames, configuration variables, constraints, etc.</p>
+<p><a class="reference internal" href="#trep.System" title="trep.System"><code class="xref py py-class docutils literal"><span class="pre">System</span></code></a> is responsible for calculating continuous dynamics and
+derivative, but it is also used for the underlying Lagrangian
+calculations in any discrete dynamics calculations.</p>
+<p>A <a class="reference internal" href="#trep.System" title="trep.System"><code class="xref py py-class docutils literal"><span class="pre">System</span></code></a> has a single inertial coordinate frame, accessible
+through the <code class="xref py py-attr docutils literal"><span class="pre">world_frame</span></code> attribute.  Every other coordinate
+frame added to the system will be descended from this coordinate
+frame.</p>
+<dl class="class">
+<dt id="trep.System">
+<em class="property">class </em><code class="descclassname">trep.</code><code class="descname">System</code><a class="reference internal" href="../_modules/trep/system.html#System"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#trep.System" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a new empty mechanical system.</p>
+</dd></dl>
+
+<div class="contents local topic" id="contents">
+<ul class="simple">
+<li><a class="reference internal" href="#system-components" id="id2">System Components</a></li>
+<li><a class="reference internal" href="#finding-specific-components" id="id3">Finding Specific Components</a></li>
+<li><a class="reference internal" href="#importing-and-exporting-frame-definitions" id="id4">Importing and Exporting Frame Definitions</a></li>
+<li><a class="reference internal" href="#system-state" id="id5">System State</a></li>
+<li><a class="reference internal" href="#constraints" id="id6">Constraints</a></li>
+<li><a class="reference internal" href="#lagrangian-calculations" id="id7">Lagrangian Calculations</a></li>
+<li><a class="reference internal" href="#dynamics" id="id8">Dynamics</a></li>
+<li><a class="reference internal" href="#constraint-forces" id="id9">Constraint Forces</a></li>
+<li><a class="reference internal" href="#derivative-testing" id="id10">Derivative Testing</a></li>
+<li><a class="reference internal" href="#structure-updates" id="id11">Structure Updates</a></li>
+</ul>
+</div>
+<div class="section" id="system-components">
+<h2><a class="toc-backref" href="#id2">System Components</a><a class="headerlink" href="#system-components" title="Permalink to this headline">¶</a></h2>
+<dl class="attribute">
+<dt id="trep.System.world_frame">
+<code class="descclassname">System.</code><code class="descname">world_frame</code><a class="headerlink" href="#trep.System.world_frame" title="Permalink to this definition">¶</a></dt>
+<dd><p>The root spatial frame of the system.  The world frame will always
+exist and cannot be changed other than adding child frames.</p>
+<p><em>(read only)</em></p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="trep.System.frames">
+<code class="descclassname">System.</code><code class="descname">frames</code><a class="headerlink" href="#trep.System.frames" title="Permalink to this definition">¶</a></dt>
+<dt id="trep.System.configs">
+<code class="descclassname">System.</code><code class="descname">configs</code><a class="headerlink" href="#trep.System.configs" title="Permalink to this definition">¶</a></dt>
+<dt id="trep.System.dyn_configs">
+<code class="descclassname">System.</code><code class="descname">dyn_configs</code><a class="headerlink" href="#trep.System.dyn_configs" title="Permalink to this definition">¶</a></dt>
+<dt id="trep.System.kin_configs">
+<code class="descclassname">System.</code><code class="descname">kin_configs</code><a class="headerlink" href="#trep.System.kin_configs" title="Permalink to this definition">¶</a></dt>
+<dt id="trep.System.potentials">
+<code class="descclassname">System.</code><code class="descname">potentials</code><a class="headerlink" href="#trep.System.potentials" title="Permalink to this definition">¶</a></dt>
+<dt id="trep.System.forces">
+<code class="descclassname">System.</code><code class="descname">forces</code><a class="headerlink" href="#trep.System.forces" title="Permalink to this definition">¶</a></dt>
+<dt id="trep.System.inputs">
+<code class="descclassname">System.</code><code class="descname">inputs</code><a class="headerlink" href="#trep.System.inputs" title="Permalink to this definition">¶</a></dt>
+<dt id="trep.System.constraints">
+<code class="descclassname">System.</code><code class="descname">constraints</code><a class="headerlink" href="#trep.System.constraints" title="Permalink to this definition">¶</a></dt>
+<dd><p>Tuples of all the components in the system.  <strong>The order of
+components in these tuples defines their order throughout</strong>
+<a class="reference internal" href="core.html#module-trep" title="trep: Dynamics and Optimal Control Tools (Linux, Mac, Windows)"><code class="xref py py-mod docutils literal"><span class="pre">trep</span></code></a>.  Any vector of configuration values will be the same
+order as <a class="reference internal" href="#trep.System.configs" title="trep.System.configs"><code class="xref py py-attr docutils literal"><span class="pre">System.configs</span></code></a>, any vector of constraint forces
+will be the same order as <a class="reference internal" href="#trep.System.constraints" title="trep.System.constraints"><code class="xref py py-attr docutils literal"><span class="pre">System.constraints</span></code></a>, etc.</p>
+<p>For example, any array of numbers representing a configuration will
+be ordered according to <a class="reference internal" href="#trep.System.configs" title="trep.System.configs"><code class="xref py py-attr docutils literal"><span class="pre">System.configs</span></code></a>.  An array of
+constraint forces will correspond to the order of
+<a class="reference internal" href="#trep.System.constraints" title="trep.System.constraints"><code class="xref py py-attr docutils literal"><span class="pre">System.constraints</span></code></a>.</p>
+<p><a class="reference internal" href="#trep.System.configs" title="trep.System.configs"><code class="xref py py-attr docutils literal"><span class="pre">configs</span></code></a> is guaranteed to be ordered as the concatenation of
+<a class="reference internal" href="#trep.System.dyn_configs" title="trep.System.dyn_configs"><code class="xref py py-attr docutils literal"><span class="pre">dyn_configs</span></code></a> and <a class="reference internal" href="#trep.System.kin_configs" title="trep.System.kin_configs"><code class="xref py py-attr docutils literal"><span class="pre">kin_configs</span></code></a>:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">System</span><span class="o">.</span><span class="n">configs</span> <span class="o">=</span> <span class="n">System</span><span class="o">.</span><span class="n">dyn_configs</span> <span class="o">+</span> <span class="n">System</span><span class="o">.</span><span class="n">kin_configs</span>
+</pre></div>
+</div>
+<p>The tuples are read only, but the components in them may be
+modified.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="trep.System.masses">
+<code class="descclassname">System.</code><code class="descname">masses</code><a class="headerlink" href="#trep.System.masses" title="Permalink to this definition">¶</a></dt>
+<dd><p>A tuple of all the <a class="reference internal" href="frame.html#trep.Frame" title="trep.Frame"><code class="xref py py-class docutils literal"><span class="pre">Frame</span></code></a> objects in the system with
+non-zero mass properties.</p>
+<p><em>(read only)</em></p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="trep.System.nQ">
+<code class="descclassname">System.</code><code class="descname">nQ</code><a class="headerlink" href="#trep.System.nQ" title="Permalink to this definition">¶</a></dt>
+<dd><p>Number of configuration variables in the system.  Equivalent to
+<code class="docutils literal"><span class="pre">len(system.configs)</span></code>.</p>
+<p><em>(read only)</em></p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="trep.System.nQd">
+<code class="descclassname">System.</code><code class="descname">nQd</code><a class="headerlink" href="#trep.System.nQd" title="Permalink to this definition">¶</a></dt>
+<dd><p>Number of dynamic configuration variables in the system. Equivalent
+to <code class="docutils literal"><span class="pre">len(system.dyn_configs)</span></code>.</p>
+<p><em>(read only)</em></p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="trep.System.nQk">
+<code class="descclassname">System.</code><code class="descname">nQk</code><a class="headerlink" href="#trep.System.nQk" title="Permalink to this definition">¶</a></dt>
+<dd><p>Number of kinematic configuration variables in the system.
+Equivalent to <code class="docutils literal"><span class="pre">len(system.kin_configs)</span></code>.</p>
+<p><em>(read only)</em></p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="trep.System.nu">
+<code class="descclassname">System.</code><code class="descname">nu</code><a class="headerlink" href="#trep.System.nu" title="Permalink to this definition">¶</a></dt>
+<dd><p>Number of inputs in the system.
+Equivalent to <code class="docutils literal"><span class="pre">len(system.inputs)</span></code>.</p>
+<p><em>(read only)</em></p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="trep.System.nc">
+<code class="descclassname">System.</code><code class="descname">nc</code><a class="headerlink" href="#trep.System.nc" title="Permalink to this definition">¶</a></dt>
+<dd><p>Number of constraints in the system.
+Equivalent to <code class="docutils literal"><span class="pre">len(system.constraints)</span></code>.</p>
+<p><em>(read only)</em></p>
+</dd></dl>
+
+</div>
+<div class="section" id="finding-specific-components">
+<span id="id1"></span><h2><a class="toc-backref" href="#id3">Finding Specific Components</a><a class="headerlink" href="#finding-specific-components" title="Permalink to this headline">¶</a></h2>
+<dl class="method">
+<dt id="trep.System.get_frame">
+<code class="descclassname">System.</code><code class="descname">get_frame</code><span class="sig-paren">(</span><em>identifier</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/trep/system.html#System.get_frame"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#trep.System.get_frame" title="Permalink to this definition">¶</a></dt>
+<dt id="trep.System.get_config">
+<code class="descclassname">System.</code><code class="descname">get_config</code><span class="sig-paren">(</span><em>identifier</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/trep/system.html#System.get_config"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#trep.System.get_config" title="Permalink to this definition">¶</a></dt>
+<dt id="trep.System.get_potential">
+<code class="descclassname">System.</code><code class="descname">get_potential</code><span class="sig-paren">(</span><em>identifier</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/trep/system.html#System.get_potential"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#trep.System.get_potential" title="Permalink to this definition">¶</a></dt>
+<dt id="trep.System.get_constraint">
+<code class="descclassname">System.</code><code class="descname">get_constraint</code><span class="sig-paren">(</span><em>identifier</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/trep/system.html#System.get_constraint"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#trep.System.get_constraint" title="Permalink to this definition">¶</a></dt>
+<dt id="trep.System.get_force">
+<code class="descclassname">System.</code><code class="descname">get_force</code><span class="sig-paren">(</span><em>identifier</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/trep/system.html#System.get_force"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#trep.System.get_force" title="Permalink to this definition">¶</a></dt>
+<dt id="trep.System.get_input">
+<code class="descclassname">System.</code><code class="descname">get_input</code><span class="sig-paren">(</span><em>identifier</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/trep/system.html#System.get_input"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#trep.System.get_input" title="Permalink to this definition">¶</a></dt>
+<dd><p>Find a specific component in the system.  The identifier can be:</p>
+<ul>
+<li><p class="first">Integer: Returns the component at that position in the
+corresponding tuple.</p>
+<blockquote>
+<div><p>system.get_frame(i) = system.frames[i]</p>
+</div></blockquote>
+<p>If the index is invalid, an <code class="xref py py-exc docutils literal"><span class="pre">IndexError</span></code> exception is
+raised.</p>
+</li>
+<li><p class="first">String: Returns the component with the matching name:</p>
+<blockquote>
+<div><p>system.get_config(&#8216;theta&#8217;).name == &#8216;theta&#8217;</p>
+</div></blockquote>
+<p>If no object has a matching name, a <code class="xref py py-exc docutils literal"><span class="pre">KeyError</span></code> exception is
+raised.</p>
+</li>
+<li><p class="first">Object: Return the identifier unmodified:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">system</span><span class="o">.</span><span class="n">get_force</span><span class="p">(</span><span class="n">force</span><span class="p">)</span> <span class="o">==</span> <span class="n">force</span>
+</pre></div>
+</div>
+<p>If the object is the incorrect type, a <code class="xref py py-exc docutils literal"><span class="pre">TypeError</span></code> exception
+is raised:</p>
+<div class="highlight-python"><div class="highlight"><pre>&gt;&gt;&gt; config = system.configs[0]
+&gt;&gt;&gt; system.get_frame(config)
+Traceback (most recent call last):
+  File &quot;&lt;stdin&gt;&quot;, line 1, in &lt;module&gt;
+   File &quot;/usr/local/lib/python2.7/dist-packages/trep/system.py&quot;, line 106, in get_frame
+    return self._get_object(identifier, Frame, self.frames)
+  File &quot;/usr/local/lib/python2.7/dist-packages/trep/system.py&quot;, line 509, in _get_object
+    raise TypeError()
+TypeError
+</pre></div>
+</div>
+</li>
+</ul>
+</dd></dl>
+
+</div>
+<div class="section" id="importing-and-exporting-frame-definitions">
+<h2><a class="toc-backref" href="#id4">Importing and Exporting Frame Definitions</a><a class="headerlink" href="#importing-and-exporting-frame-definitions" title="Permalink to this headline">¶</a></h2>
+<dl class="method">
+<dt id="trep.System.import_frames">
+<code class="descclassname">System.</code><code class="descname">import_frames</code><span class="sig-paren">(</span><em>children</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/trep/system.html#System.import_frames"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#trep.System.import_frames" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds children to this system&#8217;s world frame using a special
+frame definition.  See <a class="reference internal" href="frame.html#trep.Frame.import_frames" title="trep.Frame.import_frames"><code class="xref py py-meth docutils literal"><span class="pre">Frame.import_frames()</span></code></a> for details.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="trep.System.export_frames">
+<code class="descclassname">System.</code><code class="descname">export_frames</code><span class="sig-paren">(</span><em>system_name='system'</em>, <em>frames_name='frames'</em>, <em>tab_size=4</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/trep/system.html#System.export_frames"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#trep.System.export_frames" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create python source code to define this system&#8217;s frames.  The code
+is returned as a string.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="system-state">
+<h2><a class="toc-backref" href="#id5">System State</a><a class="headerlink" href="#system-state" title="Permalink to this headline">¶</a></h2>
+<p>A <a class="reference internal" href="#trep.System" title="trep.System"><code class="xref py py-class docutils literal"><span class="pre">System</span></code></a> is a stateful object that has a current time,
+configuration, velocity, and input at all times.  When working
+directly with a <a class="reference internal" href="#trep.System" title="trep.System"><code class="xref py py-class docutils literal"><span class="pre">System</span></code></a>, you are a responsible for setting the
+state.</p>
+<dl class="attribute">
+<dt id="trep.System.t">
+<code class="descclassname">System.</code><code class="descname">t</code><a class="headerlink" href="#trep.System.t" title="Permalink to this definition">¶</a></dt>
+<dd><p>Current time of the system.</p>
+</dd></dl>
+
+<p>The other state information is actually spread out among each
+component in the system.  For example, each current configuration
+value is stored in <a class="reference internal" href="config.html#trep.Config.q" title="trep.Config.q"><code class="xref py py-attr docutils literal"><span class="pre">Config.q</span></code></a>.  These can be modified directly
+through each component, but the following attributes are usually more
+convenient for reading and writing multiple values at once.</p>
+<dl class="attribute">
+<dt id="trep.System.q">
+<code class="descclassname">System.</code><code class="descname">q</code><a class="headerlink" href="#trep.System.q" title="Permalink to this definition">¶</a></dt>
+<dt id="trep.System.dq">
+<code class="descclassname">System.</code><code class="descname">dq</code><a class="headerlink" href="#trep.System.dq" title="Permalink to this definition">¶</a></dt>
+<dt id="trep.System.ddq">
+<code class="descclassname">System.</code><code class="descname">ddq</code><a class="headerlink" href="#trep.System.ddq" title="Permalink to this definition">¶</a></dt>
+<dd><p>The value, velocity, and acceleration of the complete
+configuration.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="trep.System.qd">
+<code class="descclassname">System.</code><code class="descname">qd</code><a class="headerlink" href="#trep.System.qd" title="Permalink to this definition">¶</a></dt>
+<dt id="trep.System.dqd">
+<code class="descclassname">System.</code><code class="descname">dqd</code><a class="headerlink" href="#trep.System.dqd" title="Permalink to this definition">¶</a></dt>
+<dt id="trep.System.ddqd">
+<code class="descclassname">System.</code><code class="descname">ddqd</code><a class="headerlink" href="#trep.System.ddqd" title="Permalink to this definition">¶</a></dt>
+<dd><p>The value, velocity, and acceleration of the dynamic configuration.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="trep.System.qk">
+<code class="descclassname">System.</code><code class="descname">qk</code><a class="headerlink" href="#trep.System.qk" title="Permalink to this definition">¶</a></dt>
+<dt id="trep.System.dqk">
+<code class="descclassname">System.</code><code class="descname">dqk</code><a class="headerlink" href="#trep.System.dqk" title="Permalink to this definition">¶</a></dt>
+<dt id="trep.System.ddqk">
+<code class="descclassname">System.</code><code class="descname">ddqk</code><a class="headerlink" href="#trep.System.ddqk" title="Permalink to this definition">¶</a></dt>
+<dd><p>The value, velocity, and acceleration of the kinematic
+configuration.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="trep.System.u">
+<code class="descclassname">System.</code><code class="descname">u</code><a class="headerlink" href="#trep.System.u" title="Permalink to this definition">¶</a></dt>
+<dd><p>The current values of the force inputs.</p>
+</dd></dl>
+
+<p>Reading the each attribute will return a numpy array of the current
+values.</p>
+<p>The values can be set with three different methods:</p>
+<blockquote>
+<div><ul>
+<li><p class="first">A dictionary that maps names to values:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">system</span><span class="o">.</span><span class="n">q</span> <span class="o">=</span> <span class="p">{</span> <span class="s">&#39;x&#39;</span> <span class="p">:</span> <span class="mf">1.0</span><span class="p">,</span> <span class="s">&#39;theta&#39;</span> <span class="p">:</span> <span class="mf">0.1</span><span class="p">}</span>
+</pre></div>
+</div>
+<p>Any variables that are not named will be unchanged.</p>
+</li>
+<li><p class="first">A array-like list of numbers:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">system</span><span class="o">.</span><span class="n">q</span> <span class="o">=</span> <span class="p">[</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">2.3</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">system</span><span class="o">.</span><span class="n">q</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">2.3</span><span class="p">])</span>
+</pre></div>
+</div>
+<p>If the size of the array and the number of variables doesn&#8217;t
+match, the shorter of the two will be used:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">system</span><span class="o">.</span><span class="n">nQ</span>
+<span class="go">4</span>
+
+<span class="go"># This only sets the first 2 configuration variables!</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">system</span><span class="o">.</span><span class="n">q</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.2</span><span class="p">,</span> <span class="mf">5.0</span><span class="p">]</span>
+<span class="go"># This ignores the last 2 values!</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">system</span><span class="o">.</span><span class="n">q</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.5</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mf">1.1</span><span class="p">,</span> <span class="mf">2.4</span><span class="p">,</span> <span class="mf">9.0</span><span class="p">]</span>
+</pre></div>
+</div>
+</li>
+<li><p class="first">A single number:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">system</span><span class="o">.</span><span class="n">q</span> <span class="o">=</span> <span class="mi">0</span>
+</pre></div>
+</div>
+<p>This will set the entire configuration to the number.</p>
+</li>
+</ul>
+</div></blockquote>
+<dl class="method">
+<dt id="trep.System.set_state">
+<code class="descclassname">System.</code><code class="descname">set_state</code><span class="sig-paren">(</span><em>q=None</em>, <em>dq=None</em>, <em>u=None</em>, <em>ddqk=None</em>, <em>t=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/trep/system.html#System.set_state"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#trep.System.set_state" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the current state of the system, not including the &#8220;output&#8221;
+ddqd.  The types of values accepted are the same as described
+above.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="constraints">
+<h2><a class="toc-backref" href="#id6">Constraints</a><a class="headerlink" href="#constraints" title="Permalink to this headline">¶</a></h2>
+<dl class="method">
+<dt id="trep.System.satisfy_constraints">
+<code class="descclassname">System.</code><code class="descname">satisfy_constraints</code><span class="sig-paren">(</span><em>tolerance=1e-10</em>, <em>verbose=False</em>, <em>keep_kinematic=False</em>, <em>constant_q_list=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/trep/system.html#System.satisfy_constraints"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#trep.System.satisfy_constraints" title="Permalink to this definition">¶</a></dt>
+<dd><p>Modify the current configuration to satisfy the system constraints.
+Letting <span class="math">\(q_0\)</span> be the system&#8217;s current configuration, this
+performs the optimization:</p>
+<div class="math">
+\[q = \arg\min_q  |q-q_0|^2 \quad \mathrm{s.t.}\quad  h(q) = 0\]</div>
+<p>The new configuration will be set in the system and returned.  If
+the optimization fails, a <code class="xref py py-exc docutils literal"><span class="pre">StandardError</span></code> exception is raised.</p>
+<p>Setting <em>verbose</em> to <code class="xref py py-data docutils literal"><span class="pre">True</span></code> will make the optimization print
+out information to the console while it is running.</p>
+<p>Setting <em>keep_kinematic</em> to <code class="xref py py-data docutils literal"><span class="pre">True</span></code> will modify above optimization
+to optimize over <span class="math">\(q_d\)</span> instead of <span class="math">\(q\)</span>; thus all kinematic
+configuration variables will be kept constant.  Passing a list (or
+tuple) of configurations to <em>constant_q_list</em> will define an
+arbitrary set of configurations to hold constant during
+optimization.  Internally this method uses
+<a class="reference internal" href="#trep.System.get_config" title="trep.System.get_config"><code class="xref py py-meth docutils literal"><span class="pre">System.get_config()</span></code></a> thus, any valid <em>identifier</em> mentioned
+in <a class="reference internal" href="#finding-specific-components"><span>Finding Specific Components</span></a> section will work.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="trep.System.minimize_potential_energy">
+<code class="descclassname">System.</code><code class="descname">minimize_potential_energy</code><span class="sig-paren">(</span><em>tolerance=1e-10</em>, <em>verbose=False</em>, <em>keep_kinematic=False</em>, <em>constant_q_list=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/trep/system.html#System.minimize_potential_energy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#trep.System.minimize_potential_energy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Modify the current configuration to satisfy the system constraints while also
+minimizing potential energy.  The system velocity is set to zero, and thus
+the kinetic energy is zero.  Therefore, the actual optimization that is
+solved is given by</p>
+<div class="math">
+\[q = \arg\min_q \; (-L(q,\dot{q}=0))\quad \mathrm{s.t.}\quad h(q) = 0\]</div>
+<p>The new configuration will be set in the system and returned. If
+the optimization fails, a <code class="xref py py-exc docutils literal"><span class="pre">StandardError</span></code> exception is raised.  This
+function may be useful for finding nearby equilibrium points that
+satisfy the system constraints.</p>
+<p>Setting <em>verbose</em> to <code class="xref py py-data docutils literal"><span class="pre">True</span></code> will make the optimization print
+out information to the console while it is running.</p>
+<p>Setting <em>keep_kinematic</em> to <code class="xref py py-data docutils literal"><span class="pre">True</span></code> will modify above optimization
+to optimize over <span class="math">\(q_d\)</span> instead of <span class="math">\(q\)</span>; thus all kinematic
+configuration variables will be kept constant.  Passing a list (or
+tuple) of configurations to <em>constant_q_list</em> will define an
+arbitrary set of configurations to hold constant during
+optimization.  Internally this method uses
+<a class="reference internal" href="#trep.System.get_config" title="trep.System.get_config"><code class="xref py py-meth docutils literal"><span class="pre">System.get_config()</span></code></a> thus, any valid <em>identifier</em> mentioned
+in <a class="reference internal" href="#finding-specific-components"><span>Finding Specific Components</span></a> section will work.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="lagrangian-calculations">
+<h2><a class="toc-backref" href="#id7">Lagrangian Calculations</a><a class="headerlink" href="#lagrangian-calculations" title="Permalink to this headline">¶</a></h2>
+<dl class="method">
+<dt id="trep.System.total_energy">
+<code class="descclassname">System.</code><code class="descname">total_energy</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/trep/system.html#System.total_energy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#trep.System.total_energy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate the total energy in the current state.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="trep.System.L">
+<code class="descclassname">System.</code><code class="descname">L</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/trep/system.html#System.L"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#trep.System.L" title="Permalink to this definition">¶</a></dt>
+<dt id="trep.System.L_dq">
+<code class="descclassname">System.</code><code class="descname">L_dq</code><span class="sig-paren">(</span><em>q1</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/trep/system.html#System.L_dq"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#trep.System.L_dq" title="Permalink to this definition">¶</a></dt>
+<dt id="trep.System.L_dqdq">
+<code class="descclassname">System.</code><code class="descname">L_dqdq</code><span class="sig-paren">(</span><em>q1</em>, <em>q2</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/trep/system.html#System.L_dqdq"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#trep.System.L_dqdq" title="Permalink to this definition">¶</a></dt>
+<dt id="trep.System.L_dqdqdq">
+<code class="descclassname">System.</code><code class="descname">L_dqdqdq</code><span class="sig-paren">(</span><em>q1</em>, <em>q2</em>, <em>q3</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/trep/system.html#System.L_dqdqdq"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#trep.System.L_dqdqdq" title="Permalink to this definition">¶</a></dt>
+<dt id="trep.System.L_ddq">
+<code class="descclassname">System.</code><code class="descname">L_ddq</code><span class="sig-paren">(</span><em>dq1</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/trep/system.html#System.L_ddq"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#trep.System.L_ddq" title="Permalink to this definition">¶</a></dt>
+<dt id="trep.System.L_ddqdq">
+<code class="descclassname">System.</code><code class="descname">L_ddqdq</code><span class="sig-paren">(</span><em>dq1</em>, <em>q2</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/trep/system.html#System.L_ddqdq"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#trep.System.L_ddqdq" title="Permalink to this definition">¶</a></dt>
+<dt id="trep.System.L_ddqdqdq">
+<code class="descclassname">System.</code><code class="descname">L_ddqdqdq</code><span class="sig-paren">(</span><em>dq1</em>, <em>q2</em>, <em>q3</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/trep/system.html#System.L_ddqdqdq"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#trep.System.L_ddqdqdq" title="Permalink to this definition">¶</a></dt>
+<dt id="trep.System.L_ddqdqdqdq">
+<code class="descclassname">System.</code><code class="descname">L_ddqdqdqdq</code><span class="sig-paren">(</span><em>dq1</em>, <em>q2</em>, <em>q3</em>, <em>q4</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/trep/system.html#System.L_ddqdqdqdq"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#trep.System.L_ddqdqdqdq" title="Permalink to this definition">¶</a></dt>
+<dt id="trep.System.L_ddqddq">
+<code class="descclassname">System.</code><code class="descname">L_ddqddq</code><span class="sig-paren">(</span><em>dq1</em>, <em>dq2</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/trep/system.html#System.L_ddqddq"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#trep.System.L_ddqddq" title="Permalink to this definition">¶</a></dt>
+<dt id="trep.System.L_ddqddqdq">
+<code class="descclassname">System.</code><code class="descname">L_ddqddqdq</code><span class="sig-paren">(</span><em>dq1</em>, <em>dq2</em>, <em>q3</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/trep/system.html#System.L_ddqddqdq"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#trep.System.L_ddqddqdq" title="Permalink to this definition">¶</a></dt>
+<dt id="trep.System.L_ddqddqdqdq">
+<code class="descclassname">System.</code><code class="descname">L_ddqddqdqdq</code><span class="sig-paren">(</span><em>dq1</em>, <em>dq2</em>, <em>q3</em>, <em>q4</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/trep/system.html#System.L_ddqddqdqdq"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#trep.System.L_ddqddqdqdq" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate the Lagrangian or it&#8217;s derivatives at the current state.
+When calculating the Lagrangian derivatives, you must specify a
+variable to take the derivative with respect to.</p>
+<p>Calculating <span class="math">\(\deriv[L]{q_0}\)</span>:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">q0</span> <span class="o">=</span> <span class="n">system</span><span class="o">.</span><span class="n">configs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">system</span><span class="o">.</span><span class="n">L_dq</span><span class="p">(</span><span class="n">q0</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Calculating <span class="math">\(\derivII[L]{q_0}{\dq_1}\)</span>:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">q0</span> <span class="o">=</span> <span class="n">system</span><span class="o">.</span><span class="n">configs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">q1</span> <span class="o">=</span> <span class="n">system</span><span class="o">.</span><span class="n">configs</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">system</span><span class="o">.</span><span class="n">L_ddqdq</span><span class="p">(</span><span class="n">q1</span><span class="p">,</span> <span class="n">q0</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Calculating <span class="math">\(\derivII[L]{\dq_0}{\dq_1}\)</span>:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">q0</span> <span class="o">=</span> <span class="n">system</span><span class="o">.</span><span class="n">configs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">q1</span> <span class="o">=</span> <span class="n">system</span><span class="o">.</span><span class="n">configs</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">system</span><span class="o">.</span><span class="n">L_ddqddq</span><span class="p">(</span><span class="n">q1</span><span class="p">,</span> <span class="n">q0</span><span class="p">)</span>
+
+<span class="go"># Mixed partials always commute, so we could also do:</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">system</span><span class="o">.</span><span class="n">L_ddqddq</span><span class="p">(</span><span class="n">q0</span><span class="p">,</span> <span class="n">q1</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Calculate an entire derivative <span class="math">\(\deriv[L]{q}\)</span>:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="p">[</span><span class="n">system</span><span class="o">.</span><span class="n">L_dq</span><span class="p">(</span><span class="n">q</span><span class="p">)</span> <span class="k">for</span> <span class="n">q</span> <span class="ow">in</span> <span class="n">system</span><span class="o">.</span><span class="n">configs</span><span class="p">]</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</div>
+<div class="section" id="dynamics">
+<span id="system-dynamics-functions"></span><h2><a class="toc-backref" href="#id8">Dynamics</a><a class="headerlink" href="#dynamics" title="Permalink to this headline">¶</a></h2>
+<dl class="method">
+<dt id="trep.System.f">
+<code class="descclassname">System.</code><code class="descname">f</code><span class="sig-paren">(</span><em>q=None</em><span class="sig-paren">)</span><a class="headerlink" href="#trep.System.f" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+</tbody>
+</table>
+<p>Calculate the dynamics at the current state, <span class="math">\(\ddq_d = f(q,\dq,\ddq_k, u, t)\)</span>.</p>
+<p>This calculates the second derivative of the dynamic configuration
+variables.  The results are also written to <a class="reference internal" href="config.html#trep.Config.ddq" title="trep.Config.ddq"><code class="xref py py-attr docutils literal"><span class="pre">Config.ddq</span></code></a>.</p>
+<p>If <em>q</em> is <code class="xref py py-data docutils literal"><span class="pre">None</span></code>, the entire vector <span class="math">\(\ddq_d\)</span> is
+returned.  The array is in the same order as
+<a class="reference internal" href="#trep.System.dyn_configs" title="trep.System.dyn_configs"><code class="xref py py-attr docutils literal"><span class="pre">System.dyn_configs</span></code></a>.</p>
+<p>If <em>q</em> is specified, it must be a dynamic configuration variable,
+and it&#8217;s second derivative will be returned.  This could also be
+accessed as <code class="docutils literal"><span class="pre">q.ddq</span></code>.</p>
+<p>Once the dynamics are calculated, the results are saved until the
+system&#8217;s state changes, so repeated calls will not keep repeating
+work.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="trep.System.f_dq">
+<code class="descclassname">System.</code><code class="descname">f_dq</code><span class="sig-paren">(</span><em>q=None</em>, <em>q1=None</em><span class="sig-paren">)</span><a class="headerlink" href="#trep.System.f_dq" title="Permalink to this definition">¶</a></dt>
+<dt id="trep.System.f_ddq">
+<code class="descclassname">System.</code><code class="descname">f_ddq</code><span class="sig-paren">(</span><em>q=None</em>, <em>dq1=None</em><span class="sig-paren">)</span><a class="headerlink" href="#trep.System.f_ddq" title="Permalink to this definition">¶</a></dt>
+<dt id="trep.System.f_dddk">
+<code class="descclassname">System.</code><code class="descname">f_dddk</code><span class="sig-paren">(</span><em>q=None</em>, <em>k1=None</em><span class="sig-paren">)</span><a class="headerlink" href="#trep.System.f_dddk" title="Permalink to this definition">¶</a></dt>
+<dt id="trep.System.f_du">
+<code class="descclassname">System.</code><code class="descname">f_du</code><span class="sig-paren">(</span><em>q=None</em>, <em>u1=None</em><span class="sig-paren">)</span><a class="headerlink" href="#trep.System.f_du" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate the first derivative of the dynamics with respect to the
+configuration, the configuration velocity, the kinematic
+acceleration, or the force inputs.</p>
+<p>If both parameters are <code class="xref py py-data docutils literal"><span class="pre">None</span></code>, the entire first derivative is
+returned as a <code class="xref py py-mod docutils literal"><span class="pre">numpy</span></code> array with the derivatives across the
+rows.</p>
+<p>If any parameters are specified, they must be appropriate objects,
+and the function will return the specific information requested.</p>
+<p>Calculating <span class="math">\(\deriv[f]{q_2}\)</span>:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">dq</span> <span class="o">=</span> <span class="n">system</span><span class="o">.</span><span class="n">configs</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">system</span><span class="o">.</span><span class="n">f_dq</span><span class="p">(</span><span class="n">q1</span><span class="o">=</span><span class="n">dq</span><span class="p">)</span>
+<span class="go">array([-0.076, -0.018, -0.03 , ...,  0.337, -0.098,  0.562])</span>
+</pre></div>
+</div>
+<p>Calculating <span class="math">\(\deriv[f]{\dq}\)</span>:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">system</span><span class="o">.</span><span class="n">f_ddq</span><span class="p">()</span>
+<span class="go">array([[-0.001, -0.   , -0.   , ...,  0.001, -0.001,  0.   ],</span>
+<span class="go">[-0.   , -0.002, -0.   , ..., -0.   , -0.   ,  0.   ],</span>
+<span class="go">[-0.   , -0.   , -0.   , ...,  0.   , -0.   ,  0.   ],</span>
+<span class="go">...,</span>
+<span class="go">[-0.   , -0.001, -0.   , ..., -0.003, -0.   ,  0.   ],</span>
+<span class="go">[ 0.001, -0.   ,  0.   , ..., -0.005,  0.008, -0.   ],</span>
+<span class="go">[-0.001, -0.   , -0.   , ...,  0.008, -0.027,  0.   ]])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">system</span><span class="o">.</span><span class="n">f_ddq</span><span class="p">()</span><span class="o">.</span><span class="n">shape</span>
+<span class="go">(22, 23)</span>
+</pre></div>
+</div>
+<p>Calculating <span class="math">\(\deriv[\ddq_4]{\ddq_{k0}}\)</span>:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">qk</span> <span class="o">=</span> <span class="n">system</span><span class="o">.</span><span class="n">kin_configs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">q</span> <span class="o">=</span> <span class="n">system</span><span class="o">.</span><span class="n">dyn_configs</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">system</span><span class="o">.</span><span class="n">f_dddk</span><span class="p">(</span><span class="n">q</span><span class="p">,</span> <span class="n">qk</span><span class="p">)</span>
+<span class="go">-0.31036045452513322</span>
+</pre></div>
+</div>
+<p>The first call to any of these functions will calculate and cache
+the entire first derivative.  Once calculated, subsequent calls
+will not recalculate the derivatives until the system&#8217;s state is
+changed.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="trep.System.f_dqdq">
+<code class="descclassname">System.</code><code class="descname">f_dqdq</code><span class="sig-paren">(</span><em>q=None</em>, <em>q1=None</em>, <em>q2=None</em><span class="sig-paren">)</span><a class="headerlink" href="#trep.System.f_dqdq" title="Permalink to this definition">¶</a></dt>
+<dt id="trep.System.f_ddqdq">
+<code class="descclassname">System.</code><code class="descname">f_ddqdq</code><span class="sig-paren">(</span><em>q=None</em>, <em>dq1=None</em>, <em>q2=None</em><span class="sig-paren">)</span><a class="headerlink" href="#trep.System.f_ddqdq" title="Permalink to this definition">¶</a></dt>
+<dt id="trep.System.f_ddqddq">
+<code class="descclassname">System.</code><code class="descname">f_ddqddq</code><span class="sig-paren">(</span><em>q=None</em>, <em>dq1=None</em>, <em>dq2=None</em><span class="sig-paren">)</span><a class="headerlink" href="#trep.System.f_ddqddq" title="Permalink to this definition">¶</a></dt>
+<dt id="trep.System.f_dddkdq">
+<code class="descclassname">System.</code><code class="descname">f_dddkdq</code><span class="sig-paren">(</span><em>q=None</em>, <em>k1=None</em>, <em>q2=None</em><span class="sig-paren">)</span><a class="headerlink" href="#trep.System.f_dddkdq" title="Permalink to this definition">¶</a></dt>
+<dt id="trep.System.f_dudq">
+<code class="descclassname">System.</code><code class="descname">f_dudq</code><span class="sig-paren">(</span><em>q=None</em>, <em>u1=None</em>, <em>q2=None</em><span class="sig-paren">)</span><a class="headerlink" href="#trep.System.f_dudq" title="Permalink to this definition">¶</a></dt>
+<dt id="trep.System.f_duddq">
+<code class="descclassname">System.</code><code class="descname">f_duddq</code><span class="sig-paren">(</span><em>q=None</em>, <em>u1=None</em>, <em>dq2=None</em><span class="sig-paren">)</span><a class="headerlink" href="#trep.System.f_duddq" title="Permalink to this definition">¶</a></dt>
+<dt id="trep.System.f_dudu">
+<code class="descclassname">System.</code><code class="descname">f_dudu</code><span class="sig-paren">(</span><em>q=None</em>, <em>u1=None</em>, <em>u2=None</em><span class="sig-paren">)</span><a class="headerlink" href="#trep.System.f_dudu" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate second derivatives of the dynamics.</p>
+<p>If no parameters specified, the entire second derivative is
+returned as a <code class="xref py py-mod docutils literal"><span class="pre">numpy</span></code> array.  The returned arrays are indexed
+with the two derivatives variables as the first two dimensions and
+the dynamic acceleration as the last dimension.  In other words,
+calling:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">system</span><span class="o">.</span><span class="n">f_dqdq</span><span class="p">(</span><span class="n">q</span><span class="p">,</span> <span class="n">q1</span><span class="p">,</span> <span class="n">q2</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>is equivalent to:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">result</span> <span class="o">=</span> <span class="n">system</span><span class="o">.</span><span class="n">f_dqdq</span><span class="p">()</span>
+<span class="n">result</span><span class="p">[</span><span class="n">q1</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="n">q2</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="n">q</span><span class="o">.</span><span class="n">index</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>If any parameters are specified, they must be appropriate objects,
+and the function will return the specific information requested.
+For example:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">system</span><span class="o">.</span><span class="n">f_dqdq</span><span class="p">(</span><span class="n">q2</span><span class="o">=</span><span class="n">q2</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>is equivalent to:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">result</span> <span class="o">=</span> <span class="n">system</span><span class="o">.</span><span class="n">f_dqdq</span><span class="p">()</span>
+<span class="n">result</span><span class="p">[:,</span> <span class="n">q2</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="p">:]</span>
+</pre></div>
+</div>
+<p>The second derivatives are indexed opposite from the first
+derivatives because they are generally multiplied by an adjoint
+variable in practice.  For example, the quantity:</p>
+<div class="math">
+\[z^T \derivII[f]{q}{\dq}\]</div>
+<p>can be calculated as:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">numpy</span><span class="o">.</span><span class="n">inner</span><span class="p">(</span><span class="n">system</span><span class="o">.</span><span class="n">f_dqddq</span><span class="p">(),</span> <span class="n">z</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>without having to do a transpose or specify a specific axis.</p>
+<p>The first call to any of these functions will calculate and cache
+the entire second derivative.  Once calculated, subsequent calls
+will not recalculate the derivatives until the system&#8217;s state is
+changed.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="constraint-forces">
+<h2><a class="toc-backref" href="#id9">Constraint Forces</a><a class="headerlink" href="#constraint-forces" title="Permalink to this headline">¶</a></h2>
+<dl class="method">
+<dt id="trep.System.lambda_">
+<code class="descclassname">System.</code><code class="descname">lambda_</code><span class="sig-paren">(</span><em>constraint=None</em><span class="sig-paren">)</span><a class="headerlink" href="#trep.System.lambda_" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="trep.System.lambda_dq">
+<code class="descclassname">System.</code><code class="descname">lambda_dq</code><span class="sig-paren">(</span><em>constraint=None</em>, <em>q1=None</em><span class="sig-paren">)</span><a class="headerlink" href="#trep.System.lambda_dq" title="Permalink to this definition">¶</a></dt>
+<dt id="trep.System.lambda_ddq">
+<code class="descclassname">System.</code><code class="descname">lambda_ddq</code><span class="sig-paren">(</span><em>constraint=None</em>, <em>dq1=None</em><span class="sig-paren">)</span><a class="headerlink" href="#trep.System.lambda_ddq" title="Permalink to this definition">¶</a></dt>
+<dt id="trep.System.lambda_dddk">
+<code class="descclassname">System.</code><code class="descname">lambda_dddk</code><span class="sig-paren">(</span><em>constraint=None</em>, <em>k1=None</em><span class="sig-paren">)</span><a class="headerlink" href="#trep.System.lambda_dddk" title="Permalink to this definition">¶</a></dt>
+<dt id="trep.System.lambda_du">
+<code class="descclassname">System.</code><code class="descname">lambda_du</code><span class="sig-paren">(</span><em>constraint=None</em>, <em>u1=None</em><span class="sig-paren">)</span><a class="headerlink" href="#trep.System.lambda_du" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="trep.System.lambda_dqdq">
+<code class="descclassname">System.</code><code class="descname">lambda_dqdq</code><span class="sig-paren">(</span><em>constraint=None</em>, <em>q1=None</em>, <em>q2=None</em><span class="sig-paren">)</span><a class="headerlink" href="#trep.System.lambda_dqdq" title="Permalink to this definition">¶</a></dt>
+<dt id="trep.System.lambda_ddqdq">
+<code class="descclassname">System.</code><code class="descname">lambda_ddqdq</code><span class="sig-paren">(</span><em>constraint=None</em>, <em>dq1=None</em>, <em>q2=None</em><span class="sig-paren">)</span><a class="headerlink" href="#trep.System.lambda_ddqdq" title="Permalink to this definition">¶</a></dt>
+<dt id="trep.System.lambda_ddqddq">
+<code class="descclassname">System.</code><code class="descname">lambda_ddqddq</code><span class="sig-paren">(</span><em>constraint=None</em>, <em>dq1=None</em>, <em>dq2=None</em><span class="sig-paren">)</span><a class="headerlink" href="#trep.System.lambda_ddqddq" title="Permalink to this definition">¶</a></dt>
+<dt id="trep.System.lambda_dddkdq">
+<code class="descclassname">System.</code><code class="descname">lambda_dddkdq</code><span class="sig-paren">(</span><em>constraint=None</em>, <em>k1=None</em>, <em>q2=None</em><span class="sig-paren">)</span><a class="headerlink" href="#trep.System.lambda_dddkdq" title="Permalink to this definition">¶</a></dt>
+<dt id="trep.System.lambda_dudq">
+<code class="descclassname">System.</code><code class="descname">lambda_dudq</code><span class="sig-paren">(</span><em>constraint=None</em>, <em>u1=None</em>, <em>q2=None</em><span class="sig-paren">)</span><a class="headerlink" href="#trep.System.lambda_dudq" title="Permalink to this definition">¶</a></dt>
+<dt id="trep.System.lambda_duddq">
+<code class="descclassname">System.</code><code class="descname">lambda_duddq</code><span class="sig-paren">(</span><em>constraint=None</em>, <em>u1=None</em>, <em>dq2=None</em><span class="sig-paren">)</span><a class="headerlink" href="#trep.System.lambda_duddq" title="Permalink to this definition">¶</a></dt>
+<dt id="trep.System.lambda_dudu">
+<code class="descclassname">System.</code><code class="descname">lambda_dudu</code><span class="sig-paren">(</span><em>constraint=None</em>, <em>u1=None</em>, <em>u2=None</em><span class="sig-paren">)</span><a class="headerlink" href="#trep.System.lambda_dudu" title="Permalink to this definition">¶</a></dt>
+<dd><p>These are functions for calculating the value of the constraint
+force vector <span class="math">\(\lambda\)</span> and its derivatives.  They have the
+same behavior and index orders as the <a class="reference internal" href="#system-dynamics-functions"><span>dynamics</span></a> functions.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="derivative-testing">
+<h2><a class="toc-backref" href="#id10">Derivative Testing</a><a class="headerlink" href="#derivative-testing" title="Permalink to this headline">¶</a></h2>
+<dl class="method">
+<dt id="trep.System.test_derivative_dq">
+<code class="descclassname">System.</code><code class="descname">test_derivative_dq</code><span class="sig-paren">(</span><em>func</em>, <em>func_dq</em>, <em>delta=1e-6</em>, <em>tolerance=1e-7</em>, <em>verbose=False</em>, <em>test_name='&lt;unnamed&gt;'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/trep/system.html#System.test_derivative_dq"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#trep.System.test_derivative_dq" title="Permalink to this definition">¶</a></dt>
+<dt id="trep.System.test_derivative_ddq">
+<code class="descclassname">System.</code><code class="descname">test_derivative_ddq</code><span class="sig-paren">(</span><em>func</em>, <em>func_ddq</em>, <em>delta=1e-6</em>, <em>tolerance=1e-7</em>, <em>verbose=False</em>, <em>test_name='&lt;unnamed&gt;'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/trep/system.html#System.test_derivative_ddq"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#trep.System.test_derivative_ddq" title="Permalink to this definition">¶</a></dt>
+<dd><p>Test the derivative of a function with respect to a
+configuration variable&#8217;s time derivative and its numerical
+approximation.</p>
+<p>func -&gt; Callable taking no arguments and returning float or np.array</p>
+<dl class="docutils">
+<dt>func_ddq -&gt; Callable taking one configuration variable argument</dt>
+<dd>and returning a float or np.array.</dd>
+<dt>delta -&gt; perturbation to the current configuration to</dt>
+<dd>calculate the numeric approximation.</dd>
+<dt>tolerance -&gt; acceptable difference between the approximation</dt>
+<dd>and exact value.  (|exact - approx| &lt;= tolerance)</dd>
+</dl>
+<p>verbose -&gt; Boolean indicating if a message should be printed for failures.</p>
+<dl class="docutils">
+<dt>name -&gt; String identifier to print out when reporting messages</dt>
+<dd>when verbose is true.</dd>
+</dl>
+<p>Returns False if any tests fail and True otherwise.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="structure-updates">
+<h2><a class="toc-backref" href="#id11">Structure Updates</a><a class="headerlink" href="#structure-updates" title="Permalink to this headline">¶</a></h2>
+<p>Whenever a system is significantly modified, an internal function is
+called to make sure everything is consistent and resize the arrays
+used for calculating values as needed.  You can register a function to
+be called after the system has been made consistent using the
+<code class="xref py py-meth docutils literal"><span class="pre">add_structure_changed_func()</span></code>.  This is useful if you building
+your own component that needs to be updated whenever the system&#8217;s
+structure changed (See <code class="xref py py-class docutils literal"><span class="pre">Damping</span></code> for an example).</p>
+<dl class="method">
+<dt id="trep.System.add_structure_changed_func">
+<code class="descclassname">System.</code><code class="descname">add_structure_changed_func</code><span class="sig-paren">(</span><em>function</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/trep/system.html#System.add_structure_changed_func"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#trep.System.add_structure_changed_func" title="Permalink to this definition">¶</a></dt>
+<dd><p>Register a function to call whenever the system structure changes.
+This includes adding and removing frames, configuration variables,
+constraints, potentials, and forces.</p>
+</dd></dl>
+
+<p>Since every addition to the system triggers a structure update,
+building a large system can cause a long delay.  In these cases, it is
+useful to stop the structure updates until the system is fully
+constructed and then perform the update once.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">Be sure to remove all holds before performing any calculations with system.</p>
+</div>
+<dl class="method">
+<dt id="trep.System.hold_structure_changes">
+<code class="descclassname">System.</code><code class="descname">hold_structure_changes</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/trep/system.html#System.hold_structure_changes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#trep.System.hold_structure_changes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Prevent the system from calling <code class="xref py py-meth docutils literal"><span class="pre">System._update_structure()</span></code>
+(mostly).  This can be called multiple times, but
+<a class="reference internal" href="#trep.System.resume_structure_changes" title="trep.System.resume_structure_changes"><code class="xref py py-meth docutils literal"><span class="pre">resume_structure_changes()</span></code></a> must be called an equal number of
+times.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="trep.System.resume_structure_changes">
+<code class="descclassname">System.</code><code class="descname">resume_structure_changes</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/trep/system.html#System.resume_structure_changes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#trep.System.resume_structure_changes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Stop preventing the system from calling
+<code class="xref py py-meth docutils literal"><span class="pre">System._update_structure()</span></code>.  The structure will only be
+updated once every hold has been removed, so calling this does not
+guarantee that the structure will be immediately update.</p>
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+    <h2><a href="http://murpheylab.github.io/trep/">Project Website</a></h2>
+
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#"><code class="docutils literal"><span class="pre">System</span></code> - A Mechanical System</a><ul>
+<li><a class="reference internal" href="#system-components">System Components</a></li>
+<li><a class="reference internal" href="#finding-specific-components">Finding Specific Components</a></li>
+<li><a class="reference internal" href="#importing-and-exporting-frame-definitions">Importing and Exporting Frame Definitions</a></li>
+<li><a class="reference internal" href="#system-state">System State</a></li>
+<li><a class="reference internal" href="#constraints">Constraints</a></li>
+<li><a class="reference internal" href="#lagrangian-calculations">Lagrangian Calculations</a></li>
+<li><a class="reference internal" href="#dynamics">Dynamics</a></li>
+<li><a class="reference internal" href="#constraint-forces">Constraint Forces</a></li>
+<li><a class="reference internal" href="#derivative-testing">Derivative Testing</a></li>
+<li><a class="reference internal" href="#structure-updates">Structure Updates</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="core.html"
+                        title="previous chapter"><code class="docutils literal"><span class="pre">trep</span></code> - Core Components</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="frame.html"
+                        title="next chapter"><code class="docutils literal"><span class="pre">Frame</span></code> &#8211; Coordinate Frame</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/ref/system.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="frame.html" title="Frame – Coordinate Frame"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="core.html" title="trep - Core Components"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">trep documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" >API Reference</a> &raquo;</li>
+          <li class="nav-item nav-item-2"><a href="core.html" ><code class="docutils literal"><span class="pre">trep</span></code> - Core Components</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &copy; Copyright 2015, Elliot Johnson.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.3.1.
+    </div>
+  </body>
+</html>

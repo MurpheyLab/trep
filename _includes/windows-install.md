@@ -26,11 +26,11 @@ Please ensure that all dependencies are installed prior to installing Trep.
 
 <br>
 
-### 2. Installing trep
+### 2. Installing with pip
 
-Installers for trep can be downloaded from the [Releases page](https://github.com/MurpheyLab/trep/releases) on Github or with the following links:
+[Binary wheel files](https://pip.pypa.io/en/latest/user_guide.html#installing-from-wheels) are available for trep on the [Python Package Index](https://pypi.python.org/pypi/trep) and can be installed using [pip](http://www.lfd.uci.edu/~gohlke/pythonlibs/#pip). Python 2.7.9 comes with pip by default, or it can be installed on previous versions. The wheel file can be installed by simply running:
 
-* v1.0.0: [[32 bit]](https://github.com/MurpheyLab/trep/releases/download/v1.0.0/trep-1.0.0.win32-py2.7.exe) [[64-bit]](https://github.com/MurpheyLab/trep/releases/download/v1.0.0/trep-1.0.0.win-amd64-py2.7.exe)
+    pip install trep
 
 Following installation, you can check to see if trep is working by opening a python shell and running
 

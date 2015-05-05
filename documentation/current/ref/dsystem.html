@@ -1,0 +1,768 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>DSystem - Discrete System wrapper for Midpoint Variational Integrators &mdash; trep documentation</title>
+    
+    <link rel="stylesheet" href="../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="trep documentation" href="../index.html" />
+    <link rel="up" title="trep.discopt - Discrete Optimal Control" href="optimal.html" />
+    <link rel="next" title="DCost - Discrete Trajectory Cost" href="dcost.html" />
+    <link rel="prev" title="Discrete LQ Problems" href="dlqr.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="dcost.html" title="DCost - Discrete Trajectory Cost"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="dlqr.html" title="Discrete LQ Problems"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">trep documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" >API Reference</a> &raquo;</li>
+          <li class="nav-item nav-item-2"><a href="optimal.html" accesskey="U"><code class="docutils literal"><span class="pre">trep.discopt</span></code> - Discrete Optimal Control</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+    <script type="math/tex">
+    \newcommand{\deriv}[2][]{\dfrac{\partial #1}{\partial #2}}
+\newcommand{\tderiv}[2][]{\tfrac{\partial #1}{\partial #2}}
+\newcommand{\fderiv}[2][]{\dfrac{d #1}{d #2}}
+\newcommand{\derivII}[3][]{\dfrac{\partial^2 #1}{\partial #2 \partial #3}}
+\newcommand{\tderivII}[3][]{\tfrac{\partial^2 #1}{\partial #2 \partial #3}}
+\newcommand{\derivIII}[4][]{\dfrac{\partial^3 #1}{\partial #2 \partial #3 \partial #4}}
+\newcommand{\tderivIII}[4][]{\tfrac{\partial^3 #1}{\partial #2 \partial #3 \partial #4}}
+\newcommand{\derivIV}[5][]{\dfrac{\partial^4 #1}{\partial #2 \partial #3 \partial #4 \partial #5}}
+
+\newcommand{\half}{\tfrac{1}{2}}  % Macro for 1/2
+
+\newcommand{\ud}{\mathrm{d}}
+
+\newcommand{\op}{\circ}
+\newcommand{\dq}{\dot{q}}
+\newcommand{\ddq}{\ddot{q}}
+
+\newcommand{\dt}{\Delta t}
+
+
+    </script>
+    
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="dsystem-discrete-system-wrapper-for-midpoint-variational-integrators">
+<span id="trep-dsystem"></span><h1><code class="xref py py-class docutils literal"><span class="pre">DSystem</span></code> - Discrete System wrapper for Midpoint Variational Integrators<a class="headerlink" href="#dsystem-discrete-system-wrapper-for-midpoint-variational-integrators" title="Permalink to this headline">¶</a></h1>
+<div class="contents local topic" id="contents">
+<ul class="simple">
+<li><a class="reference internal" href="#dsystem-objects" id="id1">DSystem Objects</a><ul>
+<li><a class="reference internal" href="#state-and-trajectory-manipulation" id="id2">State and Trajectory Manipulation</a></li>
+<li><a class="reference internal" href="#dynamics" id="id3">Dynamics</a></li>
+<li><a class="reference internal" href="#first-derivatives" id="id4">First Derivatives</a></li>
+<li><a class="reference internal" href="#second-derivatives" id="id5">Second Derivatives</a></li>
+<li><a class="reference internal" href="#linearization-and-feedback-controllers" id="id6">Linearization and Feedback Controllers</a></li>
+<li><a class="reference internal" href="#checking-the-derivatives" id="id7">Checking the Derivatives</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<p><a class="reference internal" href="#trep.discopt.DSystem" title="trep.discopt.DSystem"><code class="xref py py-class docutils literal"><span class="pre">DSystem</span></code></a> objects represent a <code class="xref py py-class docutils literal"><span class="pre">MidpointVI</span></code> variational
+integrators as first order discrete systems of the form <span class="math">\(X(k+1)
+= f(X(k), U(k), k)\)</span>. This representation is used by <a class="reference internal" href="doptimizer.html#trep.discopt.DOptimizer" title="trep.discopt.DOptimizer"><code class="xref py py-class docutils literal"><span class="pre">DOptimizer</span></code></a>
+for discrete trajectory optimization. <a class="reference internal" href="#trep.discopt.DSystem" title="trep.discopt.DSystem"><code class="xref py py-class docutils literal"><span class="pre">DSystem</span></code></a> also provides
+methods for automatically calculating linearizations and feedback
+controllers along trajectories.</p>
+<p>The discrete state consists of the variational integrator&#8217;s full
+configuration, the dynamic momentum, and the kinematic velocity:</p>
+<div class="math">
+\[\begin{split}X(k) = \begin{bmatrix} q_d(k) \\ q_k(k) \\ p(k) \\ v_k(k) \end{bmatrix}\end{split}\]</div>
+<p>The configuration and momentum are the same as in <code class="xref py py-class docutils literal"><span class="pre">MidpointVI</span></code>.
+The kinematic velocity is calculated as:</p>
+<div class="math">
+\[v_k(k) = \frac{q_k(k) - q_k(k-1)}{t(k) - t(k-1)}\]</div>
+<p>The discrete input consists of the variational integrator&#8217;s force
+inputs and the future state of the kinematic configurations:</p>
+<div class="math">
+\[\begin{split}U(k) = \begin{bmatrix} u(k) \\ \rho(k) \end{bmatrix}\end{split}\]</div>
+<p>where the kinematic inputs are denoted by <span class="math">\(\rho\)</span> thoughout this
+code (i.e, <span class="math">\(q_k(k+1) = \rho(k)\)</span>).  Additionally, the state input
+<em>U</em> is always capitalized to distinguish it from the force input <em>u</em>
+which is always lower case.</p>
+<p><a class="reference internal" href="#trep.discopt.DSystem" title="trep.discopt.DSystem"><code class="xref py py-class docutils literal"><span class="pre">DSystem</span></code></a> provides methods for converting between trajectories
+for the discrete system and trajectories for the variational
+integrator.</p>
+<div class="admonition-examples admonition">
+<p class="first admonition-title">Examples</p>
+<p class="last"><code class="docutils literal"><span class="pre">pend-on-cart-optimization.py</span></code></p>
+</div>
+<div class="section" id="dsystem-objects">
+<h2><a class="toc-backref" href="#id1">DSystem Objects</a><a class="headerlink" href="#dsystem-objects" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="trep.discopt.DSystem">
+<em class="property">class </em><code class="descclassname">trep.discopt.</code><code class="descname">DSystem</code><span class="sig-paren">(</span><em>varint</em>, <em>t</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/trep/discopt/dsystem.html#DSystem"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#trep.discopt.DSystem" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>varint</strong> (<code class="xref py py-class docutils literal"><span class="pre">MidpointVI</span></code> instance) &#8211; The variational integrator being represented.</li>
+<li><strong>t</strong> (<em>numpy array of floats, shape (N)</em>) &#8211; An array of times</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Create a discrete system wrapper for the variational integrator
+<em>varint</em> and the time <em>t</em>.  The time <em>t</em> is the array <span class="math">\(t(k)\)</span>
+that maps a discrete time index to a time.  It should have the same
+length <em>N</em> as trajectories used with the system.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="trep.discopt.DSystem.nX">
+<code class="descclassname">DSystem.</code><code class="descname">nX</code><a class="headerlink" href="#trep.discopt.DSystem.nX" title="Permalink to this definition">¶</a></dt>
+<dd><p>Number of states to the discrete system.</p>
+<p><em>int</em></p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="trep.discopt.DSystem.nU">
+<code class="descclassname">DSystem.</code><code class="descname">nU</code><a class="headerlink" href="#trep.discopt.DSystem.nU" title="Permalink to this definition">¶</a></dt>
+<dd><p>Number of inputs to the discrete system.</p>
+<p><em>int</em></p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="trep.discopt.DSystem.varint">
+<code class="descclassname">DSystem.</code><code class="descname">varint</code><a class="headerlink" href="#trep.discopt.DSystem.varint" title="Permalink to this definition">¶</a></dt>
+<dd><p>The variational integrator wrapped by this instance.</p>
+<p><code class="xref py py-class docutils literal"><span class="pre">MidpointVI</span></code></p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="trep.discopt.DSystem.system">
+<code class="descclassname">DSystem.</code><code class="descname">system</code><a class="headerlink" href="#trep.discopt.DSystem.system" title="Permalink to this definition">¶</a></dt>
+<dd><p>The mechanical system modeled by the variational integrator.</p>
+<p><code class="xref py py-class docutils literal"><span class="pre">System</span></code></p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="trep.discopt.DSystem.time">
+<code class="descclassname">DSystem.</code><code class="descname">time</code><a class="headerlink" href="#trep.discopt.DSystem.time" title="Permalink to this definition">¶</a></dt>
+<dd><p>The time of the discrete steps.</p>
+<p>numpy array, shape (N)</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="trep.discopt.xk">
+<code class="descclassname">trep.discopt.</code><code class="descname">xk</code><a class="headerlink" href="#trep.discopt.xk" title="Permalink to this definition">¶</a></dt>
+<dd><p>Current state of the system.</p>
+<p>numpy array, shape (nX)</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="trep.discopt.uk">
+<code class="descclassname">trep.discopt.</code><code class="descname">uk</code><a class="headerlink" href="#trep.discopt.uk" title="Permalink to this definition">¶</a></dt>
+<dd><p>Current input of the system.</p>
+<p>numpy array, shape (nU)</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="trep.discopt.k">
+<code class="descclassname">trep.discopt.</code><code class="descname">k</code><a class="headerlink" href="#trep.discopt.k" title="Permalink to this definition">¶</a></dt>
+<dd><p>Current discrete time of the system.</p>
+<p>int</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="trep.discopt.DSystem.kf">
+<code class="descclassname">DSystem.</code><code class="descname">kf</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/trep/discopt/dsystem.html#DSystem.kf"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#trep.discopt.DSystem.kf" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">int</td>
+</tr>
+</tbody>
+</table>
+<p>Return the last available state that the system can be set to.
+This is one less than <code class="docutils literal"><span class="pre">len(self.time)</span></code>.</p>
+</dd></dl>
+
+<div class="section" id="state-and-trajectory-manipulation">
+<h3><a class="toc-backref" href="#id2">State and Trajectory Manipulation</a><a class="headerlink" href="#state-and-trajectory-manipulation" title="Permalink to this headline">¶</a></h3>
+<dl class="method">
+<dt id="trep.discopt.DSystem.build_state">
+<code class="descclassname">DSystem.</code><code class="descname">build_state</code><span class="sig-paren">(</span><span class="optional">[</span><em>Q=None</em>, <em>p=None</em>, <em>v=None</em><span class="optional">]</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/trep/discopt/dsystem.html#DSystem.build_state"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#trep.discopt.DSystem.build_state" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>Q</strong> (<em>numpy array, shape (nQ)</em>) &#8211; A configuration vector</li>
+<li><strong>p</strong> (<em>numpy array, shape (nd)</em>) &#8211; A momentum vector</li>
+<li><strong>v</strong> (<em>numpy array, shape (nk)</em>) &#8211; A kinematic velocity vector</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Build a state vector <em>Xk</em> from components.  Unspecified components
+are set to zero.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="trep.discopt.DSystem.build_input">
+<code class="descclassname">DSystem.</code><code class="descname">build_input</code><span class="sig-paren">(</span><span class="optional">[</span><em>u=None</em>, <em>rho=None</em><span class="optional">]</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/trep/discopt/dsystem.html#DSystem.build_input"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#trep.discopt.DSystem.build_input" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>u</strong> (<em>numpy array, shape (nu)</em>) &#8211; An input force vector</li>
+<li><strong>rho</strong> (<em>numpy array, shape (nk)</em>) &#8211; A kinematic input vector</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Type:</th><td class="field-body"><p class="first last">numpy array, shape (nU)</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Build an input vector <em>Uk</em> from components.  Unspecified components
+are set to zero.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="trep.discopt.DSystem.build_trajectory">
+<code class="descclassname">DSystem.</code><code class="descname">build_trajectory</code><span class="sig-paren">(</span><span class="optional">[</span><em>Q=None</em>, <em>p=None</em>, <em>v=None</em>, <em>u=None</em>, <em>rho=None</em><span class="optional">]</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/trep/discopt/dsystem.html#DSystem.build_trajectory"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#trep.discopt.DSystem.build_trajectory" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>Q</strong> (<em>numpy array, shape (N, nQ)</em>) &#8211; A configuration trajectory</li>
+<li><strong>p</strong> (<em>numpy array, shape (N, nd)</em>) &#8211; A momentum trajectory</li>
+<li><strong>v</strong> (<em>numpy array, shape (N, nk)</em>) &#8211; A velocity trajectory</li>
+<li><strong>u</strong> (<em>numpy array, shape (N-1, nu)</em>) &#8211; An input force trajectory</li>
+<li><strong>rho</strong> (<em>numpy array, shape (N-1, nk)</em>) &#8211; A kinematic input trajectory</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">named tuple of (<em>X</em>, <em>U</em>)</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Combine component trajectories into a state and input trajectories.
+The state length is the same as the time base, the input length is
+one less than the time base.  Unspecified components are set to
+zero:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">dsys</span><span class="o">.</span><span class="n">build_trajectory</span><span class="p">()</span> <span class="c"># Create a zero state and input trajectory</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="trep.discopt.DSystem.split_state">
+<code class="descclassname">DSystem.</code><code class="descname">split_state</code><span class="sig-paren">(</span><span class="optional">[</span><em>X=None</em><span class="optional">]</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/trep/discopt/dsystem.html#DSystem.split_state"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#trep.discopt.DSystem.split_state" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>X</strong> (<em>numpy array, shape (nX)</em>) &#8211; A state vector for the system</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">named tuple of (<em>Q</em>, <em>p</em>, <em>v</em>)</td>
+</tr>
+</tbody>
+</table>
+<p>Split a state vector into its configuration, moementum, and
+kinematic velocity parts.  If <em>X</em> is <code class="xref py py-data docutils literal"><span class="pre">None</span></code>, returns zero
+arrays for each component.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="trep.discopt.DSystem.split_input">
+<code class="descclassname">DSystem.</code><code class="descname">split_input</code><span class="sig-paren">(</span><span class="optional">[</span><em>U=None</em><span class="optional">]</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/trep/discopt/dsystem.html#DSystem.split_input"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#trep.discopt.DSystem.split_input" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>U</strong> (<em>numpy array, shape (nU)</em>) &#8211; An input vector for the system</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">named tuple of (<em>u</em>, <em>rho</em>)</td>
+</tr>
+</tbody>
+</table>
+<p>Split a state input vector <em>U</em> into its force and kinematic input
+parts, (<em>u</em>, <em>rho</em>).  If <em>U</em> is <code class="xref py py-data docutils literal"><span class="pre">None</span></code>, returns zero arrays of the
+appropriate size.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="trep.discopt.DSystem.split_trajectory">
+<code class="descclassname">DSystem.</code><code class="descname">split_trajectory</code><span class="sig-paren">(</span><span class="optional">[</span><em>X=None</em>, <em>U=None</em><span class="optional">]</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/trep/discopt/dsystem.html#DSystem.split_trajectory"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#trep.discopt.DSystem.split_trajectory" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>X</strong> (<em>numpy array, shape (N, nX)</em>) &#8211; A state trajectory</li>
+<li><strong>U</strong> (<em>numpy array, shape (N-1, nU)</em>) &#8211; An input trajectory</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">named tuple of (<em>Q</em>, <em>p</em>, <em>v</em>, <em>u</em>, <em>rho</em>)</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Split the state trajectory (<em>X</em>, <em>U</em>) into its <em>Q</em>, <em>p</em>, <em>v</em>, <em>u</em>,
+<em>rho</em> components.  If <em>X</em> or <em>U</em> are <code class="xref py py-data docutils literal"><span class="pre">None</span></code>, the corresponding
+components are arrays of zero.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="trep.discopt.DSystem.convert_trajectory">
+<code class="descclassname">DSystem.</code><code class="descname">convert_trajectory</code><span class="sig-paren">(</span><em>dsys_a</em>, <em>X</em>, <em>U</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/trep/discopt/dsystem.html#DSystem.convert_trajectory"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#trep.discopt.DSystem.convert_trajectory" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>dsys_a</strong> (<a class="reference internal" href="#trep.discopt.DSystem" title="trep.discopt.DSystem"><code class="xref py py-class docutils literal"><span class="pre">DSystem</span></code></a>) &#8211; Another discrete system</li>
+<li><strong>X</strong> (<em>numpy array, shape (N, nX)</em>) &#8211; A state trajectory for <em>dsys_a</em></li>
+<li><strong>U</strong> (<em>numpy array, shape (N, nU)</em>) &#8211; An input trajectory for <em>dsys_a</em></li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">trajectory for this system, named tuple (<em>X</em>, <em>U</em>)</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Convert the trajectory (<em>X</em>, <em>U</em>) for <em>dsys_a</em> into a trajectory
+for this system.  This reorders the trajectory components according
+to the configuration and input variable names and drops components
+that aren&#8217;t in this system.  Variables in this system that are not
+in <em>dsys_a</em> are replaced with zero.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The returned path may not be a valid trajectory for this system
+in the sense that <span class="math">\(x(k+1) = f(x(k), u(k), k)\)</span>.  This
+function only reorders the information.</p>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="trep.discopt.DSystem.save_state_trajectory">
+<code class="descclassname">DSystem.</code><code class="descname">save_state_trajectory</code><span class="sig-paren">(</span><em>filename</em><span class="optional">[</span>, <em>X=None</em>, <em>U=None</em><span class="optional">]</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/trep/discopt/dsystem.html#DSystem.save_state_trajectory"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#trep.discopt.DSystem.save_state_trajectory" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>filename</strong> (<em>string</em>) &#8211; Location to save the trajectory</li>
+<li><strong>X</strong> (<em>numpy array, shape (N, nX)</em>) &#8211; A state trajectory</li>
+<li><strong>U</strong> (<em>numpy array, shape (N-1, nU)</em>) &#8211; An input trajectory</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Save a trajectory to a file.  This splits the trajectory with
+<a class="reference internal" href="#trep.discopt.DSystem.split_trajectory" title="trep.discopt.DSystem.split_trajectory"><code class="xref py py-meth docutils literal"><span class="pre">split_trajectory()</span></code></a> and saves the results with
+<code class="xref py py-func docutils literal"><span class="pre">trep.save_traejctory()</span></code>.  If <em>X</em> or <em>U</em> are not specified,
+they are replaced with zero arrays.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="trep.discopt.DSystem.load_state_trajectory">
+<code class="descclassname">DSystem.</code><code class="descname">load_state_trajectory</code><span class="sig-paren">(</span><em>filename</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/trep/discopt/dsystem.html#DSystem.load_state_trajectory"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#trep.discopt.DSystem.load_state_trajectory" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>filename</strong> (<em>string</em>) &#8211; Location of saved trajectory</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">named tuple of (X, U)</td>
+</tr>
+</tbody>
+</table>
+<p>Load a trajectory from a file that was stored with
+<a class="reference internal" href="#trep.discopt.DSystem.save_state_trajectory" title="trep.discopt.DSystem.save_state_trajectory"><code class="xref py py-meth docutils literal"><span class="pre">save_state_trajectory()</span></code></a> or
+<code class="xref py py-func docutils literal"><span class="pre">trep.save_trajectory()</span></code>.</p>
+<p>If the file does not contain complete information for the system
+(e.g, it was saved for a different system with different states, or
+the inputs were not saved), the missing components will be filled
+with zeros.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="dynamics">
+<h3><a class="toc-backref" href="#id3">Dynamics</a><a class="headerlink" href="#dynamics" title="Permalink to this headline">¶</a></h3>
+<dl class="method">
+<dt id="trep.discopt.DSystem.set">
+<code class="descclassname">DSystem.</code><code class="descname">set</code><span class="sig-paren">(</span><em>self</em>, <em>xk</em>, <em>uk</em>, <em>k</em><span class="optional">[</span>, <em>xk_hint=None</em>, <em>lambda_hint=None</em><span class="optional">]</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/trep/discopt/dsystem.html#DSystem.set"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#trep.discopt.DSystem.set" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the current state, input, and time of the discrete system.</p>
+<p>If <em>xk_hint</em> and <em>lambda_hint</em> are provided, these are used to
+provide hints to hints to <code class="xref py py-meth docutils literal"><span class="pre">MidpointVI.step()</span></code>.  If the solution
+is known (for example, if you are calculating the linearization
+about a known trajectory) this can result in faster performance by
+reducing the number of root solver iterations in the variational
+integrator.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="trep.discopt.DSystem.step">
+<code class="descclassname">DSystem.</code><code class="descname">step</code><span class="sig-paren">(</span><em>self</em>, <em>uk</em><span class="optional">[</span>, <em>xk_hint=None</em>, <em>lambda_hint=None</em><span class="optional">]</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/trep/discopt/dsystem.html#DSystem.step"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#trep.discopt.DSystem.step" title="Permalink to this definition">¶</a></dt>
+<dd><p>Advance the system to the next discrete time using the given
+input <em>uk</em>.</p>
+<p>This is equivalent to calling <code class="docutils literal"><span class="pre">self.set(self.f(),</span> <span class="pre">uk,</span> <span class="pre">self.k+1)</span></code>.</p>
+<p>If <em>xk_hint</em> and <em>lambda_hint</em> are provided, these are used to
+provide hints to hints to <code class="xref py py-meth docutils literal"><span class="pre">MidpointVI.step()</span></code>.  If the solution
+is known (for example, if you are calculating the linearization
+about a known trajectory) this can result in faster performance by
+reducing the number of root solver iterations in the variational
+integrator.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="trep.discopt.DSystem.f">
+<code class="descclassname">DSystem.</code><code class="descname">f</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/trep/discopt/dsystem.html#DSystem.f"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#trep.discopt.DSystem.f" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">numpy array, shape (nX)</td>
+</tr>
+</tbody>
+</table>
+<p>Get the next state of the system, <span class="math">\(x(k+1)\)</span>.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="first-derivatives">
+<h3><a class="toc-backref" href="#id4">First Derivatives</a><a class="headerlink" href="#first-derivatives" title="Permalink to this headline">¶</a></h3>
+<dl class="method">
+<dt id="trep.discopt.DSystem.fdx">
+<code class="descclassname">DSystem.</code><code class="descname">fdx</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/trep/discopt/dsystem.html#DSystem.fdx"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#trep.discopt.DSystem.fdx" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">numpy array, shape (nX, nX)</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="trep.discopt.DSystem.fdu">
+<code class="descclassname">DSystem.</code><code class="descname">fdu</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/trep/discopt/dsystem.html#DSystem.fdu"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#trep.discopt.DSystem.fdu" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">numpy array, shape (nX, nU)</td>
+</tr>
+</tbody>
+</table>
+<p>These functions return first derivatives of the system dynamics
+<span class="math">\(f()\)</span> as numpy arrays with the derivatives across the rows.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="second-derivatives">
+<h3><a class="toc-backref" href="#id5">Second Derivatives</a><a class="headerlink" href="#second-derivatives" title="Permalink to this headline">¶</a></h3>
+<dl class="method">
+<dt id="trep.discopt.DSystem.fdxdx">
+<code class="descclassname">DSystem.</code><code class="descname">fdxdx</code><span class="sig-paren">(</span><em>z</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/trep/discopt/dsystem.html#DSystem.fdxdx"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#trep.discopt.DSystem.fdxdx" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>z</strong> (<em>numpy array, shape (nX)</em>) &#8211; adjoint vector</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">numpy array, shape (nU, nU)</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="trep.discopt.DSystem.fdxdu">
+<code class="descclassname">DSystem.</code><code class="descname">fdxdu</code><span class="sig-paren">(</span><em>z</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/trep/discopt/dsystem.html#DSystem.fdxdu"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#trep.discopt.DSystem.fdxdu" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>z</strong> (<em>numpy array, shape (nX)</em>) &#8211; adjoint vector</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">numpy array, shape (nX, nU)</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="trep.discopt.DSystem.fdudu">
+<code class="descclassname">DSystem.</code><code class="descname">fdudu</code><span class="sig-paren">(</span><em>z</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/trep/discopt/dsystem.html#DSystem.fdudu"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#trep.discopt.DSystem.fdudu" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>z</strong> (<em>numpy array, shape (nX)</em>) &#8211; adjoint vector</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">numpy array, shape (nU, nU)</td>
+</tr>
+</tbody>
+</table>
+<p>These functions return the product of the 1D array <em>z</em> and the
+second derivative of f.  For example:</p>
+<div class="math">
+\[z^T \derivII[f]{u}{u}\]</div>
+</dd></dl>
+
+</div>
+<div class="section" id="linearization-and-feedback-controllers">
+<h3><a class="toc-backref" href="#id6">Linearization and Feedback Controllers</a><a class="headerlink" href="#linearization-and-feedback-controllers" title="Permalink to this headline">¶</a></h3>
+<dl class="method">
+<dt id="trep.discopt.DSystem.linearize_trajectory">
+<code class="descclassname">DSystem.</code><code class="descname">linearize_trajectory</code><span class="sig-paren">(</span><em>X</em>, <em>U</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/trep/discopt/dsystem.html#DSystem.linearize_trajectory"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#trep.discopt.DSystem.linearize_trajectory" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">named tuple (A, B)</td>
+</tr>
+</tbody>
+</table>
+<p>Calculate the linearization of the system dynamics about a
+trajectory.  <em>X</em> and <em>U</em> do not have to be an exact trajectory of
+the system.</p>
+<p>Returns the linearization in a named tuple <code class="docutils literal"><span class="pre">(A,</span> <span class="pre">B)</span></code>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="trep.discopt.DSystem.project">
+<code class="descclassname">DSystem.</code><code class="descname">project</code><span class="sig-paren">(</span><em>bX</em>, <em>bU</em><span class="optional">[</span>, <em>Kproj=None</em><span class="optional">]</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/trep/discopt/dsystem.html#DSystem.project"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#trep.discopt.DSystem.project" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Rtyple:</th><td class="field-body">named tuple (X, U)</td>
+</tr>
+</tbody>
+</table>
+<p>Project <em>bX</em> and <em>bU</em> into a nearby trajectory for the system using
+a linear feedback law:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">X</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">bX</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="n">U</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">bU</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">-</span> <span class="n">Kproj</span> <span class="o">*</span> <span class="p">(</span><span class="n">X</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">-</span> <span class="n">bU</span><span class="p">[</span><span class="n">k</span><span class="p">])</span>
+<span class="n">X</span><span class="p">[</span><span class="n">k</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">f</span><span class="p">(</span><span class="n">X</span><span class="p">[</span><span class="n">k</span><span class="p">],</span> <span class="n">U</span><span class="p">[</span><span class="n">k</span><span class="p">],</span> <span class="n">k</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>If no feedback law is specified, one will be created by
+<a class="reference internal" href="#trep.discopt.DSystem.calc_feedback_controller" title="trep.discopt.DSystem.calc_feedback_controller"><code class="xref py py-meth docutils literal"><span class="pre">calc_feedback_controller()</span></code></a> along <em>bX</em> and <em>bU</em>.  This is
+typically a <strong>bad idea</strong> if <em>bX</em> and <em>bU</em> are not very close to an
+actual trajectory for the system.</p>
+<p>Returns the projected trajectory in a named tuple <code class="docutils literal"><span class="pre">(X,</span> <span class="pre">U)</span></code>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="trep.discopt.DSystem.dproject">
+<code class="descclassname">DSystem.</code><code class="descname">dproject</code><span class="sig-paren">(</span><em>A</em>, <em>B</em>, <em>bdX</em>, <em>bdU</em>, <em>K</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/trep/discopt/dsystem.html#DSystem.dproject"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#trep.discopt.DSystem.dproject" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Rtyple:</th><td class="field-body">named tuple (dX, dU)</td>
+</tr>
+</tbody>
+</table>
+<p>Project <em>bdX</em> and <em>bdU</em> into the tangent trajectory space of the
+system.  <em>A</em> and <em>B</em> are the linearization of the system about the
+trajectory.  <em>K</em> is a stabilizing feedback controller.</p>
+<p>Returns the projected tangent trajectory <code class="docutils literal"><span class="pre">(dX,</span> <span class="pre">dU)</span></code>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="trep.discopt.DSystem.calc_feedback_controller">
+<code class="descclassname">DSystem.</code><code class="descname">calc_feedback_controller</code><span class="sig-paren">(</span><em>X</em>, <em>U</em><span class="optional">[</span>, <em>Q=None</em>, <em>R=None</em>, <em>return_linearization=False</em><span class="optional">]</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/trep/discopt/dsystem.html#DSystem.calc_feedback_controller"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#trep.discopt.DSystem.calc_feedback_controller" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">K or named tuple (K, A, B)</td>
+</tr>
+</tbody>
+</table>
+<p>Calculate a stabilizing feedback controller for the system about a
+trajectory <em>X</em> and <em>U</em>.  The feedback law is calculated by solving
+the discrete LQR problem for the linearization of the system about
+<em>X</em> and <em>U</em>.</p>
+<p><em>X</em> and <em>U</em> do not have to be an exact trajectory of the system,
+but if they are not close, the controller is unlikely to be
+effective.</p>
+<p>If the LQR weights <em>Q</em> and <em>R</em> are not specified, identity matrices
+are used.</p>
+<p>If <em>return_linearization</em> is <code class="xref py py-data docutils literal"><span class="pre">False</span></code>, the return value is the
+feedback control law, <em>K</em>.</p>
+<p>If <em>return_linearization</em> is <code class="xref py py-data docutils literal"><span class="pre">True</span></code>, the method returns the
+linearization as well in a named tuple:  <code class="docutils literal"><span class="pre">(K,</span> <span class="pre">A,</span> <span class="pre">B)</span></code>.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="checking-the-derivatives">
+<h3><a class="toc-backref" href="#id7">Checking the Derivatives</a><a class="headerlink" href="#checking-the-derivatives" title="Permalink to this headline">¶</a></h3>
+<dl class="method">
+<dt id="trep.discopt.DSystem.check_fdx">
+<code class="descclassname">DSystem.</code><code class="descname">check_fdx</code><span class="sig-paren">(</span><em>xk</em>, <em>uk</em>, <em>k</em><span class="optional">[</span>, <em>delta=1e-5</em><span class="optional">]</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/trep/discopt/dsystem.html#DSystem.check_fdx"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#trep.discopt.DSystem.check_fdx" title="Permalink to this definition">¶</a></dt>
+<dt id="trep.discopt.DSystem.check_fdu">
+<code class="descclassname">DSystem.</code><code class="descname">check_fdu</code><span class="sig-paren">(</span><em>xk</em>, <em>uk</em>, <em>k</em><span class="optional">[</span>, <em>delta=1e-5</em><span class="optional">]</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/trep/discopt/dsystem.html#DSystem.check_fdu"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#trep.discopt.DSystem.check_fdu" title="Permalink to this definition">¶</a></dt>
+<dt id="trep.discopt.DSystem.check_fdxdx">
+<code class="descclassname">DSystem.</code><code class="descname">check_fdxdx</code><span class="sig-paren">(</span><em>xk</em>, <em>uk</em>, <em>k</em><span class="optional">[</span>, <em>delta=1e-5</em><span class="optional">]</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/trep/discopt/dsystem.html#DSystem.check_fdxdx"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#trep.discopt.DSystem.check_fdxdx" title="Permalink to this definition">¶</a></dt>
+<dt id="trep.discopt.DSystem.check_fdxdu">
+<code class="descclassname">DSystem.</code><code class="descname">check_fdxdu</code><span class="sig-paren">(</span><em>xk</em>, <em>uk</em>, <em>k</em><span class="optional">[</span>, <em>delta=1e-5</em><span class="optional">]</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/trep/discopt/dsystem.html#DSystem.check_fdxdu"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#trep.discopt.DSystem.check_fdxdu" title="Permalink to this definition">¶</a></dt>
+<dt id="trep.discopt.DSystem.check_fdudu">
+<code class="descclassname">DSystem.</code><code class="descname">check_fdudu</code><span class="sig-paren">(</span><em>xk</em>, <em>uk</em>, <em>k</em><span class="optional">[</span>, <em>delta=1e-5</em><span class="optional">]</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/trep/discopt/dsystem.html#DSystem.check_fdudu"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#trep.discopt.DSystem.check_fdudu" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>xk</strong> (<em>numpy array, shape (nX)</em>) &#8211; A valid state of the system</li>
+<li><strong>uk</strong> (<em>numpy array, shape (nU)</em>) &#8211; A valid input to the system</li>
+<li><strong>k</strong> (<em>int</em>) &#8211; A valid discrete time index</li>
+<li><strong>delta</strong> &#8211; The perturbation for approximating the derivative.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>These functions check derivatives of the discrete state dynamics
+against numeric approximations generated from lower derivatives
+(e.g, fdx() from f(), and fdudu() from fdu()).  A three point
+approximation is used:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">approx_deriv</span> <span class="o">=</span> <span class="p">(</span><span class="n">f</span><span class="p">(</span><span class="n">x</span> <span class="o">+</span> <span class="n">delta</span><span class="p">)</span> <span class="o">-</span> <span class="n">f</span><span class="p">(</span><span class="n">x</span> <span class="o">-</span> <span class="n">delta</span><span class="p">))</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">delta</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Each function returns a named tuple <code class="docutils literal"><span class="pre">(error,</span> <span class="pre">exact_norm,</span> <span class="pre">approx_norm)</span></code>
+where <code class="docutils literal"><span class="pre">error</span></code> is the norm of the difference between the exact and
+approximate derivative, <code class="docutils literal"><span class="pre">exact_norm</span></code> is the norm of the exact
+derivative, <code class="docutils literal"><span class="pre">approx_norm</span></code> is the norm of the approximate derivative.</p>
+</dd></dl>
+
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+    <h2><a href="http://murpheylab.github.io/trep/">Project Website</a></h2>
+
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#"><code class="docutils literal"><span class="pre">DSystem</span></code> - Discrete System wrapper for Midpoint Variational Integrators</a><ul>
+<li><a class="reference internal" href="#dsystem-objects">DSystem Objects</a><ul>
+<li><a class="reference internal" href="#state-and-trajectory-manipulation">State and Trajectory Manipulation</a></li>
+<li><a class="reference internal" href="#dynamics">Dynamics</a></li>
+<li><a class="reference internal" href="#first-derivatives">First Derivatives</a></li>
+<li><a class="reference internal" href="#second-derivatives">Second Derivatives</a></li>
+<li><a class="reference internal" href="#linearization-and-feedback-controllers">Linearization and Feedback Controllers</a></li>
+<li><a class="reference internal" href="#checking-the-derivatives">Checking the Derivatives</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="dlqr.html"
+                        title="previous chapter">Discrete LQ Problems</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="dcost.html"
+                        title="next chapter"><code class="docutils literal"><span class="pre">DCost</span></code> - Discrete Trajectory Cost</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/ref/dsystem.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="dcost.html" title="DCost - Discrete Trajectory Cost"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="dlqr.html" title="Discrete LQ Problems"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">trep documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" >API Reference</a> &raquo;</li>
+          <li class="nav-item nav-item-2"><a href="optimal.html" ><code class="docutils literal"><span class="pre">trep.discopt</span></code> - Discrete Optimal Control</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &copy; Copyright 2015, Elliot Johnson.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.3.1.
+    </div>
+  </body>
+</html>

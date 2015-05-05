@@ -1,0 +1,840 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>trep.frame &mdash; trep documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="trep documentation" href="../../index.html" />
+    <link rel="up" title="Module code" href="../index.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">trep documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+    <script type="math/tex">
+    \newcommand{\deriv}[2][]{\dfrac{\partial #1}{\partial #2}}
+\newcommand{\tderiv}[2][]{\tfrac{\partial #1}{\partial #2}}
+\newcommand{\fderiv}[2][]{\dfrac{d #1}{d #2}}
+\newcommand{\derivII}[3][]{\dfrac{\partial^2 #1}{\partial #2 \partial #3}}
+\newcommand{\tderivII}[3][]{\tfrac{\partial^2 #1}{\partial #2 \partial #3}}
+\newcommand{\derivIII}[4][]{\dfrac{\partial^3 #1}{\partial #2 \partial #3 \partial #4}}
+\newcommand{\tderivIII}[4][]{\tfrac{\partial^3 #1}{\partial #2 \partial #3 \partial #4}}
+\newcommand{\derivIV}[5][]{\dfrac{\partial^4 #1}{\partial #2 \partial #3 \partial #4 \partial #5}}
+
+\newcommand{\half}{\tfrac{1}{2}}  % Macro for 1/2
+
+\newcommand{\ud}{\mathrm{d}}
+
+\newcommand{\op}{\circ}
+\newcommand{\dq}{\dot{q}}
+\newcommand{\ddq}{\ddot{q}}
+
+\newcommand{\dt}{\Delta t}
+
+
+    </script>
+    
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for trep.frame</h1><div class="highlight"><pre>
+<span class="kn">import</span> <span class="nn">trep</span>
+<span class="kn">import</span> <span class="nn">_trep</span>
+<span class="kn">from</span> <span class="nn">_trep</span> <span class="kn">import</span> <span class="n">_Frame</span>
+<span class="kn">from</span> <span class="nn">config</span> <span class="kn">import</span> <span class="n">Config</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">numpy.linalg</span>
+<span class="kn">import</span> <span class="nn">inspect</span>
+<span class="kn">from</span> <span class="nn">math</span> <span class="kn">import</span> <span class="n">sin</span><span class="p">,</span> <span class="n">cos</span>
+<span class="kn">from</span> <span class="nn">itertools</span> <span class="kn">import</span> <span class="n">chain</span>
+    
+<span class="k">class</span> <span class="nc">FrameDef</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">transform_type</span><span class="p">,</span> <span class="n">param</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">kinematic</span><span class="p">,</span> <span class="n">mass</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">transform_type</span> <span class="o">=</span> <span class="n">transform_type</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">param</span> <span class="o">=</span> <span class="n">param</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">kinematic</span> <span class="o">=</span> <span class="n">kinematic</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mass</span> <span class="o">=</span> <span class="n">mass</span>
+    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s">&quot;&lt;FrameDef </span><span class="si">%s</span><span class="s">&gt;&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">transform_type</span><span class="p">)</span>
+        
+<div class="viewcode-block" id="tx"><a class="viewcode-back" href="../../ref/frame.html#trep.tx">[docs]</a><span class="k">def</span> <span class="nf">tx</span><span class="p">(</span><span class="n">param</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">kinematic</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">mass</span><span class="o">=</span><span class="mf">0.0</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">FrameDef</span><span class="p">(</span><span class="n">trep</span><span class="o">.</span><span class="n">TX</span><span class="p">,</span> <span class="n">param</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">kinematic</span><span class="p">,</span> <span class="n">mass</span><span class="p">)</span></div>
+<div class="viewcode-block" id="ty"><a class="viewcode-back" href="../../ref/frame.html#trep.ty">[docs]</a><span class="k">def</span> <span class="nf">ty</span><span class="p">(</span><span class="n">param</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">kinematic</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">mass</span><span class="o">=</span><span class="mf">0.0</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">FrameDef</span><span class="p">(</span><span class="n">trep</span><span class="o">.</span><span class="n">TY</span><span class="p">,</span> <span class="n">param</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">kinematic</span><span class="p">,</span> <span class="n">mass</span><span class="p">)</span></div>
+<div class="viewcode-block" id="tz"><a class="viewcode-back" href="../../ref/frame.html#trep.tz">[docs]</a><span class="k">def</span> <span class="nf">tz</span><span class="p">(</span><span class="n">param</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">kinematic</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">mass</span><span class="o">=</span><span class="mf">0.0</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">FrameDef</span><span class="p">(</span><span class="n">trep</span><span class="o">.</span><span class="n">TZ</span><span class="p">,</span> <span class="n">param</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">kinematic</span><span class="p">,</span> <span class="n">mass</span><span class="p">)</span></div>
+<div class="viewcode-block" id="rx"><a class="viewcode-back" href="../../ref/frame.html#trep.rx">[docs]</a><span class="k">def</span> <span class="nf">rx</span><span class="p">(</span><span class="n">param</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">kinematic</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">mass</span><span class="o">=</span><span class="mf">0.0</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">FrameDef</span><span class="p">(</span><span class="n">trep</span><span class="o">.</span><span class="n">RX</span><span class="p">,</span> <span class="n">param</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">kinematic</span><span class="p">,</span> <span class="n">mass</span><span class="p">)</span></div>
+<div class="viewcode-block" id="ry"><a class="viewcode-back" href="../../ref/frame.html#trep.ry">[docs]</a><span class="k">def</span> <span class="nf">ry</span><span class="p">(</span><span class="n">param</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">kinematic</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">mass</span><span class="o">=</span><span class="mf">0.0</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">FrameDef</span><span class="p">(</span><span class="n">trep</span><span class="o">.</span><span class="n">RY</span><span class="p">,</span> <span class="n">param</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">kinematic</span><span class="p">,</span> <span class="n">mass</span><span class="p">)</span></div>
+<div class="viewcode-block" id="rz"><a class="viewcode-back" href="../../ref/frame.html#trep.rz">[docs]</a><span class="k">def</span> <span class="nf">rz</span><span class="p">(</span><span class="n">param</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">kinematic</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">mass</span><span class="o">=</span><span class="mf">0.0</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">FrameDef</span><span class="p">(</span><span class="n">trep</span><span class="o">.</span><span class="n">RZ</span><span class="p">,</span> <span class="n">param</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">kinematic</span><span class="p">,</span> <span class="n">mass</span><span class="p">)</span></div>
+<div class="viewcode-block" id="const_se3"><a class="viewcode-back" href="../../ref/frame.html#trep.const_se3">[docs]</a><span class="k">def</span> <span class="nf">const_se3</span><span class="p">(</span><span class="n">se3</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">kinematic</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">mass</span><span class="o">=</span><span class="mf">0.0</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">FrameDef</span><span class="p">(</span><span class="n">trep</span><span class="o">.</span><span class="n">CONST_SE3</span><span class="p">,</span> <span class="n">se3</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">kinematic</span><span class="p">,</span> <span class="n">mass</span><span class="p">)</span></div>
+<div class="viewcode-block" id="const_txyz"><a class="viewcode-back" href="../../ref/frame.html#trep.const_txyz">[docs]</a><span class="k">def</span> <span class="nf">const_txyz</span><span class="p">(</span><span class="n">xyz</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">kinematic</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">mass</span><span class="o">=</span><span class="mf">0.0</span><span class="p">):</span>
+    <span class="n">param</span> <span class="o">=</span> <span class="p">[[</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">],[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">],[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span><span class="n">xyz</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">FrameDef</span><span class="p">(</span><span class="n">trep</span><span class="o">.</span><span class="n">CONST_SE3</span><span class="p">,</span> <span class="n">param</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">kinematic</span><span class="p">,</span> <span class="n">mass</span><span class="p">)</span>
+
+</div>
+<span class="k">def</span> <span class="nf">rotation_matrix</span><span class="p">(</span><span class="n">theta</span><span class="p">,</span> <span class="n">axis</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Build a 4x4 SE3 matrix corresponding to a rotation of theta</span>
+<span class="sd">    radians around axis.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">axis</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">axis</span><span class="p">)</span>
+    <span class="n">axis</span> <span class="o">/=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">axis</span><span class="p">)</span>
+    <span class="n">w_hat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span> <span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="n">axis</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">axis</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span>
+                       <span class="p">(</span><span class="n">axis</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="n">axis</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span>
+                       <span class="p">(</span><span class="o">-</span><span class="n">axis</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">axis</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="mi">0</span><span class="p">))</span> <span class="p">)</span>
+    <span class="n">rot</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span> <span class="o">+</span> <span class="n">w_hat</span> <span class="o">*</span> <span class="n">sin</span><span class="p">(</span><span class="n">theta</span><span class="p">)</span> <span class="o">+</span> <span class="n">w_hat</span><span class="o">*</span><span class="n">w_hat</span><span class="o">*</span><span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="n">cos</span><span class="p">(</span><span class="n">theta</span><span class="p">))</span>
+    <span class="n">se3</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">4</span><span class="p">,</span><span class="mi">4</span><span class="p">))</span>
+    <span class="n">se3</span><span class="p">[:</span><span class="mi">3</span><span class="p">,:</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="n">rot</span>
+    <span class="k">return</span> <span class="n">se3</span>
+
+
+<span class="k">def</span> <span class="nf">check_and_sort_configs</span><span class="p">(</span><span class="n">fail_value</span><span class="p">,</span> <span class="n">skip_sort</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+    <span class="c">## This a decorator for all the frame derivative functions.  It</span>
+    <span class="c">## adds a wrapper around the function to make sure that the frame</span>
+    <span class="c">## depends on every configuration variable passed to the function.</span>
+    <span class="c">## If not, the function will return fail_value instead of calling</span>
+    <span class="c">## the derivative function.  Otherwise, it will sort the</span>
+    <span class="c">## configuration variables so they access the correct part of the</span>
+    <span class="c">## cache (only the &#39;upper triangular&#39; part of the cache is filled</span>
+    <span class="c">## out for symmetric values.</span>
+
+    <span class="k">def</span> <span class="nf">decorator</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
+        <span class="k">def</span> <span class="nf">check_and_sort</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">configs</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">q</span> <span class="ow">in</span> <span class="n">configs</span><span class="p">:</span>
+                <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">q</span><span class="p">,</span> <span class="n">_trep</span><span class="o">.</span><span class="n">_Config</span><span class="p">)</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">uses_config</span><span class="p">(</span><span class="n">q</span><span class="p">):</span>
+                    <span class="k">return</span> <span class="n">fail_value</span>
+            <span class="c"># All configs affect this frame, convert to indices and</span>
+            <span class="c"># sort.</span>
+            <span class="n">unsorted</span> <span class="o">=</span> <span class="p">[</span><span class="n">q</span><span class="o">.</span><span class="n">_config_gen</span> <span class="k">for</span> <span class="n">q</span> <span class="ow">in</span> <span class="n">configs</span><span class="p">[:</span><span class="n">skip_sort</span><span class="p">]]</span>
+            <span class="n">sorted_</span> <span class="o">=</span>  <span class="p">[</span><span class="n">q</span><span class="o">.</span><span class="n">_config_gen</span> <span class="k">for</span> <span class="n">q</span> <span class="ow">in</span> <span class="n">configs</span><span class="p">[</span><span class="n">skip_sort</span><span class="p">:]]</span>
+            <span class="n">indices</span> <span class="o">=</span> <span class="n">unsorted</span> <span class="o">+</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">sorted_</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">func</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">indices</span><span class="p">)</span>
+
+        <span class="c"># At this point, we could return check_and_sort() and be done,</span>
+        <span class="c"># but the resulting functions would all be be called</span>
+        <span class="c"># &quot;check_and_sort&quot;, have the same anonymous structure, and no</span>
+        <span class="c"># doc string.  Instead, we want the returned function to</span>
+        <span class="c"># appear identical to the original.  We use inspect to find</span>
+        <span class="c"># out the arguments of func and then create a new function</span>
+        <span class="c"># with the same name and arguments that calls check_and_sort.</span>
+        <span class="c"># Basically a wrapper for our wrapper.</span>
+                
+        <span class="n">spec</span> <span class="o">=</span> <span class="n">inspect</span><span class="o">.</span><span class="n">getargspec</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">spec</span><span class="o">.</span><span class="n">varargs</span> <span class="o">!=</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s">&quot;variable args are not supported&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">spec</span><span class="o">.</span><span class="n">keywords</span> <span class="o">!=</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s">&quot;keywords are not supported&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">spec</span><span class="o">.</span><span class="n">defaults</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s">&quot;default arguments not supported&quot;</span><span class="p">)</span>
+
+        <span class="n">signature</span> <span class="o">=</span> <span class="s">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">spec</span><span class="o">.</span><span class="n">args</span><span class="p">)</span>
+        <span class="n">src</span> <span class="o">=</span>  <span class="s">&quot;def </span><span class="si">%s</span><span class="s">(</span><span class="si">%s</span><span class="s">):</span><span class="se">\n</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">func</span><span class="o">.</span><span class="n">__name__</span><span class="p">,</span> <span class="n">signature</span><span class="p">)</span>
+        <span class="n">src</span> <span class="o">+=</span> <span class="s">&quot;    return check_and_sort(</span><span class="si">%s</span><span class="s">)&quot;</span> <span class="o">%</span> <span class="s">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">spec</span><span class="o">.</span><span class="n">args</span><span class="p">)</span>
+
+        <span class="n">context</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;func&#39;</span> <span class="p">:</span> <span class="n">func</span><span class="p">,</span> <span class="s">&#39;check_and_sort&#39;</span> <span class="p">:</span> <span class="n">check_and_sort</span><span class="p">}</span>
+        <span class="k">exec</span> <span class="n">src</span> <span class="ow">in</span> <span class="n">context</span>
+
+        <span class="n">wrapper</span> <span class="o">=</span> <span class="n">context</span><span class="p">[</span><span class="n">func</span><span class="o">.</span><span class="n">__name__</span><span class="p">]</span>
+        <span class="n">wrapper</span><span class="o">.</span><span class="n">__dict__</span> <span class="o">=</span> <span class="n">func</span><span class="o">.</span><span class="n">__dict__</span>
+        <span class="n">wrapper</span><span class="o">.</span><span class="n">__doc__</span> <span class="o">=</span> <span class="n">func</span><span class="o">.</span><span class="n">__doc__</span>
+        <span class="k">return</span> <span class="n">wrapper</span>
+
+    <span class="k">return</span> <span class="n">decorator</span>
+
+
+<div class="viewcode-block" id="Frame"><a class="viewcode-back" href="../../ref/frame.html#trep.Frame">[docs]</a><span class="k">class</span> <span class="nc">Frame</span><span class="p">(</span><span class="n">_Frame</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Frame represents a coordinate frame in a mechanical system.  Each</span>
+<span class="sd">    frame is defined as a child of a parent frame and is located by a</span>
+<span class="sd">    rigid body transformation from the parent frame&#39;s coordinate</span>
+<span class="sd">    system.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">,</span> <span class="n">transform</span><span class="p">,</span> <span class="n">param</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">kinematic</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">mass</span><span class="o">=</span><span class="mf">0.0</span><span class="p">):</span>
+        <span class="n">_Frame</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="c"># Initialize _Frame components</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_system</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_config</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_parent</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_transform</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_children</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_cache_size</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_allocated_cache_size</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_cache_index</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
+        <span class="k">if</span> <span class="n">transform</span> <span class="o">==</span> <span class="n">trep</span><span class="o">.</span><span class="n">WORLD</span><span class="p">:</span>
+            <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">parent</span><span class="p">,</span> <span class="n">_trep</span><span class="o">.</span><span class="n">_System</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_system</span> <span class="o">=</span> <span class="n">parent</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_transform</span> <span class="o">=</span> <span class="n">trep</span><span class="o">.</span><span class="n">WORLD</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_update_transform</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_parent</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="k">elif</span> <span class="n">transform</span> <span class="ow">in</span> <span class="p">[</span><span class="n">trep</span><span class="o">.</span><span class="n">TX</span><span class="p">,</span> <span class="n">trep</span><span class="o">.</span><span class="n">TY</span><span class="p">,</span> <span class="n">trep</span><span class="o">.</span><span class="n">TZ</span><span class="p">,</span> <span class="n">trep</span><span class="o">.</span><span class="n">RX</span><span class="p">,</span> <span class="n">trep</span><span class="o">.</span><span class="n">RY</span><span class="p">,</span> <span class="n">trep</span><span class="o">.</span><span class="n">RZ</span><span class="p">]:</span>
+            <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">parent</span><span class="p">,</span> <span class="n">_trep</span><span class="o">.</span><span class="n">_Frame</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_system</span> <span class="o">=</span> <span class="n">parent</span><span class="o">.</span><span class="n">system</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_transform</span> <span class="o">=</span> <span class="n">transform</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_update_transform</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_parent</span> <span class="o">=</span> <span class="n">parent</span>
+            <span class="n">parent</span><span class="o">.</span><span class="n">_add_child</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">param</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_config</span> <span class="o">=</span> <span class="n">Config</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_system</span><span class="p">,</span> <span class="n">param</span><span class="p">,</span> <span class="n">kinematic</span><span class="o">=</span><span class="n">kinematic</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_value</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">param</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">transform</span> <span class="o">==</span> <span class="n">trep</span><span class="o">.</span><span class="n">CONST_SE3</span><span class="p">:</span>
+            <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">parent</span><span class="p">,</span> <span class="n">_trep</span><span class="o">.</span><span class="n">_Frame</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_system</span> <span class="o">=</span> <span class="n">parent</span><span class="o">.</span><span class="n">system</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_transform</span> <span class="o">=</span> <span class="n">transform</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_update_transform</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_parent</span> <span class="o">=</span> <span class="n">parent</span>
+            <span class="n">parent</span><span class="o">.</span><span class="n">_add_child</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+            
+            <span class="bp">self</span><span class="o">.</span><span class="n">set_SE3</span><span class="p">(</span><span class="n">param</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">param</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">param</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">param</span><span class="p">[</span><span class="mi">3</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">StandardError</span><span class="p">(</span><span class="s">&#39;Unknown frame transform: </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">transform</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_mass</span><span class="p">(</span><span class="n">mass</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">transform_type</span> <span class="o">==</span> <span class="n">trep</span><span class="o">.</span><span class="n">WORLD</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s">&quot;&lt;Frame &#39;</span><span class="si">%s</span><span class="s">&#39;&gt;&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span> <span class="o">==</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s">&quot;&lt;Frame &#39;</span><span class="si">%s</span><span class="s">&#39; </span><span class="si">%s</span><span class="s">(</span><span class="si">%s</span><span class="s">) </span><span class="si">%f</span><span class="s">&gt;&quot;</span> <span class="o">%</span> <span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">transform_type</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">transform_value</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">mass</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s">&quot;&lt;Frame &#39;</span><span class="si">%s</span><span class="s">&#39; </span><span class="si">%s</span><span class="s">(</span><span class="si">%s</span><span class="s">)&gt;&quot;</span> <span class="o">%</span> <span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">transform_type</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="Frame.tree_view"><a class="viewcode-back" href="../../ref/frame.html#trep.Frame.tree_view">[docs]</a>    <span class="k">def</span> <span class="nf">tree_view</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return a string that visually describes this frame and it&#39;s</span>
+<span class="sd">        descendants.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">view</span> <span class="o">=</span> <span class="p">[</span><span class="n">indent</span><span class="o">*</span><span class="s">&#39; &#39;</span> <span class="o">+</span> <span class="p">(</span><span class="s">&#39;</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="p">)]</span>
+        <span class="n">view</span> <span class="o">+=</span> <span class="p">[</span><span class="n">c</span><span class="o">.</span><span class="n">tree_view</span><span class="p">(</span><span class="n">indent</span><span class="o">+</span><span class="mi">3</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">children</span><span class="p">]</span>
+        <span class="k">return</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">view</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="Frame.uses_config"><a class="viewcode-back" href="../../ref/frame.html#trep.Frame.uses_config">[docs]</a>    <span class="k">def</span> <span class="nf">uses_config</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">q</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return True if the frame depends on q&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cache_index</span><span class="p">[</span><span class="n">q</span><span class="o">.</span><span class="n">_config_gen</span><span class="p">]</span> <span class="o">==</span> <span class="n">q</span>
+
+</div>
+<div class="viewcode-block" id="Frame.flatten_tree"><a class="viewcode-back" href="../../ref/frame.html#trep.Frame.flatten_tree">[docs]</a>    <span class="k">def</span> <span class="nf">flatten_tree</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Appends the frame and all of its descendants to frame_list.</span>
+<span class="sd">        If frame_list is None, a new list is created.    </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">flat</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">child</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">children</span><span class="p">:</span>
+            <span class="n">flat</span> <span class="o">+=</span> <span class="n">child</span><span class="o">.</span><span class="n">flatten_tree</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">flat</span>
+
+                </div>
+<div class="viewcode-block" id="Frame.import_frames"><a class="viewcode-back" href="../../ref/frame.html#trep.Frame.import_frames">[docs]</a>    <span class="k">def</span> <span class="nf">import_frames</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">children</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Import a tree of frames from a tree description.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">system</span><span class="o">.</span><span class="n">hold_structure_changes</span><span class="p">()</span>
+        <span class="k">while</span> <span class="n">children</span><span class="p">:</span>
+            <span class="n">info</span> <span class="o">=</span> <span class="n">children</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">children</span> <span class="o">=</span> <span class="n">children</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">info</span><span class="p">,</span> <span class="n">trep</span><span class="o">.</span><span class="n">frame</span><span class="o">.</span><span class="n">FrameDef</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s">&#39;Frame definition expected instead of: </span><span class="si">%r</span><span class="s">&#39;</span><span class="p">,</span> <span class="n">info</span><span class="p">)</span>
+
+            <span class="n">frame</span> <span class="o">=</span> <span class="n">trep</span><span class="o">.</span><span class="n">Frame</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">info</span><span class="o">.</span><span class="n">transform_type</span><span class="p">,</span> <span class="n">info</span><span class="o">.</span><span class="n">param</span><span class="p">,</span>
+                               <span class="n">name</span><span class="o">=</span><span class="n">info</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                               <span class="n">kinematic</span><span class="o">=</span><span class="n">info</span><span class="o">.</span><span class="n">kinematic</span><span class="p">,</span>
+                               <span class="n">mass</span><span class="o">=</span><span class="n">info</span><span class="o">.</span><span class="n">mass</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">children</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">children</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="nb">list</span><span class="p">):</span>
+                <span class="n">frame</span><span class="o">.</span><span class="n">import_frames</span><span class="p">(</span><span class="n">children</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+                <span class="n">children</span> <span class="o">=</span> <span class="n">children</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">system</span><span class="o">.</span><span class="n">resume_structure_changes</span><span class="p">()</span>
+
+</div>
+<div class="viewcode-block" id="Frame.export_frames"><a class="viewcode-back" href="../../ref/frame.html#trep.Frame.export_frames">[docs]</a>    <span class="k">def</span> <span class="nf">export_frames</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tabs</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">tab_size</span><span class="o">=</span><span class="mi">4</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Export a frame and it&#39;s children into (a plain-text</span>
+<span class="sd">        definition of) the python-list format used by</span>
+<span class="sd">        trep.Frame.import_frames to define frame trees.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">frame_def_mapping</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="n">trep</span><span class="o">.</span><span class="n">TX</span> <span class="p">:</span> <span class="s">&#39;tx&#39;</span><span class="p">,</span>
+            <span class="n">trep</span><span class="o">.</span><span class="n">TY</span> <span class="p">:</span> <span class="s">&#39;ty&#39;</span><span class="p">,</span>
+            <span class="n">trep</span><span class="o">.</span><span class="n">TZ</span> <span class="p">:</span> <span class="s">&#39;tz&#39;</span><span class="p">,</span>
+            <span class="n">trep</span><span class="o">.</span><span class="n">RX</span> <span class="p">:</span> <span class="s">&#39;rx&#39;</span><span class="p">,</span>
+            <span class="n">trep</span><span class="o">.</span><span class="n">RY</span> <span class="p">:</span> <span class="s">&#39;ry&#39;</span><span class="p">,</span>
+            <span class="n">trep</span><span class="o">.</span><span class="n">RZ</span> <span class="p">:</span> <span class="s">&#39;rz&#39;</span><span class="p">,</span>
+            <span class="n">trep</span><span class="o">.</span><span class="n">CONST_SE3</span> <span class="p">:</span> <span class="s">&#39;const_se3&#39;</span>
+            <span class="p">}</span>
+
+        <span class="n">txt</span> <span class="o">=</span> <span class="s">&#39; &#39;</span><span class="o">*</span><span class="n">tab_size</span><span class="o">*</span><span class="n">tabs</span> <span class="o">+</span> <span class="s">&#39;</span><span class="si">%s</span><span class="s">(&#39;</span> <span class="o">%</span> <span class="n">frame_def_mapping</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">transform_type</span><span class="p">]</span>
+        <span class="n">params</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">transform_type</span> <span class="o">==</span> <span class="n">trep</span><span class="o">.</span><span class="n">CONST_SE3</span><span class="p">:</span>
+            <span class="n">mat</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">lg</span><span class="p">()</span>
+            <span class="n">columns</span> <span class="o">=</span> <span class="p">[</span> <span class="s">&#39;[&#39;</span> <span class="o">+</span> <span class="s">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s">&#39;</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">mat</span><span class="p">[:,</span><span class="n">j</span><span class="p">][:</span><span class="mi">3</span><span class="p">]])</span> <span class="o">+</span> <span class="s">&#39;]&#39;</span> <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">4</span><span class="p">)]</span>
+            <span class="n">params</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;[</span><span class="si">%s</span><span class="s">, </span><span class="si">%s</span><span class="s">, </span><span class="si">%s</span><span class="s">, </span><span class="si">%s</span><span class="s">]&#39;</span> <span class="o">%</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">columns</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span> <span class="o">==</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="n">params</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">transform_value</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">params</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&quot;&#39;</span><span class="si">%s</span><span class="s">&#39;&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">kinematic</span><span class="p">:</span>
+                    <span class="n">params</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;kinematic=True&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">:</span>
+            <span class="n">params</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&quot;name=&#39;</span><span class="si">%s</span><span class="s">&#39;&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">mass</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">Ixx</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">Iyy</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">Izz</span><span class="p">:</span>
+                <span class="n">params</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;mass=[</span><span class="si">%s</span><span class="s">, </span><span class="si">%s</span><span class="s">, </span><span class="si">%s</span><span class="s">, </span><span class="si">%s</span><span class="s">]&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mass</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">Ixx</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">Iyy</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">Izz</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">params</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;mass=</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">mass</span><span class="p">)</span>
+        <span class="n">txt</span> <span class="o">+=</span> <span class="s">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">params</span><span class="p">)</span>     
+        <span class="n">txt</span> <span class="o">+=</span> <span class="s">&#39;)&#39;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">children</span><span class="p">:</span>
+            <span class="n">txt</span> <span class="o">+=</span> <span class="s">&#39;, [</span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">+</span> <span class="s">&#39;,</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">child</span><span class="o">.</span><span class="n">export_frames</span><span class="p">(</span><span class="n">tabs</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">tab_size</span><span class="p">)</span> <span class="k">for</span> <span class="n">child</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">children</span><span class="p">])</span>
+            <span class="n">txt</span> <span class="o">+=</span> <span class="s">&#39;]&#39;</span>        
+        <span class="k">return</span> <span class="n">txt</span>
+
+</div>
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">system</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;System that the frame is a part of.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_system</span>
+
+
+    <span class="nd">@property</span> 
+    <span class="k">def</span> <span class="nf">config</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Configuration variable that drives the frame&#39;s transformation.</span>
+
+<span class="sd">        None for constant-transformation frames.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_config</span>
+
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">parent</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Parent of the frame.  None for the World Frame.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parent</span>
+
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">children</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Tuple of the frame&#39;s child frames.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_children</span>
+
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">transform_type</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Transformation type of the coordinate frame.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_transform</span>
+
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">transform_value</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Current value of the frame&#39;s transformation parameters.  This</span>
+<span class="sd">        will either be the fixed transformation parameter or the value</span>
+<span class="sd">        of the frame&#39;s configuration variable.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">q</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_value</span>
+
+    <span class="nd">@transform_value.setter</span>
+    <span class="k">def</span> <span class="nf">transform_value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">q</span> <span class="o">=</span> <span class="n">value</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_value</span> <span class="o">=</span> <span class="n">value</span>
+
+
+<div class="viewcode-block" id="Frame.set_SE3"><a class="viewcode-back" href="../../ref/frame.html#trep.Frame.set_SE3">[docs]</a>    <span class="k">def</span> <span class="nf">set_SE3</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">Rx</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="n">Ry</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="n">Rz</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="n">p</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">)):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Set the SE3 transformation for a const_SE3 frame.</span>
+<span class="sd">        &quot;&quot;&quot;</span>        
+        <span class="c"># Do a really stupid normalization for now.</span>
+        <span class="n">Rx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">Rx</span><span class="p">)</span>
+        <span class="n">Rx</span> <span class="o">=</span> <span class="n">Rx</span><span class="o">/</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">Rx</span><span class="p">)</span>
+        <span class="n">Rz</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cross</span><span class="p">(</span><span class="n">Rx</span><span class="p">,</span> <span class="n">Ry</span><span class="p">)</span>
+        <span class="n">Rz</span> <span class="o">=</span> <span class="n">Rz</span><span class="o">/</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">Rz</span><span class="p">)</span>
+        <span class="n">Ry</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cross</span><span class="p">(</span><span class="n">Rz</span><span class="p">,</span> <span class="n">Rx</span><span class="p">)</span>
+        <span class="n">Ry</span> <span class="o">=</span> <span class="n">Ry</span><span class="o">/</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">Ry</span><span class="p">)</span>
+     
+        <span class="bp">self</span><span class="o">.</span><span class="n">_set_SE3</span><span class="p">(</span><span class="nb">tuple</span><span class="p">(</span><span class="n">Rx</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">3</span><span class="p">]),</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">Ry</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">3</span><span class="p">]),</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">Rz</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">3</span><span class="p">]),</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">p</span><span class="p">))</span>
+    
+        </div>
+<div class="viewcode-block" id="Frame.set_mass"><a class="viewcode-back" href="../../ref/frame.html#trep.Frame.set_mass">[docs]</a>    <span class="k">def</span> <span class="nf">set_mass</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mass</span><span class="p">,</span> <span class="n">Ixx</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">Iyy</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">Izz</span><span class="o">=</span><span class="mf">0.0</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Set the system&#39;s inertial properies.</span>
+
+<span class="sd">        mass -&gt; scalar or sequence of 4 scalars</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">Ixx</span> <span class="o">=</span> <span class="n">mass</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">Iyy</span> <span class="o">=</span> <span class="n">mass</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+            <span class="n">Izz</span> <span class="o">=</span> <span class="n">mass</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>
+            <span class="n">mass</span> <span class="o">=</span> <span class="n">mass</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">except</span> <span class="ne">TypeError</span><span class="p">,</span> <span class="n">e</span><span class="p">:</span>
+            <span class="k">pass</span>
+        <span class="c"># Convert to floats here so we don&#39;t get an exception in the</span>
+        <span class="c"># middle of changing the system.</span>
+        <span class="n">mass</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">mass</span><span class="p">)</span>
+        <span class="n">Ixx</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">Ixx</span><span class="p">)</span>
+        <span class="n">Iyy</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">Iyy</span><span class="p">)</span>
+        <span class="n">Izz</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">Izz</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_mass</span> <span class="o">=</span> <span class="n">mass</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_Ixx</span> <span class="o">=</span> <span class="n">Ixx</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_Iyy</span> <span class="o">=</span> <span class="n">Iyy</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_Izz</span> <span class="o">=</span> <span class="n">Izz</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">system</span><span class="o">.</span><span class="n">_structure_changed</span><span class="p">()</span>   
+</div>
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">mass</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="s">&quot;Mass of the frame.&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mass</span>
+    <span class="nd">@mass.setter</span>
+    <span class="k">def</span> <span class="nf">mass</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mass</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_mass</span> <span class="o">=</span> <span class="n">mass</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">system</span><span class="o">.</span><span class="n">_structure_changed</span><span class="p">()</span>   
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">Ixx</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="s">&quot;Rotational inertia about the frame&#39;s X axis.&quot;</span>        
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_Ixx</span>
+    <span class="nd">@Ixx.setter</span>
+    <span class="k">def</span> <span class="nf">Ixx</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">Ixx</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_Ixx</span> <span class="o">=</span> <span class="n">Ixx</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">system</span><span class="o">.</span><span class="n">_structure_changed</span><span class="p">()</span>   
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">Iyy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="s">&quot;Rotational inertia about the frame&#39;s Y axis.&quot;</span>        
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_Iyy</span>
+    <span class="nd">@Iyy.setter</span>
+    <span class="k">def</span> <span class="nf">Iyy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">Iyy</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_Iyy</span> <span class="o">=</span> <span class="n">Iyy</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">system</span><span class="o">.</span><span class="n">_structure_changed</span><span class="p">()</span>   
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">Izz</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="s">&quot;Rotational inertia about the frame&#39;s Z axis.&quot;</span>        
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_Izz</span>
+    <span class="nd">@Izz.setter</span>
+    <span class="k">def</span> <span class="nf">Izz</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">Izz</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_Izz</span> <span class="o">=</span> <span class="n">Izz</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">system</span><span class="o">.</span><span class="n">_structure_changed</span><span class="p">()</span>   
+
+
+<div class="viewcode-block" id="Frame.lg"><a class="viewcode-back" href="../../ref/frame.html#trep.Frame.lg">[docs]</a>    <span class="k">def</span> <span class="nf">lg</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Local coordinate transformation of the frame (ie,</span>
+<span class="sd">        transformation from parent frame.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_lg</span><span class="p">()</span>
+</div>
+<div class="viewcode-block" id="Frame.lg_dq"><a class="viewcode-back" href="../../ref/frame.html#trep.Frame.lg_dq">[docs]</a>    <span class="k">def</span> <span class="nf">lg_dq</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Derivative of the local coordinate transformation with respect</span>
+<span class="sd">        to the frame&#39;s transformation parameter.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_lg_dq</span><span class="p">()</span>
+</div>
+<div class="viewcode-block" id="Frame.lg_dqdq"><a class="viewcode-back" href="../../ref/frame.html#trep.Frame.lg_dqdq">[docs]</a>    <span class="k">def</span> <span class="nf">lg_dqdq</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Second derivative of the local coordinate transformation with</span>
+<span class="sd">        respect to the frame&#39;s transformation parameter.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_lg_dqdq</span><span class="p">()</span>
+    </div>
+<div class="viewcode-block" id="Frame.lg_dqdqdq"><a class="viewcode-back" href="../../ref/frame.html#trep.Frame.lg_dqdqdq">[docs]</a>    <span class="k">def</span> <span class="nf">lg_dqdqdq</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Third derivative of the local coordinate transformation with</span>
+<span class="sd">        respect to the frame&#39;s transformation parameter.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_lg_dqdqdq</span><span class="p">()</span>
+    </div>
+<div class="viewcode-block" id="Frame.lg_dqdqdqdq"><a class="viewcode-back" href="../../ref/frame.html#trep.Frame.lg_dqdqdqdq">[docs]</a>    <span class="k">def</span> <span class="nf">lg_dqdqdqdq</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Fourth derivative of the local coordinate transformation with</span>
+<span class="sd">        respect to the frame&#39;s transformation parameter.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_lg_dqdqdqdq</span><span class="p">()</span>
+</div>
+<div class="viewcode-block" id="Frame.lg_inv"><a class="viewcode-back" href="../../ref/frame.html#trep.Frame.lg_inv">[docs]</a>    <span class="k">def</span> <span class="nf">lg_inv</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Inverse of the local coordinate transformation.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_lg_inv</span><span class="p">()</span>
+</div>
+<div class="viewcode-block" id="Frame.lg_inv_dq"><a class="viewcode-back" href="../../ref/frame.html#trep.Frame.lg_inv_dq">[docs]</a>    <span class="k">def</span> <span class="nf">lg_inv_dq</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        First derivative of the inverse of the local coordinate</span>
+<span class="sd">        transformation with respect to the frame&#39;s transformation</span>
+<span class="sd">        parameter.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_lg_inv_dq</span><span class="p">()</span>
+    </div>
+<div class="viewcode-block" id="Frame.lg_inv_dqdq"><a class="viewcode-back" href="../../ref/frame.html#trep.Frame.lg_inv_dqdq">[docs]</a>    <span class="k">def</span> <span class="nf">lg_inv_dqdq</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        First derivative of the inverse of the local coordinate</span>
+<span class="sd">        transformation with respect to the frame&#39;s transformation</span>
+<span class="sd">        parameter.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_lg_inv_dqdq</span><span class="p">()</span>
+    </div>
+<div class="viewcode-block" id="Frame.lg_inv_dqdqdq"><a class="viewcode-back" href="../../ref/frame.html#trep.Frame.lg_inv_dqdqdq">[docs]</a>    <span class="k">def</span> <span class="nf">lg_inv_dqdqdq</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Third derivative of the inverse of the local coordinate</span>
+<span class="sd">        transformation with respect to the frame&#39;s transformation</span>
+<span class="sd">        parameter.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_lg_inv_dqdqdq</span><span class="p">()</span>
+    </div>
+<div class="viewcode-block" id="Frame.lg_inv_dqdqdqdq"><a class="viewcode-back" href="../../ref/frame.html#trep.Frame.lg_inv_dqdqdqdq">[docs]</a>    <span class="k">def</span> <span class="nf">lg_inv_dqdqdqdq</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Fourth derivative of the inverse of the local coordinate</span>
+<span class="sd">        transformation with respect to the frame&#39;s transformation</span>
+<span class="sd">        parameter.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_lg_inv_dqdqdqdq</span><span class="p">()</span>
+        </div>
+<div class="viewcode-block" id="Frame.twist_hat"><a class="viewcode-back" href="../../ref/frame.html#trep.Frame.twist_hat">[docs]</a>    <span class="k">def</span> <span class="nf">twist_hat</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_twist_hat</span><span class="p">()</span>
+    </div>
+<div class="viewcode-block" id="Frame.g"><a class="viewcode-back" href="../../ref/frame.html#trep.Frame.g">[docs]</a>    <span class="k">def</span> <span class="nf">g</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;The frame&#39;s current global position (in SE(3) ).&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_g</span><span class="p">()</span>
+</div>
+    <span class="nd">@check_and_sort_configs</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">4</span><span class="p">,</span><span class="mi">4</span><span class="p">)))</span>
+    <span class="k">def</span> <span class="nf">g_dq</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">q1</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        The derivative of frame&#39;s current global position (in SE(3) )</span>
+<span class="sd">        with respect to the value of q1.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">system</span><span class="o">.</span><span class="n">_update_cache</span><span class="p">(</span><span class="n">_trep</span><span class="o">.</span><span class="n">SYSTEM_CACHE_G_DQ</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_g_dq</span><span class="p">[</span><span class="n">q1</span><span class="p">]</span>
+
+    <span class="nd">@check_and_sort_configs</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">4</span><span class="p">,</span><span class="mi">4</span><span class="p">)))</span>
+    <span class="k">def</span> <span class="nf">g_dqdq</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">q1</span><span class="p">,</span> <span class="n">q2</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        The second derivative of frame&#39;s current global position (in</span>
+<span class="sd">        SE(3) ) with respect to the values of q1 and q2.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">system</span><span class="o">.</span><span class="n">_update_cache</span><span class="p">(</span><span class="n">_trep</span><span class="o">.</span><span class="n">SYSTEM_CACHE_G_DQDQ</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_g_dqdq</span><span class="p">[</span><span class="n">q1</span><span class="p">,</span> <span class="n">q2</span><span class="p">]</span>
+
+    <span class="nd">@check_and_sort_configs</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">4</span><span class="p">,</span><span class="mi">4</span><span class="p">)))</span>
+    <span class="k">def</span> <span class="nf">g_dqdqdq</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">q1</span><span class="p">,</span> <span class="n">q2</span><span class="p">,</span> <span class="n">q3</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        The third derivative of frame&#39;s current global position (in</span>
+<span class="sd">        SE(3) ) with respect to the values of q1, q2, and q3.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">system</span><span class="o">.</span><span class="n">_update_cache</span><span class="p">(</span><span class="n">_trep</span><span class="o">.</span><span class="n">SYSTEM_CACHE_G_DQDQDQ</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_g_dqdqdq</span><span class="p">[</span><span class="n">q1</span><span class="p">,</span> <span class="n">q2</span><span class="p">,</span> <span class="n">q3</span><span class="p">]</span>
+
+    <span class="nd">@check_and_sort_configs</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">4</span><span class="p">,</span><span class="mi">4</span><span class="p">)))</span>
+    <span class="k">def</span> <span class="nf">g_dqdqdqdq</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">q1</span><span class="p">,</span> <span class="n">q2</span><span class="p">,</span> <span class="n">q3</span><span class="p">,</span> <span class="n">q4</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        The fourth derivative of frame&#39;s current global position (in</span>
+<span class="sd">        SE(3) ) with respect to the values of q1, q2, q3, and q4.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">system</span><span class="o">.</span><span class="n">_update_cache</span><span class="p">(</span><span class="n">_trep</span><span class="o">.</span><span class="n">SYSTEM_CACHE_G_DQDQDQDQ</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_g_dqdqdqdq</span><span class="p">[</span><span class="n">q1</span><span class="p">,</span> <span class="n">q2</span><span class="p">,</span> <span class="n">q3</span><span class="p">,</span> <span class="n">q4</span><span class="p">]</span>
+    
+<div class="viewcode-block" id="Frame.g_inv"><a class="viewcode-back" href="../../ref/frame.html#trep.Frame.g_inv">[docs]</a>    <span class="k">def</span> <span class="nf">g_inv</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        The inverse of the frame&#39;s current global position (in SE(3)).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_g_inv</span><span class="p">()</span>
+</div>
+    <span class="nd">@check_and_sort_configs</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">4</span><span class="p">,</span><span class="mi">4</span><span class="p">)))</span>
+    <span class="k">def</span> <span class="nf">g_inv_dq</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">q1</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        The derivative of the inverse of the frame&#39;s current global</span>
+<span class="sd">        position (in SE(3) ) with respect to the value of q1.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">system</span><span class="o">.</span><span class="n">_update_cache</span><span class="p">(</span><span class="n">_trep</span><span class="o">.</span><span class="n">SYSTEM_CACHE_G_INV_DQ</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_g_inv_dq</span><span class="p">[</span><span class="n">q1</span><span class="p">]</span>
+
+    <span class="nd">@check_and_sort_configs</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">4</span><span class="p">,</span><span class="mi">4</span><span class="p">)))</span>
+    <span class="k">def</span> <span class="nf">g_inv_dqdq</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">q1</span><span class="p">,</span> <span class="n">q2</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        The second derivative of the inverse of the frame&#39;s current</span>
+<span class="sd">        global position (in SE(3) ) with respect to the values of q1</span>
+<span class="sd">        and q2.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">system</span><span class="o">.</span><span class="n">_update_cache</span><span class="p">(</span><span class="n">_trep</span><span class="o">.</span><span class="n">SYSTEM_CACHE_G_INV_DQDQ</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_g_inv_dqdq</span><span class="p">[</span><span class="n">q1</span><span class="p">,</span> <span class="n">q2</span><span class="p">]</span>
+    
+<div class="viewcode-block" id="Frame.p"><a class="viewcode-back" href="../../ref/frame.html#trep.Frame.p">[docs]</a>    <span class="k">def</span> <span class="nf">p</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;The frame&#39;s current global position (in R^3 ).&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_p</span><span class="p">()</span>
+</div>
+    <span class="nd">@check_and_sort_configs</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">4</span><span class="p">,)))</span>
+    <span class="k">def</span> <span class="nf">p_dq</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">q1</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        The derivative of frame&#39;s current global position (in R^3 )</span>
+<span class="sd">        with respect to the value of q1.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">system</span><span class="o">.</span><span class="n">_update_cache</span><span class="p">(</span><span class="n">_trep</span><span class="o">.</span><span class="n">SYSTEM_CACHE_G_DQ</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_p_dq</span><span class="p">[</span><span class="n">q1</span><span class="p">]</span>
+
+    <span class="nd">@check_and_sort_configs</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">4</span><span class="p">,)))</span>
+    <span class="k">def</span> <span class="nf">p_dqdq</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">q1</span><span class="p">,</span> <span class="n">q2</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        The second derivative of frame&#39;s current global position (in</span>
+<span class="sd">        R^3 ) with respect to the values of q1 and q2.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">system</span><span class="o">.</span><span class="n">_update_cache</span><span class="p">(</span><span class="n">_trep</span><span class="o">.</span><span class="n">SYSTEM_CACHE_G_DQDQ</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_p_dqdq</span><span class="p">[</span><span class="n">q1</span><span class="p">,</span> <span class="n">q2</span><span class="p">]</span>
+    
+    <span class="nd">@check_and_sort_configs</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">4</span><span class="p">,)))</span>
+    <span class="k">def</span> <span class="nf">p_dqdqdq</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">q1</span><span class="p">,</span> <span class="n">q2</span><span class="p">,</span> <span class="n">q3</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        The third derivative of frame&#39;s current global position (in</span>
+<span class="sd">        R^3 ) with respect to the values of q1, q2, and q3.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">system</span><span class="o">.</span><span class="n">_update_cache</span><span class="p">(</span><span class="n">_trep</span><span class="o">.</span><span class="n">SYSTEM_CACHE_G_DQDQDQ</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_p_dqdqdq</span><span class="p">[</span><span class="n">q1</span><span class="p">,</span> <span class="n">q2</span><span class="p">,</span> <span class="n">q3</span><span class="p">]</span>
+    
+    <span class="nd">@check_and_sort_configs</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">4</span><span class="p">,)))</span>
+    <span class="k">def</span> <span class="nf">p_dqdqdqdq</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">q1</span><span class="p">,</span> <span class="n">q2</span><span class="p">,</span> <span class="n">q3</span><span class="p">,</span> <span class="n">q4</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        The fourth derivative of frame&#39;s current global position (in</span>
+<span class="sd">        R^3 ) with respect to the values of q1, q2, q3, and q4.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">system</span><span class="o">.</span><span class="n">_update_cache</span><span class="p">(</span><span class="n">_trep</span><span class="o">.</span><span class="n">SYSTEM_CACHE_G_DQDQDQDQ</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_p_dqdqdqdq</span><span class="p">[</span><span class="n">q1</span><span class="p">,</span> <span class="n">q2</span><span class="p">,</span> <span class="n">q3</span><span class="p">,</span> <span class="n">q4</span><span class="p">]</span>
+    
+<div class="viewcode-block" id="Frame.vb"><a class="viewcode-back" href="../../ref/frame.html#trep.Frame.vb">[docs]</a>    <span class="k">def</span> <span class="nf">vb</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;The body velocity of the frame (in se(3)).&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_vb</span><span class="p">()</span>
+</div>
+    <span class="nd">@check_and_sort_configs</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">4</span><span class="p">,</span><span class="mi">4</span><span class="p">)))</span>
+    <span class="k">def</span> <span class="nf">vb_dq</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">q1</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        The derivative of the body velocity of the frame (in se(3))</span>
+<span class="sd">        with respect to the value of q1.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">system</span><span class="o">.</span><span class="n">_update_cache</span><span class="p">(</span><span class="n">_trep</span><span class="o">.</span><span class="n">SYSTEM_CACHE_VB_DQ</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_vb_dq</span><span class="p">[</span><span class="n">q1</span><span class="p">]</span>
+
+    <span class="nd">@check_and_sort_configs</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">4</span><span class="p">,</span><span class="mi">4</span><span class="p">)))</span>
+    <span class="k">def</span> <span class="nf">vb_dqdq</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">q1</span><span class="p">,</span> <span class="n">q2</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        The second derivative of the body velocity of the frame (in</span>
+<span class="sd">        se(3)) with respect to the values of q1 and q2.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">system</span><span class="o">.</span><span class="n">_update_cache</span><span class="p">(</span><span class="n">_trep</span><span class="o">.</span><span class="n">SYSTEM_CACHE_VB_DQDQ</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_vb_dqdq</span><span class="p">[</span><span class="n">q1</span><span class="p">,</span> <span class="n">q2</span><span class="p">]</span>
+
+    <span class="nd">@check_and_sort_configs</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">4</span><span class="p">,</span><span class="mi">4</span><span class="p">)))</span>
+    <span class="k">def</span> <span class="nf">vb_dqdqdq</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">q1</span><span class="p">,</span> <span class="n">q2</span><span class="p">,</span> <span class="n">q3</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        The third derivative of the body velocity of the frame (in</span>
+<span class="sd">        se(3)) with respect to the values of q1, q2, and q3.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">system</span><span class="o">.</span><span class="n">_update_cache</span><span class="p">(</span><span class="n">_trep</span><span class="o">.</span><span class="n">SYSTEM_CACHE_VB_DQDQDQ</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_vb_dqdqdq</span><span class="p">[</span><span class="n">q1</span><span class="p">,</span> <span class="n">q2</span><span class="p">,</span> <span class="n">q3</span><span class="p">]</span>
+    
+    <span class="nd">@check_and_sort_configs</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">4</span><span class="p">,</span><span class="mi">4</span><span class="p">)))</span>
+    <span class="k">def</span> <span class="nf">vb_ddq</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dq1</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        The derivative of the body velocity of the frame (in se(3))</span>
+<span class="sd">        with respect to the velocity of dq1.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">system</span><span class="o">.</span><span class="n">_update_cache</span><span class="p">(</span><span class="n">_trep</span><span class="o">.</span><span class="n">SYSTEM_CACHE_VB_DDQ</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_vb_ddq</span><span class="p">[</span><span class="n">dq1</span><span class="p">]</span>
+    
+    <span class="nd">@check_and_sort_configs</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">4</span><span class="p">,</span><span class="mi">4</span><span class="p">)),</span> <span class="n">skip_sort</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">vb_ddqdq</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dq1</span><span class="p">,</span> <span class="n">q2</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        The second derivative of the body velocity of the frame (in</span>
+<span class="sd">        se(3)) with respect to the velocity of dq1 and the value of</span>
+<span class="sd">        q2.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">system</span><span class="o">.</span><span class="n">_update_cache</span><span class="p">(</span><span class="n">_trep</span><span class="o">.</span><span class="n">SYSTEM_CACHE_VB_DDQDQ</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_vb_ddqdq</span><span class="p">[</span><span class="n">dq1</span><span class="p">,</span> <span class="n">q2</span><span class="p">]</span>
+    
+    <span class="nd">@check_and_sort_configs</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">4</span><span class="p">,</span><span class="mi">4</span><span class="p">)),</span> <span class="n">skip_sort</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">vb_ddqdqdq</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dq1</span><span class="p">,</span> <span class="n">q2</span><span class="p">,</span> <span class="n">q3</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        The third derivative of the body velocity of the frame (in</span>
+<span class="sd">        se(3)) with respect to the velocity of dq1 and the values of</span>
+<span class="sd">        q2 and q3.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">system</span><span class="o">.</span><span class="n">_update_cache</span><span class="p">(</span><span class="n">_trep</span><span class="o">.</span><span class="n">SYSTEM_CACHE_VB_DDQDQDQ</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_vb_ddqdqdq</span><span class="p">[</span><span class="n">dq1</span><span class="p">,</span> <span class="n">q2</span><span class="p">,</span> <span class="n">q3</span><span class="p">]</span>
+
+    <span class="nd">@check_and_sort_configs</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">4</span><span class="p">,</span><span class="mi">4</span><span class="p">)),</span> <span class="n">skip_sort</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">vb_ddqdqdqdq</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dq1</span><span class="p">,</span> <span class="n">q2</span><span class="p">,</span> <span class="n">q3</span><span class="p">,</span> <span class="n">q4</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        The fourth derivative of the body velocity of the frame (in</span>
+<span class="sd">        se(3)) with respect to the velocity of dq1 and the values of</span>
+<span class="sd">        q2, q3, and q4.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">system</span><span class="o">.</span><span class="n">_update_cache</span><span class="p">(</span><span class="n">_trep</span><span class="o">.</span><span class="n">SYSTEM_CACHE_VB_DDQDQDQDQ</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_vb_ddqdqdqdq</span><span class="p">[</span><span class="n">dq1</span><span class="p">,</span> <span class="n">q2</span><span class="p">,</span> <span class="n">q3</span><span class="p">,</span> <span class="n">q4</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">_add_child</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">child</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Internal use only.</span>
+
+<span class="sd">        _add_child(child) -&gt; None</span>
+<span class="sd">        </span>
+<span class="sd">        Append child to the Frame&#39;s child list.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">child</span><span class="p">,</span> <span class="n">_trep</span><span class="o">.</span><span class="n">_Frame</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_children</span> <span class="o">+=</span> <span class="p">(</span><span class="n">child</span><span class="p">,</span> <span class="p">)</span>
+    
+    <span class="k">def</span> <span class="nf">_structure_changed</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Internal use only.</span>
+
+<span class="sd">        _structure_changed() -&gt; None</span>
+
+<span class="sd">        _structure_changed() rebuilds the values/arrays used for the caching</span>
+<span class="sd">        implementation.  This involves allocated buffers to save the</span>
+<span class="sd">        results in and creating an index of the configuration</span>
+<span class="sd">        variables that the Frame depends on.  This should be called,</span>
+<span class="sd">        for example, when Frames&#39; parameters are modified.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c"># Update cache_index</span>
+
+        <span class="c"># cache_index is a tuple of all the configuration variables</span>
+        <span class="c"># from the world frame to this frame.  Then it is padded with</span>
+        <span class="c"># None until it has a length of nQ+1.  This is an optimizatoin</span>
+        <span class="c"># that allows us to quickly determine if a frame depends on a</span>
+        <span class="c"># configuration variable, which was an observed bottleneck in</span>
+        <span class="c"># profiling.</span>
+
+
+        
+        <span class="c"># Update cache_index then fix the buffers</span>
+        <span class="n">configs</span> <span class="o">=</span> <span class="p">[</span><span class="bp">None</span><span class="p">]</span><span class="o">*</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">system</span><span class="o">.</span><span class="n">configs</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">frame</span> <span class="o">=</span> <span class="bp">self</span>
+        <span class="k">while</span> <span class="n">frame</span> <span class="o">!=</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">frame</span><span class="o">.</span><span class="n">config</span> <span class="o">!=</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="n">configs</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">frame</span><span class="o">.</span><span class="n">config</span><span class="p">)</span>
+            <span class="n">frame</span> <span class="o">=</span> <span class="n">frame</span><span class="o">.</span><span class="n">parent</span>
+        <span class="n">configs</span> <span class="o">=</span> <span class="n">configs</span><span class="p">[:</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">system</span><span class="o">.</span><span class="n">configs</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_cache_size</span> <span class="o">=</span> <span class="n">configs</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="bp">None</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_cache_index</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">configs</span><span class="p">)</span>
+
+        <span class="c"># Update frame cache structures and anything</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_allocated_cache_size</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cache_size</span><span class="p">:</span>
+            <span class="c"># The np arrays MUST be contiguous C-style arrays of doubles.</span>
+            <span class="n">n</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cache_size</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_g_dq</span>         <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span>      <span class="p">(</span><span class="n">n</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">4</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">double</span><span class="p">,</span> <span class="s">&#39;C&#39;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_g_inv_dq</span>     <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span>      <span class="p">(</span><span class="n">n</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">4</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">double</span><span class="p">,</span> <span class="s">&#39;C&#39;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_g_inv_dqdq</span>   <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span>    <span class="p">(</span><span class="n">n</span><span class="p">,</span><span class="n">n</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">4</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">double</span><span class="p">,</span> <span class="s">&#39;C&#39;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_p_dq</span>         <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span>        <span class="p">(</span><span class="n">n</span><span class="p">,</span><span class="mi">4</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">double</span><span class="p">,</span> <span class="s">&#39;C&#39;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_vb_dq</span>        <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span>      <span class="p">(</span><span class="n">n</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">4</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">double</span><span class="p">,</span> <span class="s">&#39;C&#39;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_vb_ddq</span>       <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span>      <span class="p">(</span><span class="n">n</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">4</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">double</span><span class="p">,</span> <span class="s">&#39;C&#39;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_allocated_cache_size</span> <span class="o">=</span> <span class="n">n</span>
+
+        <span class="c"># These are automatically resized as needed.</span>
+        <span class="n">n</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_g_dqdq</span>       <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span>    <span class="p">(</span><span class="n">n</span><span class="p">,</span><span class="n">n</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">4</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">double</span><span class="p">,</span> <span class="s">&#39;C&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_p_dqdq</span>       <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span>      <span class="p">(</span><span class="n">n</span><span class="p">,</span><span class="n">n</span><span class="p">,</span><span class="mi">4</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">double</span><span class="p">,</span> <span class="s">&#39;C&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_g_dqdqdq</span>     <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span>  <span class="p">(</span><span class="n">n</span><span class="p">,</span><span class="n">n</span><span class="p">,</span><span class="n">n</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">4</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">double</span><span class="p">,</span> <span class="s">&#39;C&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_p_dqdqdq</span>     <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span>    <span class="p">(</span><span class="n">n</span><span class="p">,</span><span class="n">n</span><span class="p">,</span><span class="n">n</span><span class="p">,</span><span class="mi">4</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">double</span><span class="p">,</span> <span class="s">&#39;C&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_g_dqdqdqdq</span>   <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">n</span><span class="p">,</span><span class="n">n</span><span class="p">,</span><span class="n">n</span><span class="p">,</span><span class="n">n</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">4</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">double</span><span class="p">,</span> <span class="s">&#39;C&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_p_dqdqdqdq</span>   <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span>  <span class="p">(</span><span class="n">n</span><span class="p">,</span><span class="n">n</span><span class="p">,</span><span class="n">n</span><span class="p">,</span><span class="n">n</span><span class="p">,</span><span class="mi">4</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">double</span><span class="p">,</span> <span class="s">&#39;C&#39;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_vb_dqdq</span>      <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span>    <span class="p">(</span><span class="n">n</span><span class="p">,</span><span class="n">n</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">4</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">double</span><span class="p">,</span> <span class="s">&#39;C&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_vb_dqdqdq</span>    <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span>  <span class="p">(</span><span class="n">n</span><span class="p">,</span><span class="n">n</span><span class="p">,</span><span class="n">n</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">4</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">double</span><span class="p">,</span> <span class="s">&#39;C&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_vb_ddqdq</span>     <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span>    <span class="p">(</span><span class="n">n</span><span class="p">,</span><span class="n">n</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">4</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">double</span><span class="p">,</span> <span class="s">&#39;C&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_vb_ddqdqdq</span>   <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span>  <span class="p">(</span><span class="n">n</span><span class="p">,</span><span class="n">n</span><span class="p">,</span><span class="n">n</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">4</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">double</span><span class="p">,</span> <span class="s">&#39;C&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_vb_ddqdqdqdq</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">n</span><span class="p">,</span><span class="n">n</span><span class="p">,</span><span class="n">n</span><span class="p">,</span><span class="n">n</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">4</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">double</span><span class="p">,</span> <span class="s">&#39;C&#39;</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">child</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">children</span><span class="p">:</span>
+            <span class="n">child</span><span class="o">.</span><span class="n">_structure_changed</span><span class="p">()</span>
+</pre></div></div>
+
+          </div>
+        </div>
+      </div>
+
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+    <h2><a href="http://murpheylab.github.io/trep/">Project Website</a></h2>
+
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">trep documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &copy; Copyright 2015, Elliot Johnson.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.3.1.
+    </div>
+  </body>
+</html>

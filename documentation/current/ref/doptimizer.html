@@ -1,0 +1,658 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>DOptimizer - Discrete Trajectory Optimization &mdash; trep documentation</title>
+    
+    <link rel="stylesheet" href="../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="trep documentation" href="../index.html" />
+    <link rel="up" title="trep.discopt - Discrete Optimal Control" href="optimal.html" />
+    <link rel="next" title="trep.ros - ROS Tools" href="ros.html" />
+    <link rel="prev" title="DCost - Discrete Trajectory Cost" href="dcost.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="ros.html" title="trep.ros - ROS Tools"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="dcost.html" title="DCost - Discrete Trajectory Cost"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">trep documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" >API Reference</a> &raquo;</li>
+          <li class="nav-item nav-item-2"><a href="optimal.html" accesskey="U"><code class="docutils literal"><span class="pre">trep.discopt</span></code> - Discrete Optimal Control</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+    <script type="math/tex">
+    \newcommand{\deriv}[2][]{\dfrac{\partial #1}{\partial #2}}
+\newcommand{\tderiv}[2][]{\tfrac{\partial #1}{\partial #2}}
+\newcommand{\fderiv}[2][]{\dfrac{d #1}{d #2}}
+\newcommand{\derivII}[3][]{\dfrac{\partial^2 #1}{\partial #2 \partial #3}}
+\newcommand{\tderivII}[3][]{\tfrac{\partial^2 #1}{\partial #2 \partial #3}}
+\newcommand{\derivIII}[4][]{\dfrac{\partial^3 #1}{\partial #2 \partial #3 \partial #4}}
+\newcommand{\tderivIII}[4][]{\tfrac{\partial^3 #1}{\partial #2 \partial #3 \partial #4}}
+\newcommand{\derivIV}[5][]{\dfrac{\partial^4 #1}{\partial #2 \partial #3 \partial #4 \partial #5}}
+
+\newcommand{\half}{\tfrac{1}{2}}  % Macro for 1/2
+
+\newcommand{\ud}{\mathrm{d}}
+
+\newcommand{\op}{\circ}
+\newcommand{\dq}{\dot{q}}
+\newcommand{\ddq}{\ddot{q}}
+
+\newcommand{\dt}{\Delta t}
+
+
+    </script>
+    
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="doptimizer-discrete-trajectory-optimization">
+<span id="trep-doptimizer"></span><h1><code class="xref py py-class docutils literal"><span class="pre">DOptimizer</span></code> - Discrete Trajectory Optimization<a class="headerlink" href="#doptimizer-discrete-trajectory-optimization" title="Permalink to this headline">¶</a></h1>
+<div class="contents local topic" id="contents">
+<ul class="simple">
+<li><a class="reference internal" href="#doptimizer-objects" id="id1">DOptimizer Objects</a><ul>
+<li><a class="reference internal" href="#cost-functions" id="id2">Cost Functions</a></li>
+<li><a class="reference internal" href="#descent-directions" id="id3">Descent Directions</a></li>
+<li><a class="reference internal" href="#armijo-line-search" id="id4">Armijo Line Search</a></li>
+<li><a class="reference internal" href="#optimizing-a-trajectory" id="id5">Optimizing a Trajectory</a></li>
+<li><a class="reference internal" href="#debugging-tools" id="id6">Debugging Tools</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#doptimizermonitor-objects" id="id7">DOptimizerMonitor Objects</a><ul>
+<li><a class="reference internal" href="#doptimizerdefaultmonitor-objects" id="id8">DOptimizerDefaultMonitor Objects</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<p>Discrete trajectory optimization is performed with <a class="reference internal" href="#trep.discopt.DOptimizer" title="trep.discopt.DOptimizer"><code class="xref py py-class docutils literal"><span class="pre">DOptimizer</span></code></a>
+objects.  The optimizer finds a trajectory for a <a class="reference internal" href="dsystem.html#trep.discopt.DSystem" title="trep.discopt.DSystem"><code class="xref py py-class docutils literal"><span class="pre">DSystem</span></code></a> that
+minimizes a <a class="reference internal" href="dcost.html#trep.discopt.DCost" title="trep.discopt.DCost"><code class="xref py py-class docutils literal"><span class="pre">DCost</span></code></a>.</p>
+<p>The optimizer should work for arbitrary systems, not just ones based
+on variational integrators.  You would need to define a compatible
+<a class="reference internal" href="dsystem.html#trep.discopt.DSystem" title="trep.discopt.DSystem"><code class="xref py py-class docutils literal"><span class="pre">DSystem</span></code></a> class that supports the right functionality.</p>
+<div class="admonition-examples admonition">
+<p class="first admonition-title">Examples</p>
+<p class="last"><code class="docutils literal"><span class="pre">pend-on-cart-optimization.py</span></code></p>
+</div>
+<div class="section" id="doptimizer-objects">
+<h2><a class="toc-backref" href="#id1">DOptimizer Objects</a><a class="headerlink" href="#doptimizer-objects" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="trep.discopt.DOptimizer">
+<em class="property">class </em><code class="descclassname">trep.discopt.</code><code class="descname">DOptimizer</code><span class="sig-paren">(</span><em>dsys</em>, <em>cost</em>, <em>first_method_iterations=10</em>, <em>monitor=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/trep/discopt/doptimizer.html#DOptimizer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#trep.discopt.DOptimizer" title="Permalink to this definition">¶</a></dt>
+<dd><p>You should create a new optimizer for each new system or cost, but
+for a given combination you can optimize as many different
+trajectories as you want.  The optimization is designed to mostly
+be used through the <a class="reference internal" href="#trep.discopt.DOptimizer.optimize" title="trep.discopt.DOptimizer.optimize"><code class="xref py py-meth docutils literal"><span class="pre">optimize()</span></code></a> method.</p>
+<p>You can use the <a class="reference internal" href="#trep.discopt.DOptimizerMonitor" title="trep.discopt.DOptimizerMonitor"><code class="xref py py-class docutils literal"><span class="pre">DOptimizerMonitor</span></code></a> class to monitor
+progress during optimizations.  If <em>monitor</em> is <code class="xref py py-data docutils literal"><span class="pre">None</span></code>, the
+optimizer will use <a class="reference internal" href="#trep.discopt.DOptimizerDefaultMonitor" title="trep.discopt.DOptimizerDefaultMonitor"><code class="xref py py-class docutils literal"><span class="pre">DOptimizerDefaultMonitor</span></code></a> which prints
+useful information to the console.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="trep.discopt.DOptimizer.dsys">
+<code class="descclassname">DOptimizer.</code><code class="descname">dsys</code><a class="headerlink" href="#trep.discopt.DOptimizer.dsys" title="Permalink to this definition">¶</a></dt>
+<dd><p>The <a class="reference internal" href="dsystem.html#trep.discopt.DSystem" title="trep.discopt.DSystem"><code class="xref py py-class docutils literal"><span class="pre">DSystem</span></code></a> that is optimized by this instance.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">DOptimizer.cost = cost</code></dt>
+<dd><p>The <a class="reference internal" href="dcost.html#trep.discopt.DCost" title="trep.discopt.DCost"><code class="xref py py-class docutils literal"><span class="pre">DCost</span></code></a> that is optimized by this instance.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="trep.discopt.DOptimizer.optimize_ic">
+<code class="descclassname">DOptimizer.</code><code class="descname">optimize_ic</code><a class="headerlink" href="#trep.discopt.DOptimizer.optimize_ic" title="Permalink to this definition">¶</a></dt>
+<dd><p>This is a Boolean indicating whether or not the optimizer should
+optimize the initial condition during an optimization.</p>
+<p>Defaults to <code class="xref py py-data docutils literal"><span class="pre">False</span></code>.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">This is broken for constrained systems.</p>
+</div>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="trep.discopt.DOptimizer.monitor">
+<code class="descclassname">DOptimizer.</code><code class="descname">monitor</code><a class="headerlink" href="#trep.discopt.DOptimizer.monitor" title="Permalink to this definition">¶</a></dt>
+<dd><p>The <a class="reference internal" href="#trep.discopt.DOptimizerMonitor" title="trep.discopt.DOptimizerMonitor"><code class="xref py py-class docutils literal"><span class="pre">DOptimizerMonitor</span></code></a> that this optimization reports
+progress to.  The default is a new instance of
+<a class="reference internal" href="#trep.discopt.DOptimizerDefaultMonitor" title="trep.discopt.DOptimizerDefaultMonitor"><code class="xref py py-class docutils literal"><span class="pre">DOptimizerDefaultMonitor</span></code></a>.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="trep.discopt.DOptimizer.Qproj">
+<code class="descclassname">DOptimizer.</code><code class="descname">Qproj</code><a class="headerlink" href="#trep.discopt.DOptimizer.Qproj" title="Permalink to this definition">¶</a></dt>
+<dt id="trep.discopt.DOptimizer.Rproj">
+<code class="descclassname">DOptimizer.</code><code class="descname">Rproj</code><a class="headerlink" href="#trep.discopt.DOptimizer.Rproj" title="Permalink to this definition">¶</a></dt>
+<dd><p>These are the weights for an LQR problem used to generate a linear
+feedback controller for each trajectory.  Each should be a function
+of k that returns an appropriately sized 2D <code class="xref py py-class docutils literal"><span class="pre">ndarray</span></code>.</p>
+<p>The default values are identity matrices.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="trep.discopt.DOptimizer.descent_tolerance">
+<code class="descclassname">DOptimizer.</code><code class="descname">descent_tolerance</code><a class="headerlink" href="#trep.discopt.DOptimizer.descent_tolerance" title="Permalink to this definition">¶</a></dt>
+<dd><p>A trajectory is considered a local minimizer if the norm of the
+cost derivative is less than this. The default value is 1e-6.</p>
+</dd></dl>
+
+<div class="section" id="cost-functions">
+<h3><a class="toc-backref" href="#id2">Cost Functions</a><a class="headerlink" href="#cost-functions" title="Permalink to this headline">¶</a></h3>
+<dl class="method">
+<dt id="trep.discopt.DOptimizer.calc_cost">
+<code class="descclassname">DOptimizer.</code><code class="descname">calc_cost</code><span class="sig-paren">(</span><em>X</em>, <em>U</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/trep/discopt/doptimizer.html#DOptimizer.calc_cost"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#trep.discopt.DOptimizer.calc_cost" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate the cost of a trajectory <em>X,U</em>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="trep.discopt.DOptimizer.calc_dcost">
+<code class="descclassname">DOptimizer.</code><code class="descname">calc_dcost</code><span class="sig-paren">(</span><em>X</em>, <em>U</em>, <em>dX</em>, <em>dU</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/trep/discopt/doptimizer.html#DOptimizer.calc_dcost"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#trep.discopt.DOptimizer.calc_dcost" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate the derivative of the cost function evaluated at <em>X,U</em> in
+the direction of a tangent trajectory <em>dX,dU</em>.</p>
+<p>It is important that <em>dX,dU</em> be an actual tangent trajectory of the
+system at <em>X,U</em> to get the correct cost.  See <a class="reference internal" href="#trep.discopt.DOptimizer.check_ddcost" title="trep.discopt.DOptimizer.check_ddcost"><code class="xref py py-meth docutils literal"><span class="pre">check_ddcost()</span></code></a>
+for an example where this is important.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="trep.discopt.DOptimizer.calc_ddcost">
+<code class="descclassname">DOptimizer.</code><code class="descname">calc_ddcost</code><span class="sig-paren">(</span><em>X</em>, <em>U</em>, <em>dX</em>, <em>dU</em>, <em>Q</em>, <em>R</em>, <em>S</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/trep/discopt/doptimizer.html#DOptimizer.calc_ddcost"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#trep.discopt.DOptimizer.calc_ddcost" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate the second derivative of the cost function evaluated at
+<em>X,U</em> in the direction of a tangent trajectory <em>dX,dU</em>.  The
+second order model parameters must be specified in <em>Q,R,S</em>.  These
+can be obtained through <a class="reference internal" href="#trep.discopt.DOptimizer.calc_newton_model" title="trep.discopt.DOptimizer.calc_newton_model"><code class="xref py py-meth docutils literal"><span class="pre">calc_newton_model()</span></code></a> or by
+<a class="reference internal" href="#trep.discopt.DOptimizer.calc_descent_direction" title="trep.discopt.DOptimizer.calc_descent_direction"><code class="xref py py-meth docutils literal"><span class="pre">calc_descent_direction()</span></code></a> when <em>method</em>=&#8221;newton&#8221;.</p>
+<p>It is important that <em>dX,dU</em> be an actual tangent trajectory of the
+system at <em>X,U</em> to get the correct cost.  See <a class="reference internal" href="#trep.discopt.DOptimizer.check_ddcost" title="trep.discopt.DOptimizer.check_ddcost"><code class="xref py py-meth docutils literal"><span class="pre">check_ddcost()</span></code></a>
+for an example where this is important.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="descent-directions">
+<h3><a class="toc-backref" href="#id3">Descent Directions</a><a class="headerlink" href="#descent-directions" title="Permalink to this headline">¶</a></h3>
+<dl class="method">
+<dt id="trep.discopt.DOptimizer.calc_steepest_model">
+<code class="descclassname">DOptimizer.</code><code class="descname">calc_steepest_model</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/trep/discopt/doptimizer.html#DOptimizer.calc_steepest_model"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#trep.discopt.DOptimizer.calc_steepest_model" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate a quadratic model to find a steepest descent direction:</p>
+<div class="math">
+\[Q = \mathcal{I} \quad R = \mathcal{I} \quad S = 0\]</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="trep.discopt.DOptimizer.calc_quasi_model">
+<code class="descclassname">DOptimizer.</code><code class="descname">calc_quasi_model</code><span class="sig-paren">(</span><em>X</em>, <em>U</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/trep/discopt/doptimizer.html#DOptimizer.calc_quasi_model"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#trep.discopt.DOptimizer.calc_quasi_model" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate a quadratic model to find a quasi-newton descent
+direction.  This uses the second derivative of the un-projected cost
+function.</p>
+<div class="math">
+\[Q = \derivII[h]{x}{x}  \quad R = \derivII[h]{u}{u} \quad S = \derivII[h]{x}{u}\]</div>
+<p>This method does not use the second derivative of the system
+dynamics, so it tends to be as fast <a class="reference internal" href="#trep.discopt.DOptimizer.calc_steepest_model" title="trep.discopt.DOptimizer.calc_steepest_model"><code class="xref py py-meth docutils literal"><span class="pre">calc_steepest_model()</span></code></a>,
+but usually converges much faster.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="trep.discopt.DOptimizer.calc_newton_model">
+<code class="descclassname">DOptimizer.</code><code class="descname">calc_newton_model</code><span class="sig-paren">(</span><em>X</em>, <em>U</em>, <em>A</em>, <em>B</em>, <em>K</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/trep/discopt/doptimizer.html#DOptimizer.calc_newton_model"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#trep.discopt.DOptimizer.calc_newton_model" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate a quadratic model to find a newton descent direction.
+This is the true second derivative of the projected cost function:</p>
+<div class="math">
+\[\begin{split}\begin{align*}
+Q(k_f) &amp;= D^2m(x(k_f))
+\\
+Q(k) &amp;= \derivII[\ell]{x}{x}(k) + z^T(k+1) \derivII[f]{x}{x}(k)
+\\
+S(k) &amp;= \derivII[\ell]{x}{u}(k) + z^T(k+1) \derivII[f]{x}{u}(k)
+\\
+R(k) &amp;= \derivII[\ell]{u}{u}(k) + z^T(k+1) \derivII[f]{u}{u}(k)
+\end{align*}\end{split}\]</div>
+<p>where:</p>
+<div class="math">
+\[\begin{split}\begin{align*}
+z(k_f) &amp;= Dm^T(x(k_f))
+\\
+z(k) &amp;= \deriv[\ell]{x}^T(k) - \mathcal{K}^T(k) \deriv[\ell]{u}^T(k) +
+        \left[ \deriv[f]{x}^T(k) - \mathcal{K}^T(k) \deriv[f]{u}^T(i)  \right] z(k+1)
+        \end{align*}\end{split}\]</div>
+<p>This method depends on the second derivative of the system&#8217;s
+dynamics, so it can be significantly slower than other step methods.
+However, it converges extremely quickly near the minimizer.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="trep.discopt.DOptimizer.calc_descent_direction">
+<code class="descclassname">DOptimizer.</code><code class="descname">calc_descent_direction</code><span class="sig-paren">(</span><em>X</em>, <em>U</em>, <em>method='steepest'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/trep/discopt/doptimizer.html#DOptimizer.calc_descent_direction"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#trep.discopt.DOptimizer.calc_descent_direction" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate the descent direction from the trajectory <em>X,U</em> using the
+specified method.  Valid methods are:</p>
+<blockquote>
+<div><ul class="simple">
+<li>&#8220;steepest&#8221; - Use <a class="reference internal" href="#trep.discopt.DOptimizer.calc_steepest_model" title="trep.discopt.DOptimizer.calc_steepest_model"><code class="xref py py-meth docutils literal"><span class="pre">calc_steepest_model()</span></code></a></li>
+<li>&#8220;quasi&#8221; - Use <a class="reference internal" href="#trep.discopt.DOptimizer.calc_quasi_model" title="trep.discopt.DOptimizer.calc_quasi_model"><code class="xref py py-meth docutils literal"><span class="pre">calc_quasi_model()</span></code></a></li>
+<li>&#8220;newton&#8221; - Use <a class="reference internal" href="#trep.discopt.DOptimizer.calc_newton_model" title="trep.discopt.DOptimizer.calc_newton_model"><code class="xref py py-meth docutils literal"><span class="pre">calc_newton_model()</span></code></a></li>
+</ul>
+</div></blockquote>
+<p>The method returns the named tuple <code class="docutils literal"><span class="pre">(Kproj,</span> <span class="pre">dX,</span> <span class="pre">dU,</span> <span class="pre">Q,</span> <span class="pre">R,</span> <span class="pre">S)</span></code>.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="armijo-line-search">
+<h3><a class="toc-backref" href="#id4">Armijo Line Search</a><a class="headerlink" href="#armijo-line-search" title="Permalink to this headline">¶</a></h3>
+<dl class="attribute">
+<dt id="trep.discopt.DOptimizer.armijo_beta">
+<code class="descclassname">DOptimizer.</code><code class="descname">armijo_beta</code><a class="headerlink" href="#trep.discopt.DOptimizer.armijo_beta" title="Permalink to this definition">¶</a></dt>
+<dt id="trep.discopt.DOptimizer.armijo_alpha">
+<code class="descclassname">DOptimizer.</code><code class="descname">armijo_alpha</code><a class="headerlink" href="#trep.discopt.DOptimizer.armijo_alpha" title="Permalink to this definition">¶</a></dt>
+<dt id="trep.discopt.DOptimizer.armijo_max_iterations">
+<code class="descclassname">DOptimizer.</code><code class="descname">armijo_max_iterations</code><a class="headerlink" href="#trep.discopt.DOptimizer.armijo_max_iterations" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parameters for the Armijo line search performed at each step along
+the calculated descent direction.</p>
+<p><em>armijo_beta</em> should be between 0 and 1 (not inclusive).  The
+default value is 0.7.</p>
+<p><em>armijo_alpha</em> should be between 0 (inclusive) and 1 (not
+inclusive). The default value is 0.00001.</p>
+<p><em>armijo_max_iterations</em> should be a positive integer.  If the line
+search cannot satisfy the sufficient decrease criteria after this
+number of iterations, a <code class="xref py py-exc docutils literal"><span class="pre">trep.ConvergenceError</span></code> is raised.
+The default value is 30.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="trep.discopt.DOptimizer.armijo_simulate">
+<code class="descclassname">DOptimizer.</code><code class="descname">armijo_simulate</code><span class="sig-paren">(</span><em>bX</em>, <em>bU</em>, <em>Kproj</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/trep/discopt/doptimizer.html#DOptimizer.armijo_simulate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#trep.discopt.DOptimizer.armijo_simulate" title="Permalink to this definition">¶</a></dt>
+<dd><p>This is a sub-function for armijo search.  It projects the
+trajectory bX,bU to a real trajectory like DSystem.project, but it
+also returns a partial trajectory if the simulation fails.  It is
+not intended to be used directly.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="trep.discopt.DOptimizer.armijo_search">
+<code class="descclassname">DOptimizer.</code><code class="descname">armijo_search</code><span class="sig-paren">(</span><em>X</em>, <em>U</em>, <em>Kproj</em>, <em>dX</em>, <em>dU</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/trep/discopt/doptimizer.html#DOptimizer.armijo_search"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#trep.discopt.DOptimizer.armijo_search" title="Permalink to this definition">¶</a></dt>
+<dd><p>Perform an Armijo line search from the trajectory X,U along the
+tangent trajectory dX, dU.  Returns the named tuple <code class="docutils literal"><span class="pre">(nX,</span> <span class="pre">nU,</span> <span class="pre">nCost)</span></code>
+or raises <code class="xref py py-exc docutils literal"><span class="pre">trep.ConvergenceError</span></code> if the search doesn&#8217;t
+terminate before taking the maximum number of iterations.</p>
+<p>This method is used by <a class="reference internal" href="#trep.discopt.DOptimizer.step" title="trep.discopt.DOptimizer.step"><code class="xref py py-meth docutils literal"><span class="pre">step()</span></code></a> once a descent direction has
+been found.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="optimizing-a-trajectory">
+<h3><a class="toc-backref" href="#id5">Optimizing a Trajectory</a><a class="headerlink" href="#optimizing-a-trajectory" title="Permalink to this headline">¶</a></h3>
+<dl class="method">
+<dt id="trep.discopt.DOptimizer.step">
+<code class="descclassname">DOptimizer.</code><code class="descname">step</code><span class="sig-paren">(</span><em>iteration</em>, <em>X</em>, <em>U</em>, <em>method='steepest'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/trep/discopt/doptimizer.html#DOptimizer.step"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#trep.discopt.DOptimizer.step" title="Permalink to this definition">¶</a></dt>
+<dd><p>Perform an optimization step using a particular method.</p>
+<p>This finds a new trajectory nX, nU that has a lower cost than the
+trajectory X,U.  Valid methods are defined in
+DOptimizer.calc_descent_direction().</p>
+<p>If the specified method fails to find an acceptable descent
+direction, <a class="reference internal" href="#trep.discopt.DOptimizer.step" title="trep.discopt.DOptimizer.step"><code class="xref py py-meth docutils literal"><span class="pre">step()</span></code></a> will try again with the method returned
+by <a class="reference internal" href="#trep.discopt.DOptimizer.select_fallback_method" title="trep.discopt.DOptimizer.select_fallback_method"><code class="xref py py-meth docutils literal"><span class="pre">select_fallback_method()</span></code></a>.</p>
+<p><em>iteration</em> is an integer that is used by
+<a class="reference internal" href="#trep.discopt.DOptimizer.select_fallback_method" title="trep.discopt.DOptimizer.select_fallback_method"><code class="xref py py-meth docutils literal"><span class="pre">select_fallback_method()</span></code></a> and passed to the
+<a class="reference internal" href="#trep.discopt.DOptimizerMonitor" title="trep.discopt.DOptimizerMonitor"><code class="xref py py-class docutils literal"><span class="pre">DOptimizerMonitor</span></code></a> when reporting the current step
+progress.</p>
+<p>Returns the named tuple <code class="docutils literal"><span class="pre">(done,</span> <span class="pre">nX,</span> <span class="pre">nU,</span> <span class="pre">dcost0,</span> <span class="pre">cost1)</span></code> where:</p>
+<blockquote>
+<div><ul class="simple">
+<li><em>done</em> is a Boolean that is <code class="xref py py-data docutils literal"><span class="pre">True</span></code> if the trajectory
+<em>X,U</em> cannot be improved (i.e, <em>X,U</em> is a local minimizer of
+the cost).</li>
+<li><em>nX,nU</em> are the improved trajectory</li>
+<li><em>dcost0</em> is the derivative of the cost at <em>X,U</em>.</li>
+<li><em>cost1</em> is the cost of the improved trajectory.</li>
+</ul>
+</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="trep.discopt.DOptimizer.optimize">
+<code class="descclassname">DOptimizer.</code><code class="descname">optimize</code><span class="sig-paren">(</span><em>X</em>, <em>U</em>, <em>max_steps=50</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/trep/discopt/doptimizer.html#DOptimizer.optimize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#trep.discopt.DOptimizer.optimize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Iteratively optimize the trajectory <em>X,U</em> until a local minimizer
+is found or <em>max_steps</em> are taken.  The descent direction method
+used at each step is determined by <a class="reference internal" href="#trep.discopt.DOptimizer.select_method" title="trep.discopt.DOptimizer.select_method"><code class="xref py py-meth docutils literal"><span class="pre">select_method()</span></code></a>.</p>
+<p>Returns the named tuple <code class="docutils literal"><span class="pre">(converged,</span> <span class="pre">X,</span> <span class="pre">U)</span></code> where:</p>
+<blockquote>
+<div><ul class="simple">
+<li><em>converged</em> is a Boolean indicating if the optimization
+finished on a local minimizer.</li>
+<li><em>X,U</em> is the improved trajectory.</li>
+</ul>
+</div></blockquote>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="trep.discopt.DOptimizer.first_method_iterations">
+<code class="descclassname">DOptimizer.</code><code class="descname">first_method_iterations</code><a class="headerlink" href="#trep.discopt.DOptimizer.first_method_iterations" title="Permalink to this definition">¶</a></dt>
+<dd><p>Number of steps to take using <a class="reference internal" href="#trep.discopt.DOptimizer.first_method" title="trep.discopt.DOptimizer.first_method"><code class="xref py py-attr docutils literal"><span class="pre">first_method</span></code></a> before switching
+to <a class="reference internal" href="#trep.discopt.DOptimizer.second_method" title="trep.discopt.DOptimizer.second_method"><code class="xref py py-attr docutils literal"><span class="pre">second_method</span></code></a> for the remaining steps.  See
+<a class="reference internal" href="#trep.discopt.DOptimizer.select_method" title="trep.discopt.DOptimizer.select_method"><code class="xref py py-meth docutils literal"><span class="pre">select_method()</span></code></a> for more information on controlling the step
+method.</p>
+<p><em>Default: 10</em></p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="trep.discopt.DOptimizer.first_method">
+<code class="descclassname">DOptimizer.</code><code class="descname">first_method</code><a class="headerlink" href="#trep.discopt.DOptimizer.first_method" title="Permalink to this definition">¶</a></dt>
+<dd><p>Descent method to use for the first iterations of the optimization.</p>
+<p><em>Default: &#8220;quasi&#8221;</em></p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="trep.discopt.DOptimizer.second_method">
+<code class="descclassname">DOptimizer.</code><code class="descname">second_method</code><a class="headerlink" href="#trep.discopt.DOptimizer.second_method" title="Permalink to this definition">¶</a></dt>
+<dd><p>Descent method to use for the optimzation after
+<a class="reference internal" href="#trep.discopt.DOptimizer.first_method_iterations" title="trep.discopt.DOptimizer.first_method_iterations"><code class="xref py py-attr docutils literal"><span class="pre">first_method_iterations</span></code></a> iterations have been taken.</p>
+<p><em>Default: &#8220;netwon&#8221;</em></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="trep.discopt.DOptimizer.select_method">
+<code class="descclassname">DOptimizer.</code><code class="descname">select_method</code><span class="sig-paren">(</span><em>iteration</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/trep/discopt/doptimizer.html#DOptimizer.select_method"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#trep.discopt.DOptimizer.select_method" title="Permalink to this definition">¶</a></dt>
+<dd><p>Select a descent direction method for the specified iteration.</p>
+<p>This is called by <a class="reference internal" href="#trep.discopt.DOptimizer.optimize" title="trep.discopt.DOptimizer.optimize"><code class="xref py py-meth docutils literal"><span class="pre">optimize()</span></code></a> to choose a descent direction
+method for each step.  The default implementation takes a
+pre-determined number (<code class="xref py py-attr docutils literal"><span class="pre">lower_order_iterations</span></code>) of &#8220;quasi&#8221;
+steps and then switches to the &#8220;newton&#8221; method.</p>
+<p>You can customize the method selection by inheriting
+<a class="reference internal" href="#trep.discopt.DOptimizer" title="trep.discopt.DOptimizer"><code class="xref py py-class docutils literal"><span class="pre">DOptimizer</span></code></a> and overriding this method.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="trep.discopt.DOptimizer.select_fallback_method">
+<code class="descclassname">DOptimizer.</code><code class="descname">select_fallback_method</code><span class="sig-paren">(</span><em>iteration</em>, <em>current_method</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/trep/discopt/doptimizer.html#DOptimizer.select_fallback_method"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#trep.discopt.DOptimizer.select_fallback_method" title="Permalink to this definition">¶</a></dt>
+<dd><p>When <a class="reference internal" href="#trep.discopt.DOptimizer.step" title="trep.discopt.DOptimizer.step"><code class="xref py py-meth docutils literal"><span class="pre">step()</span></code></a> finds a bad descent direction (e.g, positive cost
+derivative), this method is called to figure out what descent
+direction it should try next.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="debugging-tools">
+<h3><a class="toc-backref" href="#id6">Debugging Tools</a><a class="headerlink" href="#debugging-tools" title="Permalink to this headline">¶</a></h3>
+<dl class="method">
+<dt id="trep.discopt.DOptimizer.descent_plot">
+<code class="descclassname">DOptimizer.</code><code class="descname">descent_plot</code><span class="sig-paren">(</span><em>X</em>, <em>U</em>, <em>method='steepest'</em>, <em>points=40</em>, <em>legend=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/trep/discopt/doptimizer.html#DOptimizer.descent_plot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#trep.discopt.DOptimizer.descent_plot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a descent direction plot at X,U for the specified method.</p>
+<p>This is a useful plot for examining the line search portion of an
+optimization step.  It plots several values along the descent
+direction line.  All values are plotted against the line search
+parameter <span class="math">\(z \in \mathbb{R}\)</span>:</p>
+<blockquote>
+<div><ul class="simple">
+<li>The true cost <span class="math">\(g(\xi + z\delta\xi) - g(\xi)\)</span></li>
+<li>The modeled cost <span class="math">\(Dg(\xi)\op\delta\xi z + \half q\op(\delta\xi, \delta\xi)z^2\)</span></li>
+<li>The sufficient decrease line: <span class="math">\(g(\xi + z \delta\xi) &lt; g(\xi) + \alpha z Dg(\xi)\op\delta\xi\)</span></li>
+<li>The armijo evaluation points: <span class="math">\(z = \beta^m\)</span></li>
+</ul>
+</div></blockquote>
+<p>This is an example plot for a steepest descent plot during a
+particular optimization.  This plot shows that the true cost
+increases much faster than the model predicts.  As a result, 6
+Armijo steps are required before the sufficient decrease condition
+is satisfied.</p>
+<img alt="../_images/descent-direction-plot-example.png" src="../_images/descent-direction-plot-example.png" />
+<p>Example usage:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="kn">as</span> <span class="nn">pyplot</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">optimizer</span><span class="o">.</span><span class="n">descent_plot</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">U</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s">&#39;steepest&#39;</span><span class="p">,</span> <span class="n">legend</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pyplot</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="trep.discopt.check_dcost">
+<code class="descclassname">trep.discopt.</code><code class="descname">check_dcost</code><span class="sig-paren">(</span><em>X</em>, <em>U</em>, <em>method='steepest'</em>, <em>delta=1e-6</em>, <em>tolerance=1e-5</em><span class="sig-paren">)</span><a class="headerlink" href="#trep.discopt.check_dcost" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check the calculated derivative of the cost function at X,U with a
+numeric approximation determined from the original cost function.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="trep.discopt.DOptimizer.check_ddcost">
+<code class="descclassname">DOptimizer.</code><code class="descname">check_ddcost</code><span class="sig-paren">(</span><em>X</em>, <em>U</em>, <em>method='steepest'</em>, <em>delta=1e-6</em>, <em>tolerance=1e-5</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/trep/discopt/doptimizer.html#DOptimizer.check_ddcost"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#trep.discopt.DOptimizer.check_ddcost" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check the second derivative of the cost function at X,U with a
+numeric approximation determined from the first derivative.</p>
+</dd></dl>
+
+</div>
+</div>
+<div class="section" id="doptimizermonitor-objects">
+<h2><a class="toc-backref" href="#id7">DOptimizerMonitor Objects</a><a class="headerlink" href="#doptimizermonitor-objects" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference internal" href="#trep.discopt.DOptimizer" title="trep.discopt.DOptimizer"><code class="xref py py-class docutils literal"><span class="pre">DOptimizer</span></code></a> objects report optimization progress to their
+<code class="xref py py-attr docutils literal"><span class="pre">monitor</span></code> object.  The base implementation does nothing.  The
+default monitor <a class="reference internal" href="#trep.discopt.DOptimizerDefaultMonitor" title="trep.discopt.DOptimizerDefaultMonitor"><code class="xref py py-class docutils literal"><span class="pre">DOptimizerDefaultMonitor</span></code></a> mainly prints</p>
+<p>reports to the console.  You can define your own monitor to gather
+more detailed information like saving each intermediate trajectory.</p>
+<p>Note that if you do want to save any values, you should save copies.
+The optimizer might reuse the same variables in each step to optimize
+memory usage.</p>
+<dl class="class">
+<dt id="trep.discopt.DOptimizerMonitor">
+<em class="property">class </em><code class="descclassname">trep.discopt.</code><code class="descname">DOptimizerMonitor</code><a class="reference internal" href="../_modules/trep/discopt/doptimizer.html#DOptimizerMonitor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#trep.discopt.DOptimizerMonitor" title="Permalink to this definition">¶</a></dt>
+<dd><p>This is the base class for Optimizer Monitors.  It does absolutely
+nothing, so you can use this as your monitor if you want
+completely silent operation.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="trep.discopt.DOptimizerMonitor.optimize_begin">
+<code class="descclassname">DOptimizerMonitor.</code><code class="descname">optimize_begin</code><span class="sig-paren">(</span><em>X</em>, <em>U</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/trep/discopt/doptimizer.html#DOptimizerMonitor.optimize_begin"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#trep.discopt.DOptimizerMonitor.optimize_begin" title="Permalink to this definition">¶</a></dt>
+<dd><p>Called when DOptimizer.optimize() is called with the initial
+trajectory.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="trep.discopt.DOptimizerMonitor.optimize_end">
+<code class="descclassname">DOptimizerMonitor.</code><code class="descname">optimize_end</code><span class="sig-paren">(</span><em>converged</em>, <em>X</em>, <em>U</em>, <em>cost</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/trep/discopt/doptimizer.html#DOptimizerMonitor.optimize_end"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#trep.discopt.DOptimizerMonitor.optimize_end" title="Permalink to this definition">¶</a></dt>
+<dd><p>Called before DOptimizer.optimize() returns with the results of the
+optimization.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="trep.discopt.DOptimizerMonitor.step_begin">
+<code class="descclassname">DOptimizerMonitor.</code><code class="descname">step_begin</code><span class="sig-paren">(</span><em>iteration</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/trep/discopt/doptimizer.html#DOptimizerMonitor.step_begin"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#trep.discopt.DOptimizerMonitor.step_begin" title="Permalink to this definition">¶</a></dt>
+<dd><p>Called at the start of each DOptimize.step().  Note that step calls
+itself with the new method when one method fails, so this might be
+called multiple times with the same iteration.</p>
+<p>All calls will be related to the same iteration until
+step_termination or step_completed are called.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="trep.discopt.DOptimizerMonitor.step_info">
+<code class="descclassname">DOptimizerMonitor.</code><code class="descname">step_info</code><span class="sig-paren">(</span><em>method</em>, <em>cost</em>, <em>dcost</em>, <em>X</em>, <em>U</em>, <em>dX</em>, <em>dU</em>, <em>Kproj</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/trep/discopt/doptimizer.html#DOptimizerMonitor.step_info"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#trep.discopt.DOptimizerMonitor.step_info" title="Permalink to this definition">¶</a></dt>
+<dd><p>Called after a descent direction has been calculated.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="trep.discopt.DOptimizerMonitor.step_method_failure">
+<code class="descclassname">DOptimizerMonitor.</code><code class="descname">step_method_failure</code><span class="sig-paren">(</span><em>method</em>, <em>cost</em>, <em>dcost</em>, <em>fallback_method</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/trep/discopt/doptimizer.html#DOptimizerMonitor.step_method_failure"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#trep.discopt.DOptimizerMonitor.step_method_failure" title="Permalink to this definition">¶</a></dt>
+<dd><p>Called when a descent method results in a positive cost derivative.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="trep.discopt.DOptimizerMonitor.step_termination">
+<code class="descclassname">DOptimizerMonitor.</code><code class="descname">step_termination</code><span class="sig-paren">(</span><em>cost</em>, <em>dcost</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/trep/discopt/doptimizer.html#DOptimizerMonitor.step_termination"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#trep.discopt.DOptimizerMonitor.step_termination" title="Permalink to this definition">¶</a></dt>
+<dd><p>Called if dcost satisfies the descent tolerance, indicating that
+the current trajectory is a local minimizer.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="trep.discopt.DOptimizerMonitor.step_completed">
+<code class="descclassname">DOptimizerMonitor.</code><code class="descname">step_completed</code><span class="sig-paren">(</span><em>method</em>, <em>cost</em>, <em>nX</em>, <em>nU</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/trep/discopt/doptimizer.html#DOptimizerMonitor.step_completed"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#trep.discopt.DOptimizerMonitor.step_completed" title="Permalink to this definition">¶</a></dt>
+<dd><p>Called at the end of an optimization step with information about
+the new trajectory.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="trep.discopt.DOptimizerMonitor.armijo_simulation_failure">
+<code class="descclassname">DOptimizerMonitor.</code><code class="descname">armijo_simulation_failure</code><span class="sig-paren">(</span><em>armijo_iteration</em>, <em>nX</em>, <em>nU</em>, <em>bX</em>, <em>bU</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/trep/discopt/doptimizer.html#DOptimizerMonitor.armijo_simulation_failure"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#trep.discopt.DOptimizerMonitor.armijo_simulation_failure" title="Permalink to this definition">¶</a></dt>
+<dd><p>Called when a simulation fails (usually an instability) during the
+evaluation of the cost in an armijo step.  The Armijo search
+continues after this.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="trep.discopt.DOptimizerMonitor.armijo_search_failure">
+<code class="descclassname">DOptimizerMonitor.</code><code class="descname">armijo_search_failure</code><span class="sig-paren">(</span><em>X</em>, <em>U</em>, <em>dX</em>, <em>dU</em>, <em>cost0</em>, <em>dcost0</em>, <em>Kproj</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/trep/discopt/doptimizer.html#DOptimizerMonitor.armijo_search_failure"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#trep.discopt.DOptimizerMonitor.armijo_search_failure" title="Permalink to this definition">¶</a></dt>
+<dd><p>Called when the Armijo search reaches the maximum number of
+iterations without satisfying the sufficient decrease criteria.
+The optimization cannot proceed after this.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="trep.discopt.DOptimizerMonitor.armijo_evaluation">
+<code class="descclassname">DOptimizerMonitor.</code><code class="descname">armijo_evaluation</code><span class="sig-paren">(</span><em>armijo_iteration</em>, <em>nX</em>, <em>nU</em>, <em>bX</em>, <em>bU</em>, <em>cost</em>, <em>max_cost</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/trep/discopt/doptimizer.html#DOptimizerMonitor.armijo_evaluation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#trep.discopt.DOptimizerMonitor.armijo_evaluation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Called after each Armijo evaluation.  The semi-trajectory bX,bU was
+successfully projected into the new trajectory nX,nU and its cost
+was measured.  The search will continue if the cost is greater than
+the maximum cost.</p>
+</dd></dl>
+
+<div class="section" id="doptimizerdefaultmonitor-objects">
+<h3><a class="toc-backref" href="#id8">DOptimizerDefaultMonitor Objects</a><a class="headerlink" href="#doptimizerdefaultmonitor-objects" title="Permalink to this headline">¶</a></h3>
+<p>This is the default monitor for <a class="reference internal" href="#trep.discopt.DOptimizer" title="trep.discopt.DOptimizer"><code class="xref py py-class docutils literal"><span class="pre">DOptimizer</span></code></a>.  It prints out
+information to the console and records the cost and cost derivative
+history.</p>
+<dl class="class">
+<dt id="trep.discopt.DOptimizerDefaultMonitor">
+<em class="property">class </em><code class="descclassname">trep.discopt.</code><code class="descname">DOptimizerDefaultMonitor</code><a class="reference internal" href="../_modules/trep/discopt/doptimizer.html#DOptimizerDefaultMonitor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#trep.discopt.DOptimizerDefaultMonitor" title="Permalink to this definition">¶</a></dt>
+<dd><p>This is the default DOptimizer Monitor.  It mainly prints status
+updates to stdout and records the cost and dcost history so you
+can create convergence plots.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="trep.discopt.DOptimizerDefaultMonitor.cost_history">
+<code class="descclassname">DOptimizerDefaultMonitor.</code><code class="descname">cost_history</code><a class="headerlink" href="#trep.discopt.DOptimizerDefaultMonitor.cost_history" title="Permalink to this definition">¶</a></dt>
+<dt id="trep.discopt.DOptimizerDefaultMonitor.dcost_history">
+<code class="descclassname">DOptimizerDefaultMonitor.</code><code class="descname">dcost_history</code><a class="headerlink" href="#trep.discopt.DOptimizerDefaultMonitor.dcost_history" title="Permalink to this definition">¶</a></dt>
+<dd><p>Dictionaries mapping the iteration number to the cost and cost
+derivative, respectively.  These are reset at the beginning of each
+optimization.</p>
+</dd></dl>
+
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+    <h2><a href="http://murpheylab.github.io/trep/">Project Website</a></h2>
+
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#"><code class="docutils literal"><span class="pre">DOptimizer</span></code> - Discrete Trajectory Optimization</a><ul>
+<li><a class="reference internal" href="#doptimizer-objects">DOptimizer Objects</a><ul>
+<li><a class="reference internal" href="#cost-functions">Cost Functions</a></li>
+<li><a class="reference internal" href="#descent-directions">Descent Directions</a></li>
+<li><a class="reference internal" href="#armijo-line-search">Armijo Line Search</a></li>
+<li><a class="reference internal" href="#optimizing-a-trajectory">Optimizing a Trajectory</a></li>
+<li><a class="reference internal" href="#debugging-tools">Debugging Tools</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#doptimizermonitor-objects">DOptimizerMonitor Objects</a><ul>
+<li><a class="reference internal" href="#doptimizerdefaultmonitor-objects">DOptimizerDefaultMonitor Objects</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="dcost.html"
+                        title="previous chapter"><code class="docutils literal"><span class="pre">DCost</span></code> - Discrete Trajectory Cost</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="ros.html"
+                        title="next chapter"><code class="docutils literal"><span class="pre">trep.ros</span></code> - ROS Tools</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/ref/doptimizer.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="ros.html" title="trep.ros - ROS Tools"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="dcost.html" title="DCost - Discrete Trajectory Cost"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">trep documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" >API Reference</a> &raquo;</li>
+          <li class="nav-item nav-item-2"><a href="optimal.html" ><code class="docutils literal"><span class="pre">trep.discopt</span></code> - Discrete Optimal Control</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &copy; Copyright 2015, Elliot Johnson.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.3.1.
+    </div>
+  </body>
+</html>

@@ -49,3 +49,7 @@ Build trep with the following commands
 After the compilation finishes, install trep with
 
     sudo python setup.py install
+
+If c-headers are needed to compile another extension against trep, run the following
+
+    sudo python setup.py install_headers

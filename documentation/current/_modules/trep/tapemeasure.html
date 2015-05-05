@@ -1,0 +1,311 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>trep.tapemeasure &mdash; trep documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="trep documentation" href="../../index.html" />
+    <link rel="up" title="Module code" href="../index.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">trep documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+    <script type="math/tex">
+    \newcommand{\deriv}[2][]{\dfrac{\partial #1}{\partial #2}}
+\newcommand{\tderiv}[2][]{\tfrac{\partial #1}{\partial #2}}
+\newcommand{\fderiv}[2][]{\dfrac{d #1}{d #2}}
+\newcommand{\derivII}[3][]{\dfrac{\partial^2 #1}{\partial #2 \partial #3}}
+\newcommand{\tderivII}[3][]{\tfrac{\partial^2 #1}{\partial #2 \partial #3}}
+\newcommand{\derivIII}[4][]{\dfrac{\partial^3 #1}{\partial #2 \partial #3 \partial #4}}
+\newcommand{\tderivIII}[4][]{\tfrac{\partial^3 #1}{\partial #2 \partial #3 \partial #4}}
+\newcommand{\derivIV}[5][]{\dfrac{\partial^4 #1}{\partial #2 \partial #3 \partial #4 \partial #5}}
+
+\newcommand{\half}{\tfrac{1}{2}}  % Macro for 1/2
+
+\newcommand{\ud}{\mathrm{d}}
+
+\newcommand{\op}{\circ}
+\newcommand{\dq}{\dot{q}}
+\newcommand{\ddq}{\ddot{q}}
+
+\newcommand{\dt}{\Delta t}
+
+
+    </script>
+    
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for trep.tapemeasure</h1><div class="highlight"><pre>
+<span class="kn">from</span> <span class="nn">itertools</span> <span class="kn">import</span> <span class="n">product</span>
+<span class="kn">import</span> <span class="nn">trep</span>
+<span class="kn">from</span> <span class="nn">_trep</span> <span class="kn">import</span> <span class="n">_TapeMeasure</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">OpenGL.GL</span> <span class="kn">import</span> <span class="o">*</span>
+    <span class="kn">from</span> <span class="nn">OpenGL.GLU</span> <span class="kn">import</span> <span class="o">*</span>
+    <span class="kn">from</span> <span class="nn">OpenGL.GLUT</span> <span class="kn">import</span> <span class="o">*</span>
+    <span class="n">_opengl</span> <span class="o">=</span> <span class="bp">True</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+    <span class="n">_opengl</span> <span class="o">=</span> <span class="bp">False</span>
+
+<div class="viewcode-block" id="TapeMeasure"><a class="viewcode-back" href="../../ref/tapemeasure.html#trep.TapeMeasure">[docs]</a><span class="k">class</span> <span class="nc">TapeMeasure</span><span class="p">(</span><span class="n">_TapeMeasure</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">system</span><span class="p">,</span> <span class="n">frames</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_system</span> <span class="o">=</span> <span class="n">system</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_frames</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">([</span><span class="n">system</span><span class="o">.</span><span class="n">get_frame</span><span class="p">(</span><span class="n">f</span><span class="p">)</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">frames</span><span class="p">])</span>
+        <span class="c"># Update the seg table.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_system</span><span class="o">.</span><span class="n">add_structure_changed_func</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_update_structure</span><span class="p">)</span>
+        <span class="c"># Trigger a system change so our update gets called.  Don&#39;t</span>
+        <span class="c"># call it directly in case there is a hold in progres right now.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_system</span><span class="o">.</span><span class="n">_structure_changed</span><span class="p">()</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">system</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_system</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">frames</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_frames</span>
+
+<div class="viewcode-block" id="TapeMeasure.length"><a class="viewcode-back" href="../../ref/tapemeasure.html#trep.TapeMeasure.length">[docs]</a>    <span class="k">def</span> <span class="nf">length</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_length</span><span class="p">()</span>
+</div>
+<div class="viewcode-block" id="TapeMeasure.length_dq"><a class="viewcode-back" href="../../ref/tapemeasure.html#trep.TapeMeasure.length_dq">[docs]</a>    <span class="k">def</span> <span class="nf">length_dq</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">q1</span><span class="p">):</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">q1</span><span class="p">,</span> <span class="n">trep</span><span class="o">.</span><span class="n">Config</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_length_dq</span><span class="p">(</span><span class="n">q1</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="TapeMeasure.length_dqdq"><a class="viewcode-back" href="../../ref/tapemeasure.html#trep.TapeMeasure.length_dqdq">[docs]</a>    <span class="k">def</span> <span class="nf">length_dqdq</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">q1</span><span class="p">,</span> <span class="n">q2</span><span class="p">):</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">q1</span><span class="p">,</span> <span class="n">trep</span><span class="o">.</span><span class="n">Config</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">q2</span><span class="p">,</span> <span class="n">trep</span><span class="o">.</span><span class="n">Config</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_length_dqdq</span><span class="p">(</span><span class="n">q1</span><span class="p">,</span> <span class="n">q2</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="TapeMeasure.length_dqdqdq"><a class="viewcode-back" href="../../ref/tapemeasure.html#trep.TapeMeasure.length_dqdqdq">[docs]</a>    <span class="k">def</span> <span class="nf">length_dqdqdq</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">q1</span><span class="p">,</span> <span class="n">q2</span><span class="p">,</span> <span class="n">q3</span><span class="p">):</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">q1</span><span class="p">,</span> <span class="n">trep</span><span class="o">.</span><span class="n">Config</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">q2</span><span class="p">,</span> <span class="n">trep</span><span class="o">.</span><span class="n">Config</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">q3</span><span class="p">,</span> <span class="n">trep</span><span class="o">.</span><span class="n">Config</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_length_dqdqdq</span><span class="p">(</span><span class="n">q1</span><span class="p">,</span> <span class="n">q2</span><span class="p">,</span> <span class="n">q3</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="TapeMeasure.velocity"><a class="viewcode-back" href="../../ref/tapemeasure.html#trep.TapeMeasure.velocity">[docs]</a>    <span class="k">def</span> <span class="nf">velocity</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_velocity</span><span class="p">()</span>
+</div>
+<div class="viewcode-block" id="TapeMeasure.velocity_dq"><a class="viewcode-back" href="../../ref/tapemeasure.html#trep.TapeMeasure.velocity_dq">[docs]</a>    <span class="k">def</span> <span class="nf">velocity_dq</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">q1</span><span class="p">):</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">q1</span><span class="p">,</span> <span class="n">trep</span><span class="o">.</span><span class="n">Config</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_velocity_dq</span><span class="p">(</span><span class="n">q1</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="TapeMeasure.velocity_dqdq"><a class="viewcode-back" href="../../ref/tapemeasure.html#trep.TapeMeasure.velocity_dqdq">[docs]</a>    <span class="k">def</span> <span class="nf">velocity_dqdq</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">q1</span><span class="p">,</span> <span class="n">q2</span><span class="p">):</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">q1</span><span class="p">,</span> <span class="n">trep</span><span class="o">.</span><span class="n">Config</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">q2</span><span class="p">,</span> <span class="n">trep</span><span class="o">.</span><span class="n">Config</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_velocity_dqdq</span><span class="p">(</span><span class="n">q1</span><span class="p">,</span> <span class="n">q2</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="TapeMeasure.velocity_ddq"><a class="viewcode-back" href="../../ref/tapemeasure.html#trep.TapeMeasure.velocity_ddq">[docs]</a>    <span class="k">def</span> <span class="nf">velocity_ddq</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dq1</span><span class="p">):</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">dq1</span><span class="p">,</span> <span class="n">trep</span><span class="o">.</span><span class="n">Config</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_velocity_ddq</span><span class="p">(</span><span class="n">dq1</span><span class="p">)</span>
+</div>
+    <span class="k">def</span> <span class="nf">velocity_ddqdq</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dq1</span><span class="p">,</span> <span class="n">q2</span><span class="p">):</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">dq1</span><span class="p">,</span> <span class="n">trep</span><span class="o">.</span><span class="n">Config</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">q2</span><span class="p">,</span> <span class="n">trep</span><span class="o">.</span><span class="n">Config</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_velocity_ddqdq</span><span class="p">(</span><span class="n">dq1</span><span class="p">,</span> <span class="n">q2</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">_opengl</span><span class="p">:</span>
+<div class="viewcode-block" id="TapeMeasure.opengl_draw"><a class="viewcode-back" href="../../ref/tapemeasure.html#trep.TapeMeasure.opengl_draw">[docs]</a>        <span class="k">def</span> <span class="nf">opengl_draw</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">)):</span>
+            <span class="n">glPushAttrib</span><span class="p">(</span><span class="n">GL_CURRENT_BIT</span> <span class="o">|</span> <span class="n">GL_LINE_BIT</span> <span class="o">|</span> <span class="n">GL_LIGHTING_BIT</span><span class="p">)</span>
+            <span class="n">glDisable</span><span class="p">(</span><span class="n">GL_LIGHTING</span><span class="p">)</span>
+            <span class="n">glColor3f</span><span class="p">(</span><span class="o">*</span><span class="n">color</span><span class="p">)</span>
+            <span class="n">glLineWidth</span><span class="p">(</span><span class="n">width</span><span class="p">)</span>
+            <span class="n">glBegin</span><span class="p">(</span><span class="n">GL_LINE_STRIP</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_frames</span><span class="p">:</span>
+                <span class="n">glVertex3f</span><span class="p">(</span><span class="o">*</span><span class="n">f</span><span class="o">.</span><span class="n">p</span><span class="p">()[:</span><span class="mi">3</span><span class="p">])</span>
+            <span class="n">glEnd</span><span class="p">()</span>
+            <span class="n">glPopAttrib</span><span class="p">()</span>
+</div>
+    <span class="k">def</span> <span class="nf">_update_structure</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+        <span class="c">## We are going to create a table that maps configuration</span>
+        <span class="c">## variables with a list of segments where only one frame</span>
+        <span class="c">## depends on that configuration variable.  We could do this</span>
+        <span class="c">## with a simple list of lists, but to avoid writing any more</span>
+        <span class="c">## C than we have to, we&#39;ll save it to a 2D numpy array of</span>
+        <span class="c">## integers.  It will be [nQ x num_segments] initialized to</span>
+        <span class="c">## -1.  Each row corresponds to one config.  Then we fill the</span>
+        <span class="c">## columns from left to right with indices of the correct</span>
+        <span class="c">## segments.</span>
+
+        <span class="c"># This has to be one longer than the length of segments so we</span>
+        <span class="c"># can have -1 to indicate the end even if all segments depend on q.        </span>
+        <span class="n">table</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">system</span><span class="o">.</span><span class="n">nQ</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_frames</span><span class="p">)),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span> <span class="o">*</span> <span class="o">-</span><span class="mi">1</span>
+
+        <span class="k">for</span> <span class="n">qi</span><span class="p">,</span><span class="n">q</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">system</span><span class="o">.</span><span class="n">configs</span><span class="p">):</span>
+            <span class="n">segments</span> <span class="o">=</span> <span class="p">[]</span>
+
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_frames</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">):</span>
+                <span class="n">frame1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_frames</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+                <span class="n">frame2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_frames</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span>
+
+                <span class="c"># Looking for segments where only one frame depends on q</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">frame1</span><span class="o">.</span><span class="n">uses_config</span><span class="p">(</span><span class="n">q</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">frame2</span><span class="o">.</span><span class="n">uses_config</span><span class="p">(</span><span class="n">q</span><span class="p">):</span>
+                    <span class="k">continue</span>
+                <span class="k">if</span> <span class="n">frame1</span><span class="o">.</span><span class="n">uses_config</span><span class="p">(</span><span class="n">q</span><span class="p">)</span> <span class="ow">and</span> <span class="n">frame2</span><span class="o">.</span><span class="n">uses_config</span><span class="p">(</span><span class="n">q</span><span class="p">):</span>
+                    <span class="k">continue</span>
+                <span class="n">segments</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>                
+            <span class="c"># Save the list to the table</span>
+            <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">seg</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">segments</span><span class="p">):</span>
+                <span class="n">table</span><span class="p">[</span><span class="n">qi</span><span class="p">,</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">seg</span>
+        <span class="c"># Save it for the C code to use.  Make a copy to ensure</span>
+        <span class="c"># correct ordering and type (this bit me earlier when numpy</span>
+        <span class="c"># decided to change it between np.ones() and here.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_seg_table</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">table</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="s">&#39;C&#39;</span><span class="p">)</span>
+            
+        
+
+    <span class="c">############################################################################</span>
+    <span class="c"># Functions to test derivatives (may move to unit tests)</span>
+
+<div class="viewcode-block" id="TapeMeasure.validate_length_dq"><a class="viewcode-back" href="../../ref/tapemeasure.html#trep.TapeMeasure.validate_length_dq">[docs]</a>    <span class="k">def</span> <span class="nf">validate_length_dq</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">delta</span><span class="o">=</span><span class="mf">1e-6</span><span class="p">,</span> <span class="n">tolerance</span><span class="o">=</span><span class="mf">1e-6</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_system</span><span class="o">.</span><span class="n">test_derivative_dq</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">length</span><span class="p">,</span>
+                                               <span class="bp">self</span><span class="o">.</span><span class="n">length_dq</span><span class="p">,</span>
+                                               <span class="n">delta</span><span class="p">,</span> <span class="n">tolerance</span><span class="p">,</span>
+                                               <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">,</span>
+                                               <span class="n">test_name</span><span class="o">=</span><span class="s">&#39;TapeMeasure.length_dq()&#39;</span> <span class="p">)</span>
+    </div>
+<div class="viewcode-block" id="TapeMeasure.validate_length_dqdq"><a class="viewcode-back" href="../../ref/tapemeasure.html#trep.TapeMeasure.validate_length_dqdq">[docs]</a>    <span class="k">def</span> <span class="nf">validate_length_dqdq</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">delta</span><span class="o">=</span><span class="mf">1e-6</span><span class="p">,</span> <span class="n">tolerance</span><span class="o">=</span><span class="mf">1e-6</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="k">def</span> <span class="nf">test</span><span class="p">(</span><span class="n">q1</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_system</span><span class="o">.</span><span class="n">test_derivative_dq</span><span class="p">(</span>
+                <span class="k">lambda</span> <span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">length_dq</span><span class="p">(</span><span class="n">q1</span><span class="p">),</span>
+                <span class="k">lambda</span> <span class="n">q2</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">length_dqdq</span><span class="p">(</span><span class="n">q1</span><span class="p">,</span> <span class="n">q2</span><span class="p">),</span>
+                <span class="n">delta</span><span class="p">,</span> <span class="n">tolerance</span><span class="p">,</span>
+                <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">,</span>
+                <span class="n">test_name</span><span class="o">=</span><span class="s">&#39;TapeMeasure.length_dqdq()&#39;</span><span class="p">)</span>
+
+        <span class="n">result</span> <span class="o">=</span> <span class="p">[</span><span class="n">test</span><span class="p">(</span><span class="n">q1</span><span class="p">)</span> <span class="k">for</span> <span class="n">q1</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_system</span><span class="o">.</span><span class="n">configs</span><span class="p">]</span>
+        <span class="k">return</span> <span class="nb">all</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="TapeMeasure.validate_length_dqdqdq"><a class="viewcode-back" href="../../ref/tapemeasure.html#trep.TapeMeasure.validate_length_dqdqdq">[docs]</a>    <span class="k">def</span> <span class="nf">validate_length_dqdqdq</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">delta</span><span class="o">=</span><span class="mf">1e-6</span><span class="p">,</span> <span class="n">tolerance</span><span class="o">=</span><span class="mf">1e-6</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="k">def</span> <span class="nf">test</span><span class="p">(</span><span class="n">q1</span><span class="p">,</span> <span class="n">q2</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_system</span><span class="o">.</span><span class="n">test_derivative_dq</span><span class="p">(</span>
+                <span class="k">lambda</span> <span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">length_dqdq</span><span class="p">(</span><span class="n">q1</span><span class="p">,</span> <span class="n">q2</span><span class="p">),</span>
+                <span class="k">lambda</span> <span class="n">q3</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">length_dqdqdq</span><span class="p">(</span><span class="n">q1</span><span class="p">,</span> <span class="n">q2</span><span class="p">,</span> <span class="n">q3</span><span class="p">),</span>
+                <span class="n">delta</span><span class="p">,</span> <span class="n">tolerance</span><span class="p">,</span>
+                <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">,</span>
+                <span class="n">test_name</span><span class="o">=</span><span class="s">&#39;TapeMeasure.length_dqdqdq()&#39;</span><span class="p">)</span>
+
+        <span class="n">result</span> <span class="o">=</span> <span class="p">[</span><span class="n">test</span><span class="p">(</span><span class="n">q1</span><span class="p">,</span><span class="n">q2</span><span class="p">)</span> <span class="k">for</span> <span class="n">q1</span><span class="p">,</span><span class="n">q2</span> <span class="ow">in</span> <span class="n">product</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_system</span><span class="o">.</span><span class="n">configs</span><span class="p">,</span> <span class="n">repeat</span><span class="o">=</span><span class="mi">2</span><span class="p">)]</span>
+        <span class="k">return</span> <span class="nb">all</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="TapeMeasure.validate_velocity_dq"><a class="viewcode-back" href="../../ref/tapemeasure.html#trep.TapeMeasure.validate_velocity_dq">[docs]</a>    <span class="k">def</span> <span class="nf">validate_velocity_dq</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">delta</span><span class="o">=</span><span class="mf">1e-6</span><span class="p">,</span> <span class="n">tolerance</span><span class="o">=</span><span class="mf">1e-6</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_system</span><span class="o">.</span><span class="n">test_derivative_dq</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">velocity</span><span class="p">,</span>
+                                               <span class="bp">self</span><span class="o">.</span><span class="n">velocity_dq</span><span class="p">,</span>
+                                               <span class="n">delta</span><span class="p">,</span> <span class="n">tolerance</span><span class="p">,</span>
+                                               <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">,</span>
+                                               <span class="n">test_name</span><span class="o">=</span><span class="s">&#39;TapeMeasure.velocity_dq()&#39;</span> <span class="p">)</span>
+    </div>
+<div class="viewcode-block" id="TapeMeasure.validate_velocity_dqdq"><a class="viewcode-back" href="../../ref/tapemeasure.html#trep.TapeMeasure.validate_velocity_dqdq">[docs]</a>    <span class="k">def</span> <span class="nf">validate_velocity_dqdq</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">delta</span><span class="o">=</span><span class="mf">1e-6</span><span class="p">,</span> <span class="n">tolerance</span><span class="o">=</span><span class="mf">1e-6</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="k">def</span> <span class="nf">test</span><span class="p">(</span><span class="n">q1</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_system</span><span class="o">.</span><span class="n">test_derivative_dq</span><span class="p">(</span>
+                <span class="k">lambda</span> <span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">velocity_dq</span><span class="p">(</span><span class="n">q1</span><span class="p">),</span>
+                <span class="k">lambda</span> <span class="n">q2</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">velocity_dqdq</span><span class="p">(</span><span class="n">q1</span><span class="p">,</span> <span class="n">q2</span><span class="p">),</span>
+                <span class="n">delta</span><span class="p">,</span> <span class="n">tolerance</span><span class="p">,</span>
+                <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">,</span>
+                <span class="n">test_name</span><span class="o">=</span><span class="s">&#39;TapeMeasure.velocity_dqdq()&#39;</span><span class="p">)</span>
+
+        <span class="n">result</span> <span class="o">=</span> <span class="p">[</span><span class="n">test</span><span class="p">(</span><span class="n">q1</span><span class="p">)</span> <span class="k">for</span> <span class="n">q1</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_system</span><span class="o">.</span><span class="n">configs</span><span class="p">]</span>
+        <span class="k">return</span> <span class="nb">all</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="TapeMeasure.validate_velocity_ddq"><a class="viewcode-back" href="../../ref/tapemeasure.html#trep.TapeMeasure.validate_velocity_ddq">[docs]</a>    <span class="k">def</span> <span class="nf">validate_velocity_ddq</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">delta</span><span class="o">=</span><span class="mf">1e-6</span><span class="p">,</span> <span class="n">tolerance</span><span class="o">=</span><span class="mf">1e-6</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_system</span><span class="o">.</span><span class="n">test_derivative_ddq</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">velocity</span><span class="p">,</span>
+                                                <span class="bp">self</span><span class="o">.</span><span class="n">velocity_ddq</span><span class="p">,</span>
+                                                <span class="n">delta</span><span class="p">,</span> <span class="n">tolerance</span><span class="p">,</span>
+                                                <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">,</span>
+                                                <span class="n">test_name</span><span class="o">=</span><span class="s">&#39;TapeMeasure.velocity_ddq()&#39;</span> <span class="p">)</span>
+</div>
+<div class="viewcode-block" id="TapeMeasure.validate_velocity_ddqdq"><a class="viewcode-back" href="../../ref/tapemeasure.html#trep.TapeMeasure.validate_velocity_ddqdq">[docs]</a>    <span class="k">def</span> <span class="nf">validate_velocity_ddqdq</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">delta</span><span class="o">=</span><span class="mf">1e-6</span><span class="p">,</span> <span class="n">tolerance</span><span class="o">=</span><span class="mf">1e-6</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="k">def</span> <span class="nf">test</span><span class="p">(</span><span class="n">dq1</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_system</span><span class="o">.</span><span class="n">test_derivative_dq</span><span class="p">(</span>
+                <span class="k">lambda</span> <span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">velocity_ddq</span><span class="p">(</span><span class="n">dq1</span><span class="p">),</span>
+                <span class="k">lambda</span> <span class="n">q2</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">velocity_ddqdq</span><span class="p">(</span><span class="n">dq1</span><span class="p">,</span> <span class="n">q2</span><span class="p">),</span>
+                <span class="n">delta</span><span class="p">,</span> <span class="n">tolerance</span><span class="p">,</span>
+                <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">,</span>
+                <span class="n">test_name</span><span class="o">=</span><span class="s">&#39;TapeMeasure.velocity_dqdq()&#39;</span><span class="p">)</span>
+
+        <span class="n">result</span> <span class="o">=</span> <span class="p">[</span><span class="n">test</span><span class="p">(</span><span class="n">q1</span><span class="p">)</span> <span class="k">for</span> <span class="n">q1</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_system</span><span class="o">.</span><span class="n">configs</span><span class="p">]</span>
+        <span class="k">return</span> <span class="nb">all</span><span class="p">(</span><span class="n">result</span><span class="p">)</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+    <h2><a href="http://murpheylab.github.io/trep/">Project Website</a></h2>
+
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">trep documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &copy; Copyright 2015, Elliot Johnson.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.3.1.
+    </div>
+  </body>
+</html>
