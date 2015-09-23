@@ -122,10 +122,6 @@ update_version_file()
 try:
     from sphinx.setup_command import BuildDoc
     cmd_class['build_sphinx'] = BuildDoc
-    cmd_options['build_sphinx'] = {
-        'version' : ('setup.py', get_approx_version()[1:]),
-        'release' : ('setup.py', '')
-        }
     # See docstring for BuildDoc on how to set default options here.
 except ImportError:
     pass

@@ -20,7 +20,7 @@ You can find detailed `installation instructions
 Many examples are included with the source code (`browse online
 <https://github.com/MurpheyLab/trep/tree/master/examples>`_).
 
-The :ref:`api reference` has detailed documentation for each part of
+The :ref:`api-ref` has detailed documentation for each part of
 :mod:`trep`. We have also put together a detailed :ref:`tutorial` that gives an
 idea of the capabilities and organization of :mod:`trep` by stepping through
 several example problems.
@@ -28,25 +28,41 @@ several example problems.
 If you have any questions or suggestions, please head over to our
 `project page <http://murpheylab.github.io/trep/>`_.
 
+.. toctree::
+   :hidden:
 
-Contents:
+   Project Homepage <http://nxr.northwestern.edu/trep>
+
+.. _api-ref: 
 
 .. toctree::
    :maxdepth: 2
+   :caption: API Reference
 
-   ref/index
-   tutorial/index
+   Core Components <ref/core>
+   Potential Energies <ref/potentials>
+   Forces <ref/forces>
+   Holonomic Constraints <ref/constraints>
+   Discrete Optimal Control <ref/optimal>
+   ROS Tools <ref/ros>
+   ref/misc
 
-.. toctree:: 
-   :hidden:
+.. _tutorial:
 
-   user_guide/index
-   placeholders
+.. toctree::
+   :maxdepth: 1
+   :caption: Tutorials
+
+   tutorial/trepHelloWorld
+   tutorial/pendulumSystem
+   tutorial/linearFeedbackController
+   tutorial/energyShapingSwingupController
+   tutorial/optimalSwitchingTime
+
 
 Indices and tables
 ==================
 
 * :ref:`genindex`
 * :ref:`modindex`
-* :ref:`search`
 

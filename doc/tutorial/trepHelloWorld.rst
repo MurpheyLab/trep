@@ -1,5 +1,11 @@
 Trep "Hello World"
 ==================
+This tutorial is meant to be an introduction to :mod:`trep` by walking the
+reader through extended examples. This tutorial will use a Python shell known as
+`IPython <http://ipython.org>`_ for illustrating the organization of trep's
+components. It is recommended that IPython is downloaded and installed, although
+the tutorial is still useful without access to IPython.
+
 Let's begin by creating the trep equivalent of "Hello World".
 
 Import the trep module into python
