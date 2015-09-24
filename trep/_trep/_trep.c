@@ -19,18 +19,18 @@ extern PyTypeObject SystemType;
 extern PyTypeObject SplineType;
 extern PyTypeObject TapeMeasureType;
 
-// Constraint Types defined in src/_trep/constraints/*
+// Constraint Types defined in trep/_trep/constraints/*
 extern PyTypeObject DistanceConstraintType;
 extern PyTypeObject PointOnPlaneConstraintType;
 extern PyTypeObject PointToPointConstraintType;
 
-// Potential Energy Types defined in src/_trep/potentials/*
+// Potential Energy Types defined in trep/_trep/potentials/*
 extern PyTypeObject GravityPotentialType;
 extern PyTypeObject LinearSpringPotentialType;
 extern PyTypeObject ConfigSpringPotentialType;
 extern PyTypeObject NonlinearConfigSpringType;
 
-// Force Types defined in src/_trep/forces/*
+// Force Types defined in trep/_trep/forces/*
 extern PyTypeObject DampingForceType;
 extern PyTypeObject LinearDamperForceType;
 extern PyTypeObject ConfigForceType;
