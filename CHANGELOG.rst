@@ -1,6 +1,11 @@
 Trep Changelog
 ==============
 
+v1.0.2 (2015-09-25)
+-------------------
+* Renamed src/ folder to trep/ following convention [#33](https://github.com/MurpheyLab/trep/issues/33)
+* Updated documentation theme to RTD template
+
 v1.0.1 (2015-05-04)
 -------------------
 * Method added to get trep include path [#31](https://github.com/MurpheyLab/trep/issues/31)

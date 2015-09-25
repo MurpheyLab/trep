@@ -31,7 +31,7 @@ If you have any questions or suggestions, please head over to our
 .. toctree::
    :hidden:
 
-   Project Homepage <http://nxr.northwestern.edu/trep>
+   Project Homepage <http://murpheylab.github.io/trep/>
 
 .. _api-ref: 
 

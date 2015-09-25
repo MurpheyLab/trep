@@ -23,6 +23,9 @@ import sys, os, subprocess, datetime
 # If your documentation needs a minimal Sphinx version, state it here.
 #needs_sphinx = '1.0'
 
+# on_rtd is whether we are on readthedocs.org
+on_rtd = os.environ.get('READTHEDOCS', None) == 'True'
+
 # Add any Sphinx extension module names here, as strings. They can be extensions
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
 extensions = [
@@ -60,7 +63,12 @@ class GitError(StandardError): pass
 
 def get_version_from_git():
     try:
-        p = subprocess.Popen(["git", "describe", "--dirty", "--always"],
+        if on_rtd:
+            p = subprocess.Popen(["git", "describe", "--always"],
+                             stdout=subprocess.PIPE,
+                             stderr=subprocess.PIPE)
+        else:
+            p = subprocess.Popen(["git", "describe", "--dirty", "--always"],
                              stdout=subprocess.PIPE,
                              stderr=subprocess.PIPE)
     except EnvironmentError as e:
@@ -150,12 +158,12 @@ math_commands = open('math_commands.tex').read()
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
-# on_rtd is whether we are on readthedocs.org
-import os
-on_rtd = os.environ.get('READTHEDOCS', None) == 'True'
 
 if not on_rtd:  # only import and set the theme if we're building docs locally
-    import sphinx_rtd_theme
+    try:
+        import sphinx_rtd_theme
+    except ImportError:
+        print "\033[93mPlease install sphinx_rtd_theme from pip!\033[0m"
     html_theme = 'sphinx_rtd_theme'
     html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
 else:

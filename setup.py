@@ -124,7 +124,7 @@ try:
     cmd_class['build_sphinx'] = BuildDoc
     # See docstring for BuildDoc on how to set default options here.
 except ImportError:
-    pass
+    print "Note: Sphinx must be installed to build documentation"
 
 ext_modules = []
 
