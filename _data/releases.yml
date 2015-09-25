@@ -1,5 +1,9 @@
+- version_name: v1.0.2
+  folder: readthedocs
+  date: September 25, 2015
+
 - version_name: v1.0.1
-  folder: current
+  folder: v1_0_1
   date: May 4, 2015
 
 - version_name: v1.0.0

@@ -19,7 +19,11 @@ description: This page provides the changes in trep from previous versions as we
             <ul>
                 {% for release in site.data.releases %}
                 <li>
-                    <h4><a href="{{ site.baseurl }}/documentation/{{ release.folder }}/">{{ release.version_name }}</a></h4>
+                    {% if release.folder == "readthedocs" %}
+                        <h4><a href="http://trep.readthedocs.org/en/{{ release.version_name }}/">{{ release.version_name }}</a></h4>
+                    {% else %}
+                        <h4><a href="{{ site.baseurl }}/documentation/{{ release.folder }}/">{{ release.version_name }}</a></h4>
+                    {% endif %}
                     <ul>
                         <li>Released: {{ release.date }}</li>
                     </ul>
