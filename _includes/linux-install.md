@@ -2,7 +2,7 @@
 
 Trep requires that the following basic dependencies are installed:
 
-* Python - [http://www.python.org/](http://www.python.org/) (>=2.6) (including development header files)
+* Python - [http://www.python.org/](http://www.python.org/) (2.6.x or 2.7.x) (including development header files)
 * Numpy - [http://www.numpy.org/](http://www.numpy.org/) (>=1.4.1)
 * Scipy - [http://www.scipy.org/](http://www.scipy.org/)
 
