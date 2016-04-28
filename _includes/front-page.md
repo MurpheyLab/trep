@@ -1,7 +1,7 @@
 ### Trep: Mechanical Simulation and Optimal Control
 Trep is a Python module for modeling articulated rigid body mechanical systems in generalized coordinates. Trep supports basic simulation but it is primarily designed to serve as a calculation engine for analysis and optimal control algorithms that require 1st and 2nd derivatives of the system's dynamics.
 
-Get started by [installing](install/) trep and checking out the [documentation](http://trep.readthedocs.org/en/latest/). Source code for trep is available from the [GitHub repository](https://github.com/MurpheyLab/trep).
+Get started by [installing](install/) trep and checking out the [documentation](http://trep.readthedocs.io/en/latest/). Source code for trep is available from the [GitHub repository](https://github.com/MurpheyLab/trep).
 
 ROS users can now get trep binaries directly from the ROS repositories. Check the *python_trep* [wiki page](http://wiki.ros.org/python_trep) for more information.
 
