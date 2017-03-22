@@ -48,5 +48,5 @@ start = time.clock()
 finish = time.clock()
 
 # Display
-print "Simulation: dt=%f, tf=%f, runtime=%f s" % (dt, tf, finish-start)
+print("Simulation: dt=%f, tf=%f, runtime=%f s" % (dt, tf, finish-start))
 visual.visualize_3d([ visual.VisualItem3D(system, t, q) ])

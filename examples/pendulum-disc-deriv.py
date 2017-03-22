@@ -82,8 +82,8 @@ dfdx = np.vstack([
     ])
 
 
-print "The discrete linearization is: "
-print dfdx
+print("The discrete linearization is: ")
+print(dfdx)
 
 # As with the continuous linearization, the general case gets more
 # confusing as you consider kinematic configuraiton variables and

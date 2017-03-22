@@ -379,8 +379,8 @@ def verify_solution(q_ref, q):
     q = np.array(q)
 
     error = np.linalg.norm(q_ref - q)
-    print "Error between reference and solution trajectories:"
-    print error
+    print("Error between reference and solution trajectories:")
+    print(error)
 
 
 # Run the script

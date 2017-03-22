@@ -41,9 +41,9 @@ qkp1 = so.newton(DEL1, qk)
 pkp1 = (qkp1-qk)/dt - g*dt/2.0*np.sin((qkp1+qk)/2.0)
 
 # print results
-print "=============================================="
-print "trep VI results:\tanalytical results:"
-print "=============================================="
-print "qk+1 = ",mvi.q2[0],"\t","qk+1 = ",qkp1
-print "pk+1 = ",mvi.p2[0],"\t","pk+1 = ",pkp1
-print "=============================================="
+print("==============================================")
+print("trep VI results:\tanalytical results:")
+print("==============================================")
+print("qk+1 = ",mvi.q2[0],"\t","qk+1 = ",qkp1)
+print("pk+1 = ",mvi.p2[0],"\t","pk+1 = ",pkp1)
+print("==============================================")

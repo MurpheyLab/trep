@@ -109,7 +109,7 @@ def create_initial_trajectory():
         # The puppet can take a while to simulate, so print out the time
         # occasionally to indicate our progress.
         if abs(gmvi.t2 - round(gmvi.t2)) < dt/2.0:
-            print "t =",gmvi.t2
+            print("t =",gmvi.t2)
 
 
     dsys = discopt.DSystem(gmvi, t)
@@ -132,13 +132,13 @@ def calc_error(X0, X1):
 
 
 
-print "Creating initial trajectory."
+print("Creating initial trajectory.")
 (puppet, dsys, t, X0, U0) = create_initial_trajectory()
 
-print "Calculating the linearization about the known trajectory."
+print("Calculating the linearization about the known trajectory.")
 (A, B) = dsys.linearize_trajectory(X0, U0)
 
-print "Creating perturbation for initial condition."
+print("Creating perturbation for initial condition.")
 x0_perturbed = create_offset_initial_condition(dsys, X0[0], U0[0])
 
 # Create cost matrices
@@ -149,18 +149,18 @@ Qproj = lambda k: Q
 #Qproj = [np.eye(dsys.nX)]*(dsys.kf()+1)
 Rproj = lambda k: np.eye(dsys.nU)
 
-print "Solving LQR problem."
+print("Solving LQR problem.")
 K = dlqr.solve_tv_lqr(A, B, Qproj, Rproj)[0]
 
-print "Simulating without feedback...",
+print("Simulating without feedback...", end=' ')
 X_open, U_open = simulate(dsys, x0_perturbed, U0)
 open_error = calc_error(X0, X_open)
-print "done (error: %f)" % open_error
+print("done (error: %f)" % open_error)
 
-print "Simulating with feedback...  ",
+print("Simulating with feedback...  ", end=' ')
 X_closed, U_closed = simulate(dsys, x0_perturbed, U0, K, X0)
 closed_error = calc_error(X0, X_closed)
-print "done (error: %f)" % closed_error
+print("done (error: %f)" % closed_error)
 
 
 (Q_closed, p, v, u, rho) = dsys.split_trajectory(X_closed, U_closed)

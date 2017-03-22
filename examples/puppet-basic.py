@@ -131,7 +131,7 @@ while mvi.t1 < tf:
     # The puppet can take a while to simulate, so print out the time
     # occasionally to indicate our progress.
     if abs(mvi.t2 - round(mvi.t2)) < dt/2.0:
-        print "t =",mvi.t2
+        print("t =",mvi.t2)
 
 # After the simulation is finished, we can visualize the results.  The
 # viewer can automatically draw a primitive representation for

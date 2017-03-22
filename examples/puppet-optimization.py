@@ -91,7 +91,7 @@ def generate_desired_trajectory():
         # The puppet can take a while to simulate, so print out the time
         # occasionally to indicate our progress.
         if abs(mvi.t2 - round(mvi.t2)) < dt/2.0:
-            print "t =",mvi.t2
+            print("t =",mvi.t2)
 
 
     t = np.array(t)
@@ -175,7 +175,7 @@ def optimize_trajectory(dsys, xid, in_filename, out_filename):
         #[MU2_COST]*len(dsys.system.inputs) +
         [RHO_COST]*len(dsys.system.kin_configs)
         )
-    for force in dsys.system.joint_forces.values():
+    for force in list(dsys.system.joint_forces.values()):
         weight[force.finput.index] = mu1_cost
     Rcost = np.diag(weight)
     cost = discopt.DCost(xid[0], xid[1], Qcost, Rcost)

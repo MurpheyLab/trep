@@ -37,16 +37,16 @@ h2 = system.constraints[0].h_dq(system.get_config('theta_2'))
 system.dq = [1.000, -h1/h2]
 
 # print configuration and linearizations
-print "===================="
-print "TREP RESULTS:"
-print "===================="
-print "q = ", system.q
-print "v = ", system.dq, "\r\n"
-print "State Linearization:"
-print np.vstack([np.hstack([np.zeros([2,2]),np.eye(2)]),
-                 np.hstack([system.f_dq(),system.f_ddq()])]), "\r\n"
-print "Input Linearization:"
-print system.f_du()
+print("====================")
+print("TREP RESULTS:")
+print("====================")
+print("q = ", system.q)
+print("v = ", system.dq, "\r\n")
+print("State Linearization:")
+print(np.vstack([np.hstack([np.zeros([2,2]),np.eye(2)]),
+                 np.hstack([system.f_dq(),system.f_ddq()])]), "\r\n")
+print("Input Linearization:")
+print(system.f_du())
 
 #################################################################
 # numerical tests for validation:
@@ -96,15 +96,15 @@ def test_ddq_du(system, u=None, eps=0.001):
         ddq_du[:,j] = df_approx
     return ddq_du
 
-print ""
-print "===================="
-print "NUMERICAL TESTS:"
-print "===================="
-print "q = ", system.q
-print "v = ", system.dq, "\r\n"
-print "State Linearization:"
-print np.vstack([np.hstack([np.zeros([2,2]),np.eye(2)]),
+print("")
+print("====================")
+print("NUMERICAL TESTS:")
+print("====================")
+print("q = ", system.q)
+print("v = ", system.dq, "\r\n")
+print("State Linearization:")
+print(np.vstack([np.hstack([np.zeros([2,2]),np.eye(2)]),
                  np.hstack([test_ddq_dq(system, eps=1e-6),
-                 test_ddq_ddq(system, eps=1e-6)])]), "\r\n"
-print "Input Linearization:"
-print test_ddq_du(system, eps=1e-6)
+                 test_ddq_ddq(system, eps=1e-6)])]), "\r\n")
+print("Input Linearization:")
+print(test_ddq_du(system, eps=1e-6))

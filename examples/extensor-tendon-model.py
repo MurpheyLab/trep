@@ -95,7 +95,7 @@ while mvi.t1 < tf:
     t.append(mvi.t2)
     # Print out the progress during the simulation.
     if abs(mvi.t2 - round(mvi.t2)) < dt/2.0:
-        print "t =",mvi.t2
+        print("t =",mvi.t2)
 
 
 visual.visualize_3d([ visual.VisualItem3D(system, t, q) ])

@@ -59,7 +59,7 @@ optimizer.first_method_iterations = 4
 
 
 # perform second order optimization:
-print "Second order optimization"
+print("Second order optimization")
 finished = False
 costs2 = []
 dcosts2 = []
@@ -78,11 +78,11 @@ while not finished:
     step_count += 1
     costs2.append(ncost)
     dcosts2.append(dcost)
-print "Optimization Finished Bool: ",finished,"\r\n"
+print("Optimization Finished Bool: ",finished,"\r\n")
 
 
 # perform first order optimization:
-print "First order optimization"
+print("First order optimization")
 finished = False
 costs1 = []
 dcosts1 = []
@@ -101,7 +101,7 @@ while not finished:
     step_count += 1
     costs1.append(ncost)
     dcosts1.append(dcost)
-print "Optimization Finished Bool: ",finished,"\r\n"
+print("Optimization Finished Bool: ",finished,"\r\n")
 
 # store the results:
 dsys.save_state_trajectory("pend_ref.mat", Xd, Ud)

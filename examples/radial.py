@@ -145,7 +145,7 @@ try:
         q.append(mvi.q2)
         t.append(mvi.t2)
 except trep.ConvergenceError:
-    print "simulation failed at %f" % mvi.t1
+    print("simulation failed at %f" % mvi.t1)
         
 
 # We can create a custom visualization for the radial engine.

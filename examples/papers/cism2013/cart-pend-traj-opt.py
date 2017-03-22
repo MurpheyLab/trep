@@ -27,7 +27,7 @@ def fref(t):
     elif t<=10:
         return pi
     else:
-        print "Error!"
+        print("Error!")
 
 # create system
 system = trep.System()

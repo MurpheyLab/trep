@@ -1,13 +1,13 @@
 
-from pypiston import PyPistonForce
+from .pypiston import PyPistonForce
 
 PistonForce = PyPistonForce
 
 try:
-    from cpiston import CPistonForce
+    from .cpiston import CPistonForce
     PistonForce = CPistonForce
 except ImportError:
-    print """
+    print("""
 You must compile the piston extension to use the C implementation of
 the piston force:
 
@@ -15,6 +15,6 @@ the piston force:
     python setup.py build_ext --inplace
 
 Defaulting to Python implementation.
-"""
+""")
     PistonForce = PyPistonForce
 

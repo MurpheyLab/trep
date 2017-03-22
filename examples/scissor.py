@@ -45,7 +45,7 @@ def simulate_system(system):
         t.append(mvi.t1) 
         # Print out progress during the simulation.
         if abs(mvi.t1 - round(mvi.t1)) < dt/2.0:
-            print "t =",mvi.t1
+            print("t =",mvi.t1)
 
     return (t, q)
 

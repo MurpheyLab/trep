@@ -143,7 +143,7 @@ while mvi.t1 < tf:
     q.append(mvi.q2)
     t.append(mvi.t2)
     if abs(mvi.t2 - round(mvi.t2)) < dt/2.0:
-        print "t =",mvi.t2
+        print("t =",mvi.t2)
 
 
 class PuppetVisual(visual.VisualItem3D):

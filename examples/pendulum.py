@@ -80,5 +80,5 @@ start = time.clock()
 finish = time.clock()
 
 # Display
-print "%d-link pendulum, dt=%f, tf=%f... runtime=%f s" % (links, dt, tf, finish-start)
+print("%d-link pendulum, dt=%f, tf=%f... runtime=%f s" % (links, dt, tf, finish-start))
 visual.visualize_3d([ visual.VisualItem3D(system, t, q) ])

@@ -71,5 +71,5 @@ dfdx = np.vstack([
 # And that's all.  The more general case includes force inputs and
 # kinematic inputs.  See the puppet-continuous-deriv.py for that.
 
-print "The continuous linearization is: "
-print dfdx
+print("The continuous linearization is: ")
+print(dfdx)
