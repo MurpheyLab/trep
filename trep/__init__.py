@@ -1,4 +1,4 @@
-from __version__ import __version__
+from .__version__ import __version__
 
 from . import _trep
 from ._trep import WORLD, TX, TY, TZ, RX, RY, RZ, CONST_SE3
@@ -27,4 +27,4 @@ from .util import get_include
 from . import potentials
 from . import constraints
 from . import forces
-        
+

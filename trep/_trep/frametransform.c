@@ -35,7 +35,7 @@ create_FrameTransform(PyObject *module, FrameTransform **dest, char *name)
     if (transform == NULL)
 	return 0;
 
-    transform->name = PyBytes_FromString(name);
+    transform->name = PyUnicode_FromString(name);
     if (transform->name == NULL)
     {
 	Py_DECREF(transform);

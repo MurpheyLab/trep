@@ -130,7 +130,7 @@ PyTypeObject PolyObjectType = {
 #ifndef PyMODINIT_FUNC	/* declarations for DLL import/export */
 #define PyMODINIT_FUNC void
 #endif
-PyMODINIT_FUNC PyInit_polyobject(void) 
+PyMODINIT_FUNC PyInit__polyobject(void)
 {
     PyObject* m;
 
