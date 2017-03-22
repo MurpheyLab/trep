@@ -124,8 +124,8 @@ static PyMemberDef members_list[] = {
 
 extern PyTypeObject PotentialType;
 PyTypeObject GravityPotentialType = {
-    PyObject_HEAD_INIT(NULL)
-    0,                         /*ob_size*/
+    PyVarObject_HEAD_INIT(NULL, 0)
+    /* 0,                         /\*ob_size*\/ */
     "_trep._GravityPotential", /*tp_name*/
     sizeof(GravityPotential),  /*tp_basicsize*/
     0,                         /*tp_itemsize*/

@@ -47,7 +47,8 @@ static double V_dqdqdq(ConfigSpringPotential *self, Config *q1, Config *q2, Conf
 static void dealloc(ConfigSpringPotential *self)
 {
     Py_CLEAR(self->config);
-    ((PyObject*)self)->ob_type->tp_free((PyObject*)self);
+    /* ((PyObject*)self)->ob_type->tp_free((PyObject*)self); */
+	Py_TYPE(((PyObject*)self))->tp_free((PyObject*)self);
 }
 
 static int init(ConfigSpringPotential *self, PyObject *args, PyObject *kwds)
@@ -77,8 +78,8 @@ static PyMemberDef members_list[] = {
 
 extern PyTypeObject PotentialType;
 PyTypeObject ConfigSpringPotentialType = {
-    PyObject_HEAD_INIT(NULL)
-    0,                         /*ob_size*/
+    PyVarObject_HEAD_INIT(NULL, 0)
+    /* 0,                         /\*ob_size*\/ */
     "_trep._ConfigSpringPotential", /*tp_name*/
     sizeof(ConfigSpringPotential),  /*tp_basicsize*/
     0,                         /*tp_itemsize*/

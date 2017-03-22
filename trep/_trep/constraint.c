@@ -21,7 +21,7 @@ static double python_h(Constraint *constraint)
     if(ret == NULL)
 	return NAN;
     if(!PyFloat_Check(ret)) {
-	PyErr_Format(PyExc_TypeError, "%s.h() returned non-float.", constraint->ob_type->tp_name);
+		PyErr_Format(PyExc_TypeError, "%s.h() returned non-float.", Py_TYPE(constraint)->tp_name);
 	Py_XDECREF(ret);
 	return NAN;
     }
@@ -39,7 +39,7 @@ static double python_h_dq(Constraint *constraint, Config *q1)
     if(ret == NULL)
 	return NAN;
     if(!PyFloat_Check(ret)) {
-	PyErr_Format(PyExc_TypeError, "%s.h_dq() returned non-float.", constraint->ob_type->tp_name);
+		PyErr_Format(PyExc_TypeError, "%s.h_dq() returned non-float.", Py_TYPE(constraint)->tp_name);
 	Py_XDECREF(ret);
 	return NAN;
     }
@@ -57,7 +57,7 @@ static double python_h_dqdq(Constraint *constraint, Config *q1, Config *q2)
     if(ret == NULL)
 	return NAN;
     if(!PyFloat_Check(ret)) {
-	PyErr_Format(PyExc_TypeError, "%s.h_dqdq() returned non-float.", constraint->ob_type->tp_name);
+		PyErr_Format(PyExc_TypeError, "%s.h_dqdq() returned non-float.", Py_TYPE(constraint)->tp_name);
 	Py_XDECREF(ret);
 	return NAN;
     }
@@ -75,7 +75,7 @@ static double python_h_dqdqdq(Constraint *constraint, Config *q1, Config *q2, Co
     if(ret == NULL)
 	return NAN;
     if(!PyFloat_Check(ret)) {
-	PyErr_Format(PyExc_TypeError, "%s.h_dqdqdq() returned non-float.", constraint->ob_type->tp_name);
+		PyErr_Format(PyExc_TypeError, "%s.h_dqdqdq() returned non-float.", Py_TYPE(constraint)->tp_name);
 	Py_XDECREF(ret);
 	return NAN;
     }
@@ -93,7 +93,7 @@ static double python_h_dqdqdqdq(Constraint *constraint, Config *q1, Config *q2, 
     if(ret == NULL)
 	return NAN;
     if(!PyFloat_Check(ret)) {
-	PyErr_Format(PyExc_TypeError, "%s.h_dqdqdqdq() returned non-float.", constraint->ob_type->tp_name);
+		PyErr_Format(PyExc_TypeError, "%s.h_dqdqdqdq() returned non-float.", Py_TYPE(constraint)->tp_name);
 	Py_XDECREF(ret);
 	return NAN;
     }
@@ -105,7 +105,8 @@ static double python_h_dqdqdqdq(Constraint *constraint, Config *q1, Config *q2, 
 static void dealloc(Constraint *self)
 {
     Py_CLEAR(self->system);
-    self->ob_type->tp_free((PyObject*)self);
+    /* self->ob_type->tp_free((PyObject*)self); */
+	Py_TYPE(self)->tp_free((PyObject*)self);
 }
 
 static int init(Constraint *self, PyObject *args, PyObject *kwds)
@@ -225,8 +226,8 @@ static PyMemberDef members_list[] = {
 
 
 PyTypeObject ConstraintType = {
-    PyObject_HEAD_INIT(NULL)
-    0,                         /*ob_size*/
+    PyVarObject_HEAD_INIT(NULL, 0)
+    /* 0,                         /\*ob_size*\/ */
     "_trep._Constraint",       /*tp_name*/
     sizeof(Constraint),        /*tp_basicsize*/
     0,                         /*tp_itemsize*/

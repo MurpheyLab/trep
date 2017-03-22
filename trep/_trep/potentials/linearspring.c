@@ -74,7 +74,8 @@ static void dealloc(LinearSpringPotential *self)
 {
     Py_CLEAR(self->frame1);
     Py_CLEAR(self->frame2);
-    ((PyObject*)self)->ob_type->tp_free((PyObject*)self);
+    /* ((PyObject*)self)->ob_type->tp_free((PyObject*)self); */
+	Py_TYPE(((PyObject*)self))->tp_free((PyObject*)self);
 }
 
 static int init(LinearSpringPotential *self, PyObject *args, PyObject *kwds)
@@ -102,8 +103,8 @@ static PyMemberDef members_list[] = {
 
 extern PyTypeObject PotentialType;
 PyTypeObject LinearSpringPotentialType = {
-    PyObject_HEAD_INIT(NULL)
-    0,                         /*ob_size*/
+    PyVarObject_HEAD_INIT(NULL, 0)
+    /* 0,                         /\*ob_size*\/ */
     "_trep._LinearSpringPotential",  /*tp_name*/
     sizeof(LinearSpringPotential),   /*tp_basicsize*/
     0,                         /*tp_itemsize*/

@@ -13,7 +13,7 @@ static double python_V(Potential *potential)
 	return NAN;
     if(!PyFloat_Check(ret)) {
 	PyErr_Format(PyExc_TypeError, "%s.V() returned non-float.",
-	    potential->ob_type->tp_name);
+				 Py_TYPE(potential)->tp_name);
 	Py_XDECREF(ret);
 	return NAN;
     }
@@ -32,7 +32,7 @@ static double python_V_dq(Potential *potential, Config *q1)
 	return NAN;
     if(!PyFloat_Check(ret)) {
 	PyErr_Format(PyExc_TypeError, "%s.V_dq() returned non-float.",
-	    potential->ob_type->tp_name);
+				 Py_TYPE(potential)->tp_name);
 	Py_XDECREF(ret);
 	return NAN;
     }
@@ -51,7 +51,7 @@ static double python_V_dqdq(Potential *potential, Config *q1, Config *q2)
 	return NAN;
     if(!PyFloat_Check(ret)) {
 	PyErr_Format(PyExc_TypeError, "%s.V_dqdq() returned non-float.",
-	    potential->ob_type->tp_name);
+				 Py_TYPE(potential)->tp_name);
 	Py_XDECREF(ret);
 	return NAN;
     }
@@ -70,7 +70,7 @@ static double python_V_dqdqdq(Potential *potential, Config *q1, Config *q2, Conf
 	return NAN;
     if(!PyFloat_Check(ret)) {
 	PyErr_Format(PyExc_TypeError, "%s.V_dqdqdq() returned non-float.",
-	    potential->ob_type->tp_name);
+				 Py_TYPE(potential)->tp_name);
 	Py_XDECREF(ret);
 	return NAN;
     }
@@ -82,7 +82,8 @@ static double python_V_dqdqdq(Potential *potential, Config *q1, Config *q2, Conf
 static void dealloc(Potential *self)
 {
     Py_CLEAR(self->system);
-    self->ob_type->tp_free((PyObject*)self);
+    /* self->ob_type->tp_free((PyObject*)self); */
+	Py_TYPE(self)->tp_free((PyObject*)self);
 }
 
 static int init(Potential *self, PyObject *args, PyObject *kwds)
@@ -174,8 +175,8 @@ static PyMemberDef members_list[] = {
 
 
 PyTypeObject PotentialType = {
-    PyObject_HEAD_INIT(NULL)
-    0,                         /*ob_size*/
+    PyVarObject_HEAD_INIT(NULL, 0)
+    /* 0,                         /\*ob_size*\/ */
     "_trep._Potential",       /*tp_name*/
     sizeof(Potential),        /*tp_basicsize*/
     0,                         /*tp_itemsize*/

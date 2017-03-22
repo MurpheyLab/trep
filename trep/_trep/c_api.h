@@ -697,8 +697,8 @@ static PyObject* export_trep(void)
     trep_API_def.API = trep_API;
     
     /* Create a Capsule containing the API pointer array's address */
-    //return PyCapsule_New((void *)&trep_API_def, "trep._C_API", NULL);
-    return PyCObject_FromVoidPtr((void *)&trep_API_def, NULL);
+    return PyCapsule_New((void *)&trep_API_def, "trep._C_API", NULL);
+    /* return PyCObject_FromVoidPtr((void *)&trep_API_def, NULL); */
 }
 
 

@@ -199,7 +199,8 @@ static void dealloc(DistanceConstraint *self)
     Py_CLEAR(self->frame1);
     Py_CLEAR(self->frame2);
     Py_CLEAR(self->config);
-    ((PyObject*)self)->ob_type->tp_free((PyObject*)self);
+    /* ((PyObject*)self)->ob_type->tp_free((PyObject*)self); */
+	Py_TYPE(((PyObject*)self))->tp_free((PyObject*)self);
 }
 
 static int init(DistanceConstraint *self, PyObject *args, PyObject *kwds)
@@ -226,8 +227,8 @@ static PyMemberDef members_list[] = {
 
 extern PyTypeObject ConstraintType;
 PyTypeObject DistanceConstraintType = {
-    PyObject_HEAD_INIT(NULL)
-    0,                         /*ob_size*/
+    PyVarObject_HEAD_INIT(NULL, 0)
+    /* 0,                         /\*ob_size*\/ */
     "_trep._DistanceConstraint",  /*tp_name*/
     sizeof(DistanceConstraint),   /*tp_basicsize*/
     0,                         /*tp_itemsize*/

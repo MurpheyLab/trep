@@ -35,7 +35,7 @@ create_FrameTransform(PyObject *module, FrameTransform **dest, char *name)
     if (transform == NULL)
 	return 0;
 
-    transform->name = PyString_FromString(name);
+    transform->name = PyBytes_FromString(name);
     if (transform->name == NULL)
     {
 	Py_DECREF(transform);
@@ -52,7 +52,8 @@ static void
 dealloc(FrameTransform *self)
 {
     Py_DECREF(self->name);
-    self->ob_type->tp_free((PyObject*)self);
+    /* self->ob_type->tp_free((PyObject*)self); */
+	Py_TYPE(self)->tp_free((PyObject*)self);
 }
 
 
@@ -65,8 +66,8 @@ repr(FrameTransform *self)
 
 
 PyTypeObject FrameTransformType = {
-    PyObject_HEAD_INIT(NULL)
-    0,                         /*ob_size*/
+    PyVarObject_HEAD_INIT(NULL, 0)
+    /* 0,                         /\*ob_size*\/ */
     "_trep.FrameTransform",    /*tp_name*/
     sizeof(FrameTransform),    /*tp_basicsize*/
     0,                         /*tp_itemsize*/

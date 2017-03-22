@@ -68,8 +68,8 @@ static PyMemberDef members_list[] = {
 
 extern PyTypeObject ForceType;
 PyTypeObject ConfigForceType = {
-    PyObject_HEAD_INIT(NULL)
-    0,                         /*ob_size*/
+    PyVarObject_HEAD_INIT(NULL, 0)
+    /* 0,                         /\*ob_size*\/ */
     "_trep._ConfigForce",  /*tp_name*/
     sizeof(ConfigForce),   /*tp_basicsize*/
     0,                         /*tp_itemsize*/

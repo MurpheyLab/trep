@@ -38,7 +38,8 @@ static double V_dqdqdq(TemplatePotential *self, Config *q1, Config *q2, Config *
 
 static void dealloc(TemplatePotential *self)
 {
-    ((PyObject*)self)->ob_type->tp_free((PyObject*)self);
+    /* ((PyObject*)self)->ob_type->tp_free((PyObject*)self); */
+	Py_TYPE(((PyObject*)self))->tp_free((PyObject*)self);
 }
 
 static int init(TemplatePotential *self, PyObject *args, PyObject *kwds)
@@ -67,8 +68,8 @@ static PyMemberDef members_list[] = {
 
 extern PyTypeObject PotentialType;
 PyTypeObject TemplatePotentialType = {
-    PyObject_HEAD_INIT(NULL)
-    0,                         /*ob_size*/
+    PyVarObject_HEAD_INIT(NULL, 0)
+    /* 0,                         /\*ob_size*\/ */
     "_trep._TemplatePotential", /*tp_name*/
     sizeof(TemplatePotential),  /*tp_basicsize*/
     0,                         /*tp_itemsize*/

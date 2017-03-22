@@ -67,7 +67,8 @@ static void dealloc(PointToPointConstraint *self)
 {
     Py_CLEAR(self->frame1);
     Py_CLEAR(self->frame2);
-    ((PyObject*)self)->ob_type->tp_free((PyObject*)self);
+    /* ((PyObject*)self)->ob_type->tp_free((PyObject*)self); */
+	Py_TYPE(((PyObject*)self))->tp_free((PyObject*)self);
 }
 
 static int init(PointToPointConstraint *self, PyObject *args, PyObject *kwds)
@@ -93,8 +94,8 @@ static PyMemberDef members_list[] = {
 
 extern PyTypeObject ConstraintType;
 PyTypeObject PointToPointConstraintType = {
-    PyObject_HEAD_INIT(NULL)
-    0,                         /*ob_size*/
+    PyVarObject_HEAD_INIT(NULL, 0)
+    /* 0,                         /\*ob_size*\/ */
     "_trep._PointToPointConstraint",  /*tp_name*/
     sizeof(PointToPointConstraint),   /*tp_basicsize*/
     0,                         /*tp_itemsize*/

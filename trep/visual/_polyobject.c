@@ -29,7 +29,8 @@ static void dealloc(PolyObject *self)
     Py_CLEAR(self->vertices);
     Py_CLEAR(self->normals);
     Py_CLEAR(self->triangles);
-    self->ob_type->tp_free((PyObject*)self);
+    /* self->ob_type->tp_free((PyObject*)self); */
+	Py_TYPE(self)->tp_free((PyObject*)self);
 }
 
 static int init(PolyObject *self, PyObject *args, PyObject *kwds)
@@ -83,8 +84,8 @@ static PyMemberDef members_list[] = {
 };
 
 PyTypeObject PolyObjectType = {
-    PyObject_HEAD_INIT(NULL)
-    0,                         /*ob_size*/
+    PyVarObject_HEAD_INIT(NULL, 0)
+    /* 0,                         /\*ob_size*\/ */
     "_polyobject._PolyObject", /*tp_name*/
     sizeof(PolyObject),        /*tp_basicsize*/
     0,                         /*tp_itemsize*/
@@ -129,20 +130,34 @@ PyTypeObject PolyObjectType = {
 #ifndef PyMODINIT_FUNC	/* declarations for DLL import/export */
 #define PyMODINIT_FUNC void
 #endif
-PyMODINIT_FUNC init_polyobject(void) 
+PyMODINIT_FUNC PyInit_polyobject(void) 
 {
     PyObject* m;
 
     import_array()
 
-    m = Py_InitModule3("_polyobject", NULL, "C back-end for drawing a triangle lists in OpenGL.");
+	static struct PyModuleDef moduledef = {
+		PyModuleDef_HEAD_INIT,
+		"_polyobject", /* m_name */
+		"C back-end for drawing a triangle lists in OpenGL.",      /* m_doc */
+		-1,                  /* m_size */
+		NULL,                /* m_methods */
+		NULL,                /* m_reload */
+		NULL,                /* m_traverse */
+		NULL,                /* m_clear */
+		NULL,                /* m_free */
+	};
+	m = PyModule_Create(&moduledef);
+    /* m = Py_InitModule3("_polyobject", NULL, "C back-end for drawing a triangle lists in OpenGL."); */
+
     if(m == NULL)
-      return;
+      return NULL;
     
     PolyObjectType.tp_new = PyType_GenericNew;
     if (PyType_Ready(&PolyObjectType) < 0)
-        return;
+        return NULL;
 
     Py_INCREF(&PolyObjectType);
-    PyModule_AddObject(m, "_PolyObject", (PyObject *)(&PolyObjectType));    
+    PyModule_AddObject(m, "_PolyObject", (PyObject *)(&PolyObjectType));
+	return m;
 }

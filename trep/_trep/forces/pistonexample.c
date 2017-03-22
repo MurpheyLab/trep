@@ -85,7 +85,8 @@ static void dealloc(PistonExampleForce *self)
     Py_CLEAR(self->piston);
     Py_CLEAR(self->crank_angle);
     Py_CLEAR(self->combustion_model);
-    ((PyObject*)self)->ob_type->tp_free((PyObject*)self);
+    /* ((PyObject*)self)->ob_type->tp_free((PyObject*)self); */
+	Py_TYPE(((PyObject*)self))->tp_free((PyObject*)self);
 }
 
 static int init(PistonExampleForce *self, PyObject *args, PyObject *kwds)
@@ -120,8 +121,8 @@ static PyMemberDef members_list[] = {
 
 extern PyTypeObject ForceType;
 PyTypeObject PistonExampleForceType = {
-    PyObject_HEAD_INIT(NULL)
-    0,                         /*ob_size*/
+    PyVarObject_HEAD_INIT(NULL, 0)
+    /* 0,                         /\*ob_size*\/ */
     "_trep._PistonExampleForce",  /*tp_name*/
     sizeof(PistonExampleForce),   /*tp_basicsize*/
     0,                         /*tp_itemsize*/

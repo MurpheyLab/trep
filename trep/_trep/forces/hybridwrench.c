@@ -225,7 +225,8 @@ static void dealloc(HybridWrenchForce *self)
     Py_CLEAR(self->frame);
     for(i = 0; i < 6; i++) 
         Py_CLEAR(self->wrench_var[i]);
-    ((PyObject*)self)->ob_type->tp_free((PyObject*)self);
+    /* ((PyObject*)self)->ob_type->tp_free((PyObject*)self); */
+	Py_TYPE(((PyObject*)self))->tp_free((PyObject*)self);
 }
 
 static int init(HybridWrenchForce *self, PyObject *args, PyObject *kwds)
@@ -265,8 +266,8 @@ static PyMemberDef members_list[] = {
 
 extern PyTypeObject ForceType;
 PyTypeObject HybridWrenchForceType = {
-    PyObject_HEAD_INIT(NULL)
-    0,                         /*ob_size*/
+    PyVarObject_HEAD_INIT(NULL, 0)
+    /* 0,                         /\*ob_size*\/ */
     "_trep._HybridWrenchForce",  /*tp_name*/
     sizeof(HybridWrenchForce),   /*tp_basicsize*/
     0,                         /*tp_itemsize*/

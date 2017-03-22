@@ -22,7 +22,7 @@ static double python_f(Force *self, Config *q)
     if(ret == NULL)
 	return NAN;
     if(!PyFloat_Check(ret)) {
-	PyErr_Format(PyExc_TypeError, "%s.f() returned non-float.", self->ob_type->tp_name);
+		PyErr_Format(PyExc_TypeError, "%s.f() returned non-float.", Py_TYPE(self)->tp_name);
 	Py_XDECREF(ret);
 	return NAN;
     }
@@ -40,7 +40,7 @@ static double python_f_dq(Force *self, Config *q, Config *q1)
     if(ret == NULL)
 	return NAN;
     if(!PyFloat_Check(ret)) {
-	PyErr_Format(PyExc_TypeError, "%s.f_dq() returned non-float.", self->ob_type->tp_name);
+		PyErr_Format(PyExc_TypeError, "%s.f_dq() returned non-float.", Py_TYPE(self)->tp_name);
 	Py_XDECREF(ret);
 	return NAN;
     }
@@ -58,7 +58,7 @@ static double python_f_ddq(Force *self, Config *q, Config *dq1)
     if(ret == NULL)
 	return NAN;
     if(!PyFloat_Check(ret)) {
-	PyErr_Format(PyExc_TypeError, "%s.f_ddq() returned non-float.", self->ob_type->tp_name);
+		PyErr_Format(PyExc_TypeError, "%s.f_ddq() returned non-float.", Py_TYPE(self)->tp_name);
 	Py_XDECREF(ret);
 	return NAN;
     }
@@ -76,7 +76,7 @@ static double python_f_du(Force *self, Config *q, Input *u1)
     if(ret == NULL)
 	return NAN;
     if(!PyFloat_Check(ret)) {
-	PyErr_Format(PyExc_TypeError, "%s.f_du() returned non-float.", self->ob_type->tp_name);
+		PyErr_Format(PyExc_TypeError, "%s.f_du() returned non-float.", Py_TYPE(self)->tp_name);
 	Py_XDECREF(ret);
 	return NAN;
     }
@@ -94,7 +94,7 @@ static double python_f_dqdq(Force *self, Config *q, Config *q1, Config *q2)
     if(ret == NULL)
 	return NAN;
     if(!PyFloat_Check(ret)) {
-	PyErr_Format(PyExc_TypeError, "%s.f_dqdq() returned non-float.", self->ob_type->tp_name);
+		PyErr_Format(PyExc_TypeError, "%s.f_dqdq() returned non-float.", Py_TYPE(self)->tp_name);
 	Py_XDECREF(ret);
 	return NAN;
     }
@@ -112,7 +112,7 @@ static double python_f_ddqdq(Force *self, Config *q, Config *dq1, Config *q2)
     if(ret == NULL)
 	return NAN;
     if(!PyFloat_Check(ret)) {
-	PyErr_Format(PyExc_TypeError, "%s.f_ddqdq() returned non-float.", self->ob_type->tp_name);
+		PyErr_Format(PyExc_TypeError, "%s.f_ddqdq() returned non-float.", Py_TYPE(self)->tp_name);
 	Py_XDECREF(ret);
 	return NAN;
     }
@@ -130,7 +130,7 @@ static double python_f_ddqddq(Force *self, Config *q, Config *dq1, Config *dq2)
     if(ret == NULL)
 	return NAN;
     if(!PyFloat_Check(ret)) {
-	PyErr_Format(PyExc_TypeError, "%s.f_ddqddq() returned non-float.", self->ob_type->tp_name);
+		PyErr_Format(PyExc_TypeError, "%s.f_ddqddq() returned non-float.", Py_TYPE(self)->tp_name);
 	Py_XDECREF(ret);
 	return NAN;
     }
@@ -148,7 +148,7 @@ static double python_f_dudq(Force *self, Config *q, Input *u1, Config *q2)
     if(ret == NULL)
 	return NAN;
     if(!PyFloat_Check(ret)) {
-	PyErr_Format(PyExc_TypeError, "%s.f_dudq() returned non-float.", self->ob_type->tp_name);
+		PyErr_Format(PyExc_TypeError, "%s.f_dudq() returned non-float.", Py_TYPE(self)->tp_name);
 	Py_XDECREF(ret);
 	return NAN;
     }
@@ -166,7 +166,7 @@ static double python_f_duddq(Force *self, Config *q, Input *u1, Config *dq2)
     if(ret == NULL)
 	return NAN;
     if(!PyFloat_Check(ret)) {
-	PyErr_Format(PyExc_TypeError, "%s.f_duddq() returned non-float.", self->ob_type->tp_name);
+		PyErr_Format(PyExc_TypeError, "%s.f_duddq() returned non-float.", Py_TYPE(self)->tp_name);
 	Py_XDECREF(ret);
 	return NAN;
     }
@@ -184,7 +184,7 @@ static double python_f_dudu(Force *self, Config *q, Input *u1, Input *u2)
     if(ret == NULL)
 	return NAN;
     if(!PyFloat_Check(ret)) {
-	PyErr_Format(PyExc_TypeError, "%s.f_dudu() returned non-float.", self->ob_type->tp_name);
+		PyErr_Format(PyExc_TypeError, "%s.f_dudu() returned non-float.", Py_TYPE(self)->tp_name);
 	Py_XDECREF(ret);
 	return NAN;
     }
@@ -196,7 +196,8 @@ static double python_f_dudu(Force *self, Config *q, Input *u1, Input *u2)
 static void dealloc(Force *self)
 {
     Py_CLEAR(self->system);
-    self->ob_type->tp_free((PyObject*)self);
+    /* self->ob_type->tp_free((PyObject*)self); */
+	Py_TYPE(self)->tp_free((PyObject*)self);
 }
 
 static int init(Force *self, PyObject *args, PyObject *kwds)
@@ -409,8 +410,8 @@ static PyMemberDef members_list[] = {
 };
 
 PyTypeObject ForceType = {
-    PyObject_HEAD_INIT(NULL)
-    0,                         /*ob_size*/
+    PyVarObject_HEAD_INIT(NULL, 0)
+    /* 0,                         /\*ob_size*\/ */
     "_trep._Force",            /*tp_name*/
     sizeof(Force),             /*tp_basicsize*/
     0,                         /*tp_itemsize*/

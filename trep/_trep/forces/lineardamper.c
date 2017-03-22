@@ -109,7 +109,8 @@ static double f_dudu(LinearDamperForce *self, Config *config, Input *u1, Input *
 static void dealloc(LinearDamperForce *self)
 {
     Py_CLEAR(self->path);
-    ((PyObject*)self)->ob_type->tp_free((PyObject*)self);
+    /* ((PyObject*)self)->ob_type->tp_free((PyObject*)self); */
+	Py_TYPE(((PyObject*)self))->tp_free((PyObject*)self);
 }
 
 static int init(LinearDamperForce *self, PyObject *args, PyObject *kwds)
@@ -138,8 +139,8 @@ static PyMemberDef members_list[] = {
 
 extern PyTypeObject ForceType;
 PyTypeObject LinearDamperForceType = {
-    PyObject_HEAD_INIT(NULL)
-    0,                         /*ob_size*/
+    PyVarObject_HEAD_INIT(NULL, 0)
+    /* 0,                         /\*ob_size*\/ */
     "_trep._LinearDamperForce",  /*tp_name*/
     sizeof(LinearDamperForce),   /*tp_basicsize*/
     0,                         /*tp_itemsize*/

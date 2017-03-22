@@ -52,7 +52,7 @@ static PyMethodDef CTrepMethods[] = {
 #ifndef PyMODINIT_FUNC	/* declarations for DLL import/export */
 #define PyMODINIT_FUNC void
 #endif
-PyMODINIT_FUNC init_trep(void) 
+PyMODINIT_FUNC PyInit_trep(void)
 {
     int i;
     PyObject *m;
@@ -95,15 +95,27 @@ PyMODINIT_FUNC init_trep(void)
         if(!custom_types[i].not_generic_new)
             custom_types[i].type->tp_new = PyType_GenericNew;
         if (PyType_Ready(custom_types[i].type) < 0)
-            return;
+            return NULL;
     }    
            
     // Initialize module
-    m = Py_InitModule3("_trep", CTrepMethods,
-                       "Example module that creates an extension type.");
+	static struct PyModuleDef moduledef = {
+		PyModuleDef_HEAD_INIT,
+		"_trep", /* m_name */
+		"Example module that creates an extension type.",      /* m_doc */
+		-1,                  /* m_size */
+		CTrepMethods,    /* m_methods */
+		NULL,                /* m_reload */
+		NULL,                /* m_traverse */
+		NULL,                /* m_clear */
+		NULL,                /* m_free */
+	};
+	m = PyModule_Create(&moduledef);
+    /* m = Py_InitModule3("_trep", CTrepMethods, */
+    /*                    "Example module that creates an extension type."); */
 
     if (m == NULL)
-      return;
+      return NULL;
 
     // Import Numpy array interface.
     import_array()
@@ -139,7 +151,7 @@ PyMODINIT_FUNC init_trep(void)
     PyModule_AddIntConstant(m, "SYSTEM_CACHE_DYNAMICS_DERIV2", SYSTEM_CACHE_DYNAMICS_DERIV2);
 
     // Create exceptions
-    ConvergenceError = PyErr_NewException("_trep.ConvergenceError", PyExc_StandardError, NULL);
+    ConvergenceError = PyErr_NewException("_trep.ConvergenceError", PyExc_RuntimeError, NULL);
     PyModule_AddObject(m, "ConvergenceError", ConvergenceError);
 
     // Publish the C API
@@ -147,5 +159,6 @@ PyMODINIT_FUNC init_trep(void)
     if (api != NULL)
         PyModule_AddObject(m, "_C_API", api);
 
+	return m;
 }
 

@@ -64,8 +64,8 @@ static PyMemberDef members_list[] = {
 
 extern PyTypeObject ForceType;
 PyTypeObject DampingForceType = {
-    PyObject_HEAD_INIT(NULL)
-    0,                         /*ob_size*/
+    PyVarObject_HEAD_INIT(NULL, 0)
+    /* 0,                         /\*ob_size*\/ */
     "_trep._DampingForce",  /*tp_name*/
     sizeof(DampingForce),   /*tp_basicsize*/
     0,                         /*tp_itemsize*/

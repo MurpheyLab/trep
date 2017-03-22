@@ -230,7 +230,8 @@ static void dealloc(TapeMeasure *self)
     Py_CLEAR(self->system);
     Py_CLEAR(self->frames);
     Py_CLEAR(self->seg_table);
-    self->ob_type->tp_free((PyObject*)self);
+    /* self->ob_type->tp_free((PyObject*)self); */
+	Py_TYPE(self)->tp_free((PyObject*)self);
 }
 
 static int init(TapeMeasure *self, PyObject *args, PyObject *kwds)
@@ -364,8 +365,8 @@ static PyMemberDef members_list[] = {
 };
 
 PyTypeObject TapeMeasureType = {
-    PyObject_HEAD_INIT(NULL)
-    0,                         /*ob_size*/
+    PyVarObject_HEAD_INIT(NULL, 0)
+    /* 0,                         /\*ob_size*\/ */
     "_trep._TapeMeasure",    /*tp_name*/
     sizeof(TapeMeasure),     /*tp_basicsize*/
     0,                         /*tp_itemsize*/

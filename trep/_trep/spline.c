@@ -65,7 +65,8 @@ static void dealloc(Spline *self)
     Py_CLEAR(self->x_points);
     Py_CLEAR(self->y_points);
     Py_CLEAR(self->coeffs);
-    self->ob_type->tp_free((PyObject*)self);
+    /* self->ob_type->tp_free((PyObject*)self); */
+	Py_TYPE(self)->tp_free((PyObject*)self);
 }
 
 static int init(Spline *self, PyObject *args, PyObject *kwds)
@@ -118,8 +119,8 @@ static PyMemberDef members_list[] = {
 };
 
 PyTypeObject SplineType = {
-    PyObject_HEAD_INIT(NULL)
-    0,                         /*ob_size*/
+    PyVarObject_HEAD_INIT(NULL, 0)
+    /* 0,                         /\*ob_size*\/ */
     "_trep._Spline",           /*tp_name*/
     sizeof(Spline),            /*tp_basicsize*/
     0,                         /*tp_itemsize*/

@@ -7,7 +7,8 @@ static void dealloc(Config *self)
 {
     Py_CLEAR(self->system);
     Py_CLEAR(self->masses);
-    self->ob_type->tp_free((PyObject*)self);
+    /* self->ob_type->tp_free((PyObject*)self); */
+	Py_TYPE(self)->tp_free((PyObject*)self);
 }
 
 static int init(Config *self, PyObject *args, PyObject *kwds)
@@ -36,8 +37,8 @@ static PyMemberDef members_list[] = {
 };
 
 PyTypeObject ConfigType = {
-    PyObject_HEAD_INIT(NULL)
-    0,                         /*ob_size*/
+    PyVarObject_HEAD_INIT(NULL, 0)
+    /* 0,                         /\*ob_size*\/ */
     "_trep._Config",           /*tp_name*/
     sizeof(Config),            /*tp_basicsize*/
     0,                         /*tp_itemsize*/

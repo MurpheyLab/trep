@@ -238,7 +238,8 @@ static void dealloc(PointOnPlaneConstraint *self)
 {
     Py_CLEAR(self->plane_frame);
     Py_CLEAR(self->point_frame);
-    ((PyObject*)self)->ob_type->tp_free((PyObject*)self);
+    /* ((PyObject*)self)->ob_type->tp_free((PyObject*)self); */
+	Py_TYPE(((PyObject*)self))->tp_free((PyObject*)self);
 }
 
 static int init(PointOnPlaneConstraint *self, PyObject *args, PyObject *kwds)
@@ -266,8 +267,8 @@ static PyMemberDef members_list[] = {
 
 extern PyTypeObject ConstraintType;
 PyTypeObject PointOnPlaneConstraintType = {
-    PyObject_HEAD_INIT(NULL)
-    0,                         /*ob_size*/
+    PyVarObject_HEAD_INIT(NULL, 0)
+    /* 0,                         /\*ob_size*\/ */
     "_trep._PointOnPlaneConstraint",  /*tp_name*/
     sizeof(PointOnPlaneConstraint),   /*tp_basicsize*/
     0,                         /*tp_itemsize*/

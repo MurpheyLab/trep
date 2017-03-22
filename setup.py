@@ -61,7 +61,7 @@ def update_version_file():
     except (GitDescribeError, IOError):
         pass
 
-    version = get_version()
+    version = get_version().decode("utf-8")
     f = open(convert_path("trep/__version__.py"), "wt")
     f.write(VERSION_PY % version)
     f.close()
@@ -105,9 +105,9 @@ def get_approx_version():
     # most recent tag and a '-dev' suffix if appropriate.  This is to
     # keep distutils from creating .eggs for every minor version
     # during development.
-    version = get_version()
+    version = get_version().decode("utf-8")
     if '-' in version:
-        version = version[:version.index('-')] + '.dev'
+        version = version[:version.index('-')] + '.dev0'
     return version
         
 

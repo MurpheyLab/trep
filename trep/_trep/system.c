@@ -2156,7 +2156,8 @@ static void dealloc(System *sys)
     Py_CLEAR(sys->M_dq);
     Py_CLEAR(sys->M_dqdq);
         
-    sys->ob_type->tp_free((PyObject*)sys);
+    /* sys->ob_type->tp_free((PyObject*)sys); */
+	Py_TYPE(sys)->tp_free((PyObject*)sys);
 }
 
 static int init(System *sys, PyObject *args, PyObject *kwds)
@@ -2425,8 +2426,8 @@ static PyMemberDef members_list[] = {
 };
 
 PyTypeObject SystemType = {
-    PyObject_HEAD_INIT(NULL)
-    0,                         /*ob_size*/
+    PyVarObject_HEAD_INIT(NULL, 0)
+    /* 0,                         /\*ob_size*\/ */
     "_trep._System",           /*tp_name*/
     sizeof(System),            /*tp_basicsize*/
     0,                         /*tp_itemsize*/

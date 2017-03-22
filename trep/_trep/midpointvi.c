@@ -1102,7 +1102,7 @@ static int MidpointVI_calc_deriv1(MidpointVI *mvi)
     if(mvi->cache & MIDPOINTVI_CACHE_SOLUTION_DERIV1)
 	return 0;
     if(!(mvi->cache & MIDPOINTVI_CACHE_SOLUTION)) {
-	PyErr_Format(PyExc_StandardError, "Integrator has not solved of the next time step yet.");
+	PyErr_Format(PyExc_AssertionError, "Integrator has not solved of the next time step yet.");
 	return -1;
     }
     MidpointVI_set_state(mvi, 1);
@@ -2653,7 +2653,8 @@ static void dealloc(MidpointVI *mvi)
     Py_CLEAR(mvi->dp2_dk2_op);
     
     mvi_kill_threading(mvi);
-    mvi->ob_type->tp_free((PyObject*)mvi);
+    /* mvi->ob_type->tp_free((PyObject*)mvi); */
+	Py_TYPE(mvi)->tp_free((PyObject*)mvi);
 }
 
 static int init(MidpointVI *mvi, PyObject *args, PyObject *kwds)
@@ -2738,7 +2739,7 @@ static PyObject *solve_DEL(MidpointVI *mvi, PyObject *args)
     CALLGRIND_STOP_INSTRUMENTATION;
     if(steps == -1)
 	return NULL;
-    return PyInt_FromLong(steps);
+    return PyLong_FromLong(steps);
 }
 
 static PyObject *set_num_threads(MidpointVI *mvi, PyObject *args)
@@ -2879,8 +2880,8 @@ static PyMemberDef members_list[] = {
 };
 
 PyTypeObject MidpointVIType = {
-    PyObject_HEAD_INIT(NULL)
-    0,                         /* ob_size */
+    PyVarObject_HEAD_INIT(NULL, 0)
+    /* 0,                         /\* ob_size *\/ */
     "_trep._MidpointVI",      /* tp_name */
     sizeof(MidpointVI),       /* tp_basicsize */
     0,                         /* tp_itemsize */
