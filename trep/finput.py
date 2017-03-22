@@ -1,5 +1,5 @@
 import trep
-from _trep import _Input
+from ._trep import _Input
 
 class Input(_Input):
     """

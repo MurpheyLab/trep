@@ -1,5 +1,5 @@
 import inspect
-import _trep
+from . import _trep
 
 def dynamics_indexing_decorator(type_string):
     ## This is a decorator for the dynamic functions in System and
@@ -92,7 +92,7 @@ def dynamics_indexing_decorator(type_string):
         src += "    return convert_args(%s)" % ','.join(spec.args)
 
         context = {'func' : func, 'convert_args' : convert_args}
-        exec src in context
+        exec(src, context)
 
         wrapper = context[func.__name__]
         wrapper.__dict__ = func.__dict__

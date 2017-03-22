@@ -1,5 +1,5 @@
 import trep
-from _trep import _Config
+from ._trep import _Config
 
 class Config(_Config):
     """

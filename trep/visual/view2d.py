@@ -81,7 +81,7 @@ class View2D(QWidget):
 
         time = self.scene().time()
 
-        for item in self.scene().items():
+        for item in list(self.scene().items()):
             item.setTime(time)
             item.draw(painter)
 

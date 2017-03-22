@@ -1,2 +1,2 @@
 
-from puppets import *
+from .puppets import *

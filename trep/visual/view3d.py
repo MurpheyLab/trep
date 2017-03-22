@@ -193,7 +193,7 @@ class View3D(QGLWidget):
         
     def keyPressEvent(self, event):
         if not event.isAutoRepeat():
-            for key,info in self.MOVEMENT_KEYS.iteritems():
+            for key,info in self.MOVEMENT_KEYS.items():
                 if event.key() == key:
                     self._moving[info[0]] = info[1]
                     self.startMoving()
@@ -204,7 +204,7 @@ class View3D(QGLWidget):
 
     def keyReleaseEvent(self, event):
         if not event.isAutoRepeat():
-            for key,info in self.MOVEMENT_KEYS.iteritems():
+            for key,info in self.MOVEMENT_KEYS.items():
                 if event.key() == key and self._moving[info[0]] == info[1]:
                     self._moving[info[0]] = 0
                     self.stopMoving()
@@ -277,7 +277,7 @@ class View3D(QGLWidget):
 
         # Draw the system
         time = self.scene().time()
-        for item in self.scene().items():
+        for item in list(self.scene().items()):
             item.setTime(time)
             glPushMatrix()
             item.draw()

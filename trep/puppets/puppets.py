@@ -144,14 +144,14 @@ DEFAULT_JOINTS = {
 
 def fill_dimensions(dimensions={}):
     dim = dimensions.copy()
-    for (key, default) in DEFAULT_DIMENSIONS.iteritems():
+    for (key, default) in DEFAULT_DIMENSIONS.items():
         if key not in dim:
             dim[key] = default
     return dim
 
 def fill_joints(joints={}):
     joints = joints.copy()
-    for (key, default) in DEFAULT_JOINTS.iteritems():
+    for (key, default) in DEFAULT_JOINTS.items():
         if key not in joints:
             joints[key] = default
     return joints
@@ -261,7 +261,7 @@ class Puppet(trep.System):
 
         # Add the string hook frames
         self.string_hooks = {}    
-        for name, hook_location in self.dimensions['strings'].iteritems():
+        for name, hook_location in self.dimensions['strings'].items():
             self.string_hooks[name] = name + '_hook'
             self.get_frame(hook_location[0]).import_frames([
                 const_txyz(hook_location[1], name=self.string_hooks[name])])
@@ -274,7 +274,7 @@ class Puppet(trep.System):
             
 
     def make_string_forces(self):
-        for name, hook_point in self.string_hooks.iteritems():
+        for name, hook_point in self.string_hooks.items():
             force = {
                 'name' : name,
                 'x' : name + '-x',
@@ -289,7 +289,7 @@ class Puppet(trep.System):
 
 
     def make_string_constraints(self):
-        for name, hook_point in self.string_hooks.iteritems():
+        for name, hook_point in self.string_hooks.items():
             info = {
                 'name' : name,
                 'x' : name + '-x',            # Name of X kinematic config variable
@@ -320,7 +320,7 @@ class Puppet(trep.System):
         a list of string names to only project some strings.
         """
         if strings is None:
-            infos = self.string_constraints.values()
+            infos = list(self.string_constraints.values())
         else:
             infos = [self.string_constraints[name] for name in strings]
         
@@ -342,7 +342,7 @@ class Puppet(trep.System):
         a list of string names to only project some strings.
         """
         if strings is None:
-            infos = self.string_constraints.values()
+            infos = list(self.string_constraints.values())
         else:
             infos = [self.string_constraints[name] for name in strings]
         
@@ -623,7 +623,7 @@ if __name__ == '__main__':
         # The puppet can take a while to simulate, so print out the time
         # occasionally to indicate our progress.
         if abs(gmvi.t2 - round(gmvi.t2)) < dt/2.0:
-            print "t =",gmvi.t2
+            print("t =",gmvi.t2)
 
 
     visualize_3d([PuppetVisual(puppet, t, q)])

@@ -1,7 +1,7 @@
 import trep
-import _trep
-from _trep import _Frame
-from config import Config
+from . import _trep
+from ._trep import _Frame
+from .config import Config
 import numpy as np
 import numpy.linalg
 import inspect
@@ -98,7 +98,7 @@ def check_and_sort_configs(fail_value, skip_sort=0):
         src += "    return check_and_sort(%s)" % ','.join(spec.args)
 
         context = {'func' : func, 'check_and_sort' : check_and_sort}
-        exec src in context
+        exec(src, context)
 
         wrapper = context[func.__name__]
         wrapper.__dict__ = func.__dict__
@@ -157,7 +157,7 @@ class Frame(_Frame):
             
             self.set_SE3(param[0], param[1], param[2], param[3])
         else:
-            raise StandardError('Unknown frame transform: %r' % transform)
+            raise Exception('Unknown frame transform: %r' % transform)
 
         self.set_mass(mass)
 
@@ -344,7 +344,7 @@ class Frame(_Frame):
             Iyy = mass[2]
             Izz = mass[3]
             mass = mass[0]
-        except TypeError, e:
+        except TypeError as e:
             pass
         # Convert to floats here so we don't get an exception in the
         # middle of changing the system.

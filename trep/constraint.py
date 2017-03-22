@@ -1,6 +1,6 @@
 import trep
-import _trep
-from _trep import _Constraint
+from . import _trep
+from ._trep import _Constraint
 from itertools import product
 
 class Constraint(_Constraint):

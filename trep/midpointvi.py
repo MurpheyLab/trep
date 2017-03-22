@@ -1,11 +1,11 @@
 import trep
 import multiprocessing
-import _trep
-from _trep import _MidpointVI
+from . import _trep
+from ._trep import _MidpointVI
 import numpy as np
 import numpy.linalg
 
-from util import dynamics_indexing_decorator
+from .util import dynamics_indexing_decorator
 
 Py_DEBUG = False
 try:
@@ -27,11 +27,11 @@ class MidpointVI(_MidpointVI):
         self._structure_updated()
 
         if num_threads is None and Py_DEBUG:
-            print """
+            print("""
             GMVI: Detected debug build, disabling multithreading by
             default.  Use gmvi._set_num_threads(num_threads) to enable
             multithreading.
-            """
+            """)
         else:
             if num_threads is None:
                 num_threads = multiprocessing.cpu_count()

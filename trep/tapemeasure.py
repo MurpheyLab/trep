@@ -1,6 +1,6 @@
 from itertools import product
 import trep
-from _trep import _TapeMeasure
+from ._trep import _TapeMeasure
 import numpy as np
 
 try:

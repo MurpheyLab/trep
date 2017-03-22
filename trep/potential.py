@@ -1,6 +1,6 @@
 import trep
-import _trep
-from _trep import _Potential
+from . import _trep
+from ._trep import _Potential
 import numpy as np
 from itertools import product
 

@@ -3,7 +3,7 @@ import datetime
 import numpy as np
 
 import trep
-import dlqr
+from . import dlqr
 
 import numpy.linalg
 from numpy import dot
@@ -119,7 +119,7 @@ class DOptimizerDefaultMonitor(DOptimizerMonitor):
             timestamp = time.strftime("+[%H:%M:%S]",time.gmtime(delta.seconds))            
         else:
             timestamp = datetime.datetime.now().strftime('[%H:%M:%S]')
-        print "%s %3d: %s" % (timestamp, self.iteration, msg)
+        print("%s %3d: %s" % (timestamp, self.iteration, msg))
 
     def optimize_begin(self, X, U):
         self.cost_history = {}
@@ -128,7 +128,7 @@ class DOptimizerDefaultMonitor(DOptimizerMonitor):
 
 
     def optimize_end(self, converged, X, U, cost):
-        print ""
+        print("")
         self.start_time = None
 
 
@@ -308,7 +308,7 @@ class DOptimizer(object):
         R = [None]*(len(X)-1)
 
         Q[-1] = self.cost.m_dxdx(X[-1])
-        for k in reversed(range(len(X)-1)):
+        for k in reversed(list(range(len(X)-1))):
             Q[k] = self.cost.l_dxdx(X[k], U[k], k)
             S[k] = self.cost.l_dxdu(X[k], U[k], k)
             R[k] = self.cost.l_dudu(X[k], U[k], k)
@@ -328,7 +328,7 @@ class DOptimizer(object):
 
         z = self.cost.m_dx(X[-1])
         Q[-1] = self.cost.m_dxdx(X[-1])
-        for k in reversed(range(len(X)-1)):
+        for k in reversed(list(range(len(X)-1))):
             Q[k] = self.cost.l_dxdx(X[k], U[k], k)
             S[k] = self.cost.l_dxdu(X[k], U[k], k)
             R[k] = self.cost.l_dudu(X[k], U[k], k)
@@ -364,7 +364,7 @@ class DOptimizer(object):
         # terms.
         q = np.zeros(X.shape)
         r = np.zeros(U.shape)
-        for k in xrange(len(X)-1):
+        for k in range(len(X)-1):
             q[k] = self.cost.l_dx(X[k], U[k], k)
             r[k] = self.cost.l_du(X[k], U[k], k)
         q[-1] = self.cost.m_dx(X[-1])
@@ -378,7 +378,7 @@ class DOptimizer(object):
         elif method == 'newton':
             (Q,R,S) = self.calc_newton_model(X, U, A, B, Kproj)
         else:
-            raise StandardError("Invalid descent direction method: %r" % method)
+            raise Exception("Invalid descent direction method: %r" % method)
 
         (K,C,P,b) = dlqr.solve_tv_lq(A, B, q, r, Q, S, R)
 
@@ -395,7 +395,7 @@ class DOptimizer(object):
         dX = np.zeros(X.shape)
         dU = np.zeros(U.shape)
         dX[0] = dx0
-        for k in xrange(len(X)-1):
+        for k in range(len(X)-1):
             dU[k] = -dot(K[k],dX[k]) - C[k] 
             dX[k+1] = dot(A[k],dX[k]) + dot(B[k],dU[k])
             
@@ -534,7 +534,7 @@ class DOptimizer(object):
             return 'steepest'
         else:
             # This should never occur
-            raise StandardError("Derivative of cost is positive for steepest descent.")
+            raise Exception("Derivative of cost is positive for steepest descent.")
 
             
     def optimize(self, X, U, max_steps=50):
@@ -571,7 +571,7 @@ class DOptimizer(object):
         Create a descent direction plot at X,U for the specified method.
         """
         if not pyplot_available:
-            raise StandardError("Importing matplotlib failed. Cannot create plot.")
+            raise Exception("Importing matplotlib failed. Cannot create plot.")
 
         (Kproj, dX, dU, Q, R, S) = self.calc_descent_direction(X, U, method)
 

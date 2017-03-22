@@ -1,6 +1,6 @@
 import trep
 import numpy as np
-import dlqr
+from . import dlqr
 from numpy import dot
 from collections import namedtuple
 
@@ -153,7 +153,7 @@ class DSystem(object):
                     string += "  %s: None\n" % name
                 else:
                     string += "  %s: %r, shape=%r\n" % (name, type(Q), np.array(value, copy=False).shape)
-            raise StandardError(string)
+            raise Exception(string)
 
         # Check the lengths for consistency
         if Q is not None and len(Q) != len(self._time):
@@ -415,7 +415,7 @@ class DSystem(object):
         # versatile.
         A = np.zeros((len(X)-1, self.nX, self.nX))
         B = np.zeros((len(X)-1, self.nX, self.nU))
-        for k in xrange(len(X)-1):
+        for k in range(len(X)-1):
             self.set(X[k], U[k], k,
                      xk_hint=X[k+1])
             A[k] = self.fdx()
@@ -465,7 +465,7 @@ class DSystem(object):
         dX = np.zeros(bdX.shape)
         dU = np.zeros(bdU.shape)
         dX[0] = bdX[0]
-        for k in xrange(len(bdX)-1):
+        for k in range(len(bdX)-1):
             dU[k] = bdU[k] - dot(K[k], dX[k] - bdX[k])
             dX[k+1] = dot(A[k],dX[k]) + dot(B[k],dU[k])
         return self.tangent_trajectory_return(dX, dU)
@@ -523,14 +523,14 @@ class DSystem(object):
         u_map = build_map(dsys_a.system.inputs, self.system.inputs)
 
         if len(q_map) != 0:
-            q_b[:, q_map.keys()] = q_a[:, q_map.values()]
+            q_b[:, list(q_map.keys())] = q_a[:, list(q_map.values())]
         if len(d_map) != 0:
-            p_b[:, d_map.keys()] = p_a[:, d_map.values()]
+            p_b[:, list(d_map.keys())] = p_a[:, list(d_map.values())]
         if len(u_map) != 0:
-            mu_b[:, u_map.keys()] = mu_a[:, u_map.values()]
+            mu_b[:, list(u_map.keys())] = mu_a[:, list(u_map.values())]
         if len(k_map) != 0:
-            v_b[:, k_map.keys()] = v_a[:, k_map.values()]
-            rho_b[:, k_map.keys()] = rho_a[:, k_map.values()]
+            v_b[:, list(k_map.keys())] = v_a[:, list(k_map.values())]
+            rho_b[:, list(k_map.keys())] = rho_a[:, list(k_map.values())]
 
         return self.build_trajectory(q_b, p_b, v_b, mu_b, rho_b)        
 

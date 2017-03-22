@@ -48,7 +48,7 @@ class _PyPolyObject(object):
 try:
     from _polyobject import _PolyObject
 except:
-    print "C _polyobject not found.  Using Python implementation instead."
+    print("C _polyobject not found.  Using Python implementation instead.")
     _PolyObject = _PyPolyObject
 
 

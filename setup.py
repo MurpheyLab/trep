@@ -67,7 +67,7 @@ def update_version_file():
     f.close()
     return version
 
-class GitDescribeError(StandardError): pass
+class GitDescribeError(Exception): pass
 
 
 def get_version_from_git():
@@ -85,7 +85,7 @@ def get_version_from_git():
 
 def get_version_from_file():
     glob = {'__builtins__' : __builtins__ }
-    execfile('trep/__version__.py', glob)
+    exec(compile(open('trep/__version__.py').read(), 'trep/__version__.py', 'exec'), glob)
     return glob['__version__']
 
 
@@ -124,7 +124,7 @@ try:
     cmd_class['build_sphinx'] = BuildDoc
     # See docstring for BuildDoc on how to set default options here.
 except ImportError:
-    print "Note: Sphinx must be installed to build documentation"
+    print("Note: Sphinx must be installed to build documentation")
 
 ext_modules = []
 

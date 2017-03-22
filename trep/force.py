@@ -1,6 +1,6 @@
 import trep
-import _trep
-from _trep import _Force
+from . import _trep
+from ._trep import _Force
 import numpy as np
 
 class Force(_Force):

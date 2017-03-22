@@ -1,5 +1,5 @@
 from OpenGL.GL import *
-from polyobject import PolyObject
+from .polyobject import PolyObject
 import numpy as np
 import struct
 
@@ -76,7 +76,7 @@ class stlmodel(PolyObject):
         normals = np.zeros((count*3, 3), np.double)
         triangles = np.zeros((count, 3), np.int)
 
-        for i in xrange(count):
+        for i in range(count):
             norm = struct.unpack('<fff', src.read(12))
             vert1 = np.array(struct.unpack('<fff', src.read(12)))
             vert2 = np.array(struct.unpack('<fff', src.read(12)))

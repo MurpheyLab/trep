@@ -1,5 +1,5 @@
 import trep
-from _trep import _Spline
+from ._trep import _Spline
 import numpy as np
 import numpy.linalg
 
@@ -25,11 +25,11 @@ class Spline(_Spline):
                 constraints += 1
         
         if ddy[0] is None and constraints < 2:
-            print "Spline: Not enough constraints - Assuming initial second derivative is zero"
+            print("Spline: Not enough constraints - Assuming initial second derivative is zero")
             ddy[0] = 0.0
             constraints += 1
         if ddy[-1] is None and constraints < 2:
-            print "Spline: Not enough constraints - Assuming final second derivative is zero"
+            print("Spline: Not enough constraints - Assuming final second derivative is zero")
             ddy[-1] = 0.0
             constraints += 1
 

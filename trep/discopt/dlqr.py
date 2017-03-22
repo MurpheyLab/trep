@@ -26,7 +26,7 @@ def solve_tv_lqr(A, B, Q, R):
     K = [None]*(kf)
     P = Q(kf)
 
-    for k in reversed(range(kf)):
+    for k in reversed(list(range(kf))):
         gamma = R(k) + dot(dot(B[k].T, P),B[k])
         K_part = dot(B[k].T,dot(P,A[k])) # See lq function for explanation of this
         K[k] = np.linalg.solve(gamma, K_part)
@@ -64,7 +64,7 @@ def solve_tv_lq(A, B, q, r, Q, S, R):
     P = Q(kf)
     b = q[kf]
 
-    for k in reversed(range(kf)):
+    for k in reversed(list(range(kf))):
         gamma = R(k) + dot(dot(B[k].T,P),B[k])
         gamma_lu = sp.linalg.lu_factor(gamma, True)
 

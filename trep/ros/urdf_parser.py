@@ -125,7 +125,7 @@ def add_child_frame(parent_name, parent_frame, links, joints, prefix):
             
             # No match for joint type
             else:
-                print "Invalid joint type specified. Exiting..."
+                print("Invalid joint type specified. Exiting...")
                 break
             
             # add mass to child link

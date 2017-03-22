@@ -5,10 +5,10 @@ from scipy.interpolate import interp1d
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
-from timelinewidget import TimeLineWidget
-from visualscene import VisualScene
-from view2d import View2D
-from view3d import View3D
+from .timelinewidget import TimeLineWidget
+from .visualscene import VisualScene
+from .view2d import View2D
+from .view3d import View3D
 
 
 class BasicViewer(QMainWindow):

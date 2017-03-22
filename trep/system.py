@@ -8,16 +8,16 @@ import scipy.io
 from itertools import product
 
 import trep
-import _trep
-from _trep import _System
-from frame import Frame
-from finput import Input
-from config import Config
-from force import Force
-from constraint import Constraint
-from potential import Potential
+from . import _trep
+from ._trep import _System
+from .frame import Frame
+from .finput import Input
+from .config import Config
+from .force import Force
+from .constraint import Constraint
+from .potential import Potential
 
-from util import dynamics_indexing_decorator
+from .util import dynamics_indexing_decorator
 
 class System(_System):
     """
@@ -196,11 +196,11 @@ class System(_System):
             return 2*(q-q0)
 
         def f_eqcons(q):
-            self.q = dict(zip(names,q))
+            self.q = dict(list(zip(names,q)))
             return np.array([c.h() for c in self.constraints])
 
         def fprime_eqcons(q):
-            self.q = dict(zip(names,q))
+            self.q = dict(list(zip(names,q)))
             return np.array([[c.h_dq(self.get_config(q)) for q in names] for c in self.constraints])
 
         (q_opt, fx, its, imode, smode) = sp.optimize.fmin_slsqp(func, q0, f_eqcons=f_eqcons,
@@ -208,8 +208,8 @@ class System(_System):
                                                                 acc=tolerance, iter=100*self.nQ,
                                                                 iprint=0, full_output=True)
         if imode != 0:
-            raise StandardError("Minimization failed: %s" % smode)
-        self.q = dict(zip(names,q_opt))
+            raise Exception("Minimization failed: %s" % smode)
+        self.q = dict(list(zip(names,q_opt)))
         return self.q
 
     def minimize_potential_energy(self, tolerance=1e-10, verbose=False,
@@ -248,18 +248,18 @@ class System(_System):
 
 
         def func(q):
-            self.q = dict(zip(names,q))
+            self.q = dict(list(zip(names,q)))
             return -self.L()
 
         def fprime(q):
             return [-self.L_dq(self.get_config(name)) for name in names]
 
         def f_eqcons(q):
-            self.q = dict(zip(names,q))
+            self.q = dict(list(zip(names,q)))
             return np.array([c.h() for c in self.constraints])
 
         def fprime_eqcons(q):
-            self.q = dict(zip(names,q))
+            self.q = dict(list(zip(names,q)))
             return np.array([[c.h_dq(self.get_config(q)) for q in names] for c in self.constraints])
 
         (q_opt, fx, its, imode, smode) = sp.optimize.fmin_slsqp(func, q0, f_eqcons=f_eqcons,
@@ -267,8 +267,8 @@ class System(_System):
                                                                 acc=tolerance, iter=100*self.nQ,
                                                                 iprint=0, full_output=True)
         if imode != 0:
-            raise StandardError("Minimization failed: %s" % smode)
-        self.q = dict(zip(names,q_opt))
+            raise Exception("Minimization failed: %s" % smode)
+        self.q = dict(list(zip(names,q_opt)))
         return self.q
 
 
@@ -318,7 +318,7 @@ class System(_System):
             for q in self.configs:
                 q.q = value
         elif isinstance(value, dict):
-            for name, v in value.iteritems():
+            for name, v in value.items():
                 self.get_config(name).q = v
         else:
             for q,v in zip(self.configs, value):
@@ -337,7 +337,7 @@ class System(_System):
             for q in self.configs:
                 q.dq = value
         elif isinstance(value, dict):
-            for name, v in value.iteritems():
+            for name, v in value.items():
                 self.get_config(name).dq = v
         else:
             for q,v in zip(self.configs, value):
@@ -355,7 +355,7 @@ class System(_System):
             for q in self.configs:
                 q.ddq = value
         elif isinstance(value, dict):
-            for name, v in value.iteritems():
+            for name, v in value.items():
                 self.get_config(name).ddq = v
         else:
             for q,v in zip(self.configs, value):
@@ -374,7 +374,7 @@ class System(_System):
             for q in self.dyn_configs:
                 q.q = value
         elif isinstance(value, dict):
-            for name, v in value.iteritems():
+            for name, v in value.items():
                 self.get_config(name).q = v
         else:
             for q,v in zip(self.dyn_configs, value):
@@ -393,7 +393,7 @@ class System(_System):
             for q in self.dyn_configs:
                 q.dq = value
         elif isinstance(value, dict):
-            for name, v in value.iteritems():
+            for name, v in value.items():
                 self.get_config(name).dq = v
         else:
             for q,v in zip(self.dyn_configs, value):
@@ -412,7 +412,7 @@ class System(_System):
             for q in self.dyn_configs:
                 q.ddq = value
         elif isinstance(value, dict):
-            for name, v in value.iteritems():
+            for name, v in value.items():
                 self.get_config(name).ddq = v
         else:
             for q,v in zip(self.dyn_configs, value):
@@ -431,7 +431,7 @@ class System(_System):
             for q in self.kin_configs:
                 q.q = value
         elif isinstance(value, dict):
-            for name, v in value.iteritems():
+            for name, v in value.items():
                 self.get_config(name).q = v
         else:
             for q,v in zip(self.kin_configs, value):
@@ -450,7 +450,7 @@ class System(_System):
             for q in self.kin_configs:
                 q.dq = value
         elif isinstance(value, dict):
-            for name, v in value.iteritems():
+            for name, v in value.items():
                 self.get_config(name).dq = v
         else:
             for q,v in zip(self.kin_configs, value):
@@ -469,7 +469,7 @@ class System(_System):
             for q in self.kin_configs:
                 q.ddq = value
         elif isinstance(value, dict):
-            for name, v in value.iteritems():
+            for name, v in value.items():
                 self.get_config(name).ddq = v
         else:
             for q,v in zip(self.kin_configs, value):
@@ -488,7 +488,7 @@ class System(_System):
             for u in self.inputs:
                 u.u = value
         elif isinstance(value, dict):
-            for name, v in value.iteritems():
+            for name, v in value.items():
                 self.get_input(name).u = v
         else:
             for u,v in zip(self.inputs, value):
@@ -663,7 +663,7 @@ class System(_System):
         not guarantee that the structure will be immediately upated.
         """
         if self._hold_structure_changes == 0:
-            raise StandardError("System.resume_structure_changes() called" \
+            raise Exception("System.resume_structure_changes() called" \
                                 " when _hold_structure_changes is 0")
         self._hold_structure_changes -= 1
         if self._hold_structure_changes == 0:
@@ -1120,16 +1120,16 @@ class System(_System):
             if math.isnan(error) or error > tolerance:
                 tests_failed += 1
                 if verbose:
-                    print "Test '%s' failed for dq derivative of '%s'." % (test_name, q)
-                    print "  Error: %f > %f" % (error, tolerance)
-                    print "  Approx dy: %s" % dy_approx
-                    print "   Exact dy: %s" % dy_exact
+                    print("Test '%s' failed for dq derivative of '%s'." % (test_name, q))
+                    print("  Error: %f > %f" % (error, tolerance))
+                    print("  Approx dy: %s" % dy_approx)
+                    print("   Exact dy: %s" % dy_exact)
 
         if verbose:
             if tests_failed == 0:
-                print "%d tests passing." % tests_total
+                print("%d tests passing." % tests_total)
             else:
-                print "%d/%d tests FAILED.  <#######" % (tests_failed, tests_total)
+                print("%d/%d tests FAILED.  <#######" % (tests_failed, tests_total))
 
         # Reset configuration
         self.q = q0
@@ -1186,16 +1186,16 @@ class System(_System):
             if math.isnan(error) or error > tolerance:
                 tests_failed += 1
                 if verbose:
-                    print "Test '%s' failed for dq derivative of '%s'." % (test_name, q)
-                    print "  Error: %f > %f" % (error, tolerance)
-                    print "  Approx dy: %f" % dy_approx
-                    print "   Exact dy: %f" % dy_exact
+                    print("Test '%s' failed for dq derivative of '%s'." % (test_name, q))
+                    print("  Error: %f > %f" % (error, tolerance))
+                    print("  Approx dy: %f" % dy_approx)
+                    print("   Exact dy: %f" % dy_exact)
 
         if verbose:
             if tests_failed == 0:
-                print "%d tests passing." % tests_total
+                print("%d tests passing." % tests_total)
             else:
-                print "%d/%d tests FAILED.  <#######" % (tests_failed, tests_total)
+                print("%d/%d tests FAILED.  <#######" % (tests_failed, tests_total))
 
         # Reset velocity
         self.dq = dq0
