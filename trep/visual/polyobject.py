@@ -35,8 +35,8 @@ class _PyPolyObject(object):
             
         glBegin(GL_TRIANGLES)
         for triangle in self._triangles:
-            for index in triangle:            
-                if self._normals is not None:                
+            for index in triangle:
+                if self._normals is not None:
                     glNormal3dv(self._normals[index])
                 glVertex3dv(self._vertices[index])
         glEnd()
@@ -46,7 +46,7 @@ class _PyPolyObject(object):
             self._compiled = True
 
 try:
-    from _polyobject import _PolyObject
+    from ._polyobject import _PolyObject
 except:
     print("C _polyobject not found.  Using Python implementation instead.")
     _PolyObject = _PyPolyObject
