@@ -18,7 +18,7 @@ class HybridWrench(_HybridWrenchForce, Force):
         self._frame = None
         self._wrench_vars = (None,)*6
         self._wrench_cons = (0.0, )*6
-        
+
         if not system.get_frame(frame):
             raise ValueError("Could not find frame %r" % frame)
         self._frame = system.get_frame(frame)
@@ -100,7 +100,7 @@ class HybridWrench(_HybridWrenchForce, Force):
 
     if _opengl:
         def opengl_draw(self):
-            glPushMatrix()        
+            glPushMatrix()
             mat = np.zeros((4,4))
             mat[0,0] = 1.0
             mat[1,1] = 1.0

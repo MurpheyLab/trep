@@ -17,7 +17,7 @@ class BodyWrench(_BodyWrenchForce, Force):
         self._frame = None
         self._wrench_vars = (None,)*6
         self._wrench_cons = (0.0, )*6
-        
+
         if not system.get_frame(frame):
             raise ValueError("Could not find frame %r" % frame)
         self._frame = system.get_frame(frame)
@@ -78,17 +78,17 @@ class BodyWrench(_BodyWrenchForce, Force):
 
     @property
     def wrench_val(self):
-        return [V.q if V else C for (V,C) in zip(self._wrench_vars, self._wrench_cons)]
+        return [V.u if V else C for (V,C) in zip(self._wrench_vars, self._wrench_cons)]
 
     @wrench_val.setter
     def wrench_val(self, wrench):
         for i,v in enumerate(wrench[:6]):
             if self._wrench_vars[i]:
-                self._wrench_vars[i].q = v
+                self._wrench_vars[i].u = v
             else:
                 self._wrench_cons[i] = v
 
-    @property 
+    @property
     def frame(self):
         return self._frame
 
@@ -101,7 +101,7 @@ class BodyWrench(_BodyWrenchForce, Force):
             glDisable(GL_LIGHTING)
             glBegin(GL_LINES)
             glVertex3f(0.0, 0.0, 0.0)
-            glVertex3f(float(self.wrench[0]), float(self.wrench[1]), float(self.wrench[2]))
+            glVertex3f(float(self.wrench_val[0]), float(self.wrench_val[1]), float(self.wrench_val[2]))
             glEnd()
             glPopAttrib()
             glPopMatrix()

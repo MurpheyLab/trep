@@ -26,7 +26,7 @@ class VisualItem(object):
             self._q_interp = None
 
         if len(self._u):
-            self._u_interp = interp1d(self._time[:-1], self._u, axis=0)
+            self._u_interp = interp1d(self._time, self._u, axis=0)
         else:
             self._u_interp = None
             

@@ -18,7 +18,7 @@ class SpatialWrench(_SpatialWrenchForce, Force):
         self._frame = None
         self._wrench_vars = (None,)*6
         self._wrench_cons = (0.0, )*6
-        
+
         if not system.get_frame(frame):
             raise ValueError("Could not find frame %r" % frame)
         self._frame = system.get_frame(frame)
@@ -51,7 +51,7 @@ class SpatialWrench(_SpatialWrenchForce, Force):
         self._wrench_var4 = vars[4]
         self._wrench_var5 = vars[5]
     _wrench_vars = property(_get_wrench_vars, _set_wrench_vars)
-        
+
     def _get_wrench_cons(self):
         return (self._wrench_con0,
                 self._wrench_con1,
@@ -59,6 +59,7 @@ class SpatialWrench(_SpatialWrenchForce, Force):
                 self._wrench_con3,
                 self._wrench_con4,
                 self._wrench_con5)
+
     def _set_wrench_cons(self, cons):
         self._wrench_con0 = cons[0]
         self._wrench_con1 = cons[1]
@@ -67,17 +68,18 @@ class SpatialWrench(_SpatialWrenchForce, Force):
         self._wrench_con4 = cons[4]
         self._wrench_con5 = cons[5]
     _wrench_cons = property(_get_wrench_cons, _set_wrench_cons)
-                    
+
     def get_wrench(self):
         return [V if V else C for (V,C) in zip(self._wrench_vars, self._wrench_cons)]
     wrench = property(get_wrench)
 
     def get_wrench_val(self):
-        return [V.q if V else C for (V,C) in zip(self._wrench_vars, self._wrench_cons)]
+        return [V.u if V else C for (V,C) in zip(self._wrench_vars, self._wrench_cons)]
+
     def set_wrench_val(self, wrench):
         for i,v in enumerate(wrench[:6]):
             if self._wrench_vars[i]:
-                self._wrench_vars[i].q = v
+                self._wrench_vars[i].u = v
             else:
                 self._wrench_cons[i] = v
     wrench_val = property(get_wrench_val, set_wrench_val)
@@ -87,7 +89,7 @@ class SpatialWrench(_SpatialWrenchForce, Force):
 
     if _opengl:
         def opengl_draw(self):
-            glPushMatrix()        
+            glPushMatrix()
             mat = np.zeros((4,4))
             mat[0,0] = 1.0
             mat[1,1] = 1.0
@@ -102,7 +104,7 @@ class SpatialWrench(_SpatialWrenchForce, Force):
             glDisable(GL_LIGHTING)
             glBegin(GL_LINES)
             glVertex3f(0.0, 0.0, 0.0)
-            glVertex3f(self.wrench[0], self.wrench[1], self.wrench[2])
+            glVertex3f(self.wrench_val[0], self.wrench_val[1], self.wrench_val[2])
             glEnd()
             glPopAttrib()
             glPopMatrix()
