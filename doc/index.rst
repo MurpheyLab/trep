@@ -58,7 +58,7 @@ If you have any questions or suggestions, please head over to our
    tutorial/linearFeedbackController
    tutorial/energyShapingSwingupController
    tutorial/optimalSwitchingTime
-
+   user_guide/varint_intro
 
 Indices and tables
 ==================

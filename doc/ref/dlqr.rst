@@ -175,7 +175,7 @@ where:
 and :math:`P(k)`, :math:`b(k)`, and :math:`c(k)` are solutions to
 backwards difference equations:
 
-.. math:: 
+.. math::
 
   \begin{align*}
       P(k_f) &= Q(k_f) 
@@ -183,12 +183,14 @@ backwards difference equations:
       P(k) &= Q(k) + A^T(k)P(k+1)A(k) - \mathcal{K}^T(k)\Gamma(k)\mathcal{K}(k)
   \end{align*}
 
+.. math::
   \begin{align*}
       b(k_f) &= q(k_f)
       \\
       b(k) &= \left[A^T(k) - \mathcal{K}^T(k)B^T(k) \right]b(k+1) + q(k) - \mathcal{K}^T(k)r(k)
   \end{align*} 
 
+.. math::
   \begin{align*}
       c(k_f) &= 0
       \\

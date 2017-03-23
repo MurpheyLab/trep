@@ -46,9 +46,10 @@ Length and Velocity Calculations
    to take advantage of the fact that many of these terms are zero,
    significantly reducing the amount of calculation to do.
 
-   See the :ref:`internal documentation <internal_ref_TapeMeasure>`
-   on :class:`TapeMeasure` for more details about the implementation
-   and for the equations to calculate the derivatives.
+   ..
+	  See the :ref:`internal documentation <internal_ref_TapeMeasure>`
+	  on :class:`TapeMeasure` for more details about the implementation
+	  and for the equations to calculate the derivatives.
     
    .. warning::
 

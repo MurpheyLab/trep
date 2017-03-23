@@ -29,9 +29,10 @@ able to satisfy the specified values.  Specifying derivatives directly
 is much more effective than placing several points infinitesimally
 close to force the curve into a particular shape.
 
-See the :ref:`internal documentation <internal_ref_Spline>` on
-:class:`Spline` for more details about the implementation and how the
-interpolating polynomials are found.
+..
+   See the :ref:`internal documentation <internal_ref_Spline>` on
+   :class:`Spline` for more details about the implementation and how the
+   interpolating polynomials are found.
 
 
 Spline Objects
