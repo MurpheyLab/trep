@@ -1,6 +1,11 @@
 Trep Changelog
 ==============
 
+v1.0.3 (2017-10-03)
+-------------------
+* Fixed TypeError when visualizing external wrench [#34](https://github.com/MurpheyLab/trep/issues/34)
+* Cleaned up a few documentation building errors
+
 v1.0.2 (2015-09-25)
 -------------------
 * Renamed src/ folder to trep/ following convention [#33](https://github.com/MurpheyLab/trep/issues/33)
