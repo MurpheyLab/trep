@@ -71,7 +71,6 @@ multiple copies of the same code.
 
 .. literalinclude:: ./code_snippets/optimalSwitchingTime.py
     :pyobject: simulateForward
-    :end-before: # Optimize
     :emphasize-lines: 30,46
 
 The choice of which controller to use within the simulation function is decided

@@ -29,9 +29,9 @@ thing that must be done to implement the energy contoller is calculate the
 reference energy and pick a positive gain value.
 
 .. literalinclude:: ./code_snippets/energyShapingSwingupController.py
-    :start-after: # Design energy shaping swing-up controller
+    :start-after: KStabilize = KVec[0]
     :end-before: # Simulate the system forward
-    :emphasize-lines: 20
+    :emphasize-lines: 4
 
 This is done by setting the system to the desired state and using the
 :mod:`trep.System.total_energy` method to get the desired energy level, which is
